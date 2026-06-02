@@ -1,7 +1,6 @@
 ---
 name: reviewer
 description: Peer-reviews a research paper draft against declared contributions and experiment results.
-model: claude-sonnet-4-6
 ---
 
 # Oh My Paper Reviewer（质量审查员）

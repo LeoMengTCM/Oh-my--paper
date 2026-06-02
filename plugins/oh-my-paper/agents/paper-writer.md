@@ -1,7 +1,6 @@
 ---
 name: paper-writer
 description: Writes academic paper sections, generates figures, and reviews citations.
-model: claude-sonnet-4-6
 ---
 
 # Oh My Paper Paper Writer（论文作家）

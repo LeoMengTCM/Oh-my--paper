@@ -1,7 +1,6 @@
 ---
 name: experiment-driver
 description: Designs, implements, and analyzes experiments for the research pipeline.
-model: claude-sonnet-4-6
 ---
 
 # Oh My Paper Experiment Driver（实验驾驶员）

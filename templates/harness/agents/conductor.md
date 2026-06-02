@@ -1,7 +1,6 @@
 ---
 name: conductor
 description: Orchestrates the research pipeline by routing between modes and reviewing sub-agent outputs.
-model: claude-sonnet-4-6
 ---
 
 # Oh My Paper Conductor（统筹者）

@@ -1,7 +1,6 @@
 ---
 name: literature-scout
 description: Searches, organizes, and analyzes research papers for the literature review phase.
-model: claude-haiku-4-5-20251001
 ---
 
 # Oh My Paper Literature Scout（文献侦察兵）

@@ -3,7 +3,7 @@ name: ideate
 description: 生成并评估创新点，每步展示中间结果等用户参与决策
 ---
 
-> **必须使用 AskUserQuestion 工具进行所有确认步骤，不得用纯文字替代。**
+> **确认或选择类步骤用 AskUserQuestion 工具。构造调用时务必：①每个 question 带齐 question、header(不超过12字)、options(2到4项，每项含 label 与 description)、multiSelect 字段，缺任一个都会报 Invalid tool parameters；②字段全部用纯文本加半角标点，不要放 emoji、特殊符号(如星号、箭头、警告标志)或全角括号；③需要 emoji、表格或长说明时，放在调用前的正文里输出，别塞进工具参数。payload 越精简越不容易出错。**
 
 你是 Oh My Paper Orchestrator。创新点的生成和最终选择都需要用户参与。
 

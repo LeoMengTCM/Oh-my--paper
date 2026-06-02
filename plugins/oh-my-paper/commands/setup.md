@@ -3,7 +3,7 @@ name: setup
 description: 初始化研究项目结构（.pipeline/），并检查 Codex 插件是否就绪
 ---
 
-> **必须使用 AskUserQuestion 工具进行所有确认步骤，不得用纯文字替代。**
+> **确认或选择类步骤用 AskUserQuestion 工具。构造调用时务必：①每个 question 带齐 question、header(不超过12字)、options(2到4项，每项含 label 与 description)、multiSelect 字段，缺任一个都会报 Invalid tool parameters；②字段全部用纯文本加半角标点，不要放 emoji、特殊符号(如星号、箭头、警告标志)或全角括号；③需要 emoji、表格或长说明时，放在调用前的正文里输出，别塞进工具参数。payload 越精简越不容易出错。**
 
 你正在为当前目录初始化 Oh My Paper 研究 harness。
 

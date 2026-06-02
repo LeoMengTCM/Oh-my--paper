@@ -68,6 +68,8 @@ async function main() {
   lines.push("- `直接告诉我要做什么` — 跳过角色选择");
   lines.push("");
   lines.push("用户选择后，读取对应角色的记忆文件，以该角色身份开始工作。");
+  lines.push("");
+  lines.push("构造 AskUserQuestion 调用时，务必带齐 question、header、options、multiSelect 字段，每个 option 含 label 与 description，且全部用纯文本加半角标点、不放 emoji 或特殊符号——否则会报 Invalid tool parameters。");
 
   const output = lines.join("\n");
 

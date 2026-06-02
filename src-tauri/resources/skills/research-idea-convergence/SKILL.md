@@ -67,7 +67,7 @@ Read all available survey outputs to understand the research landscape:
 | File | Purpose |
 |------|---------|
 | `.pipeline/docs/research_brief.json` | Research topic, goal, target venue |
-| `.viewerleaf/research/Survey/reports/*.md` | Literature screening, gap summary |
+| `survey/*.md` | Literature screening, gap summary |
 | `.pipeline/tasks/tasks.json` | Current task states and progress |
 
 Extract:
@@ -157,7 +157,7 @@ Produce **2-4 candidate research directions**. For each candidate, provide:
 
 1. **写入 publishable_angle.md**
    ```
-   路径: .viewerleaf/research/Ideation/publishable_angle.md
+   路径: ideation/publishable_angle.md
    ```
    包含：选定方向的完整描述、用户的修改意见（如有）、对标基线、预期贡献
 

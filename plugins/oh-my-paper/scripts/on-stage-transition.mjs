@@ -9,7 +9,10 @@ import path from "node:path";
 const PROJECT = process.cwd();
 
 async function main() {
-  const toolInput = JSON.parse(process.env.CLAUDE_TOOL_INPUT || "{}");
+  // PostToolUse hook 的数据通过 stdin 的 JSON 传入（不存在 CLAUDE_TOOL_INPUT 环境变量）
+  const stdin = await readStdin();
+  let toolInput = {};
+  try { toolInput = JSON.parse(stdin).tool_input || {}; } catch { return; }
   const filePath = toolInput.file_path || toolInput.path || "";
   if (!filePath.includes("tasks.json")) return;
 
@@ -34,7 +37,7 @@ async function main() {
   await fs.mkdir(path.dirname(statePath), { recursive: true });
   await fs.appendFile(
     statePath,
-    `\n⚠️ [${ts}] 阶段 '${currentStage}' 所有任务已完成，请运行 /vl:plan 评审并决定是否推进。\n`,
+    `\n⚠️ [${ts}] 阶段 '${currentStage}' 所有任务已完成，请运行 /omp:plan 评审并决定是否推进。\n`,
     "utf8"
   );
 
@@ -45,6 +48,13 @@ async function main() {
     JSON.stringify({ type: "stage-complete", stage: currentStage, timestamp: Date.now() }),
     "utf8"
   );
+}
+
+async function readStdin() {
+  if (process.stdin.isTTY) return "";
+  const chunks = [];
+  for await (const chunk of process.stdin) chunks.push(chunk);
+  return Buffer.concat(chunks).toString("utf8");
 }
 
 main().catch(() => process.exit(0));

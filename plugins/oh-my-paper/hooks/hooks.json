@@ -1,5 +1,5 @@
 {
-  "description": "ViewerLeaf research harness hooks: session context injection and task completion tracking.",
+  "description": "Oh My Paper research harness hooks: session context injection and task completion tracking.",
   "hooks": {
     "SessionStart": [
       {

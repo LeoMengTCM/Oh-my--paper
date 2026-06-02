@@ -53,28 +53,7 @@ mkdir -p .pipeline/memory .pipeline/tasks .pipeline/docs .pipeline/.hook-events 
 cp -rn "${CLAUDE_PLUGIN_ROOT}/skills/." .claude/skills/
 ```
 
-注册 SessionStart hook（让每次开启 Claude Code 时自动弹出角色选择）：
-
-```bash
-node -e "
-const fs = require('fs');
-const path = require('path');
-const f = path.join('.claude', 'settings.json');
-const s = fs.existsSync(f) ? JSON.parse(fs.readFileSync(f,'utf8')) : {};
-if (!s.hooks) s.hooks = {};
-if (!s.hooks.SessionStart) s.hooks.SessionStart = [];
-const cmd = 'node \"\${CLAUDE_PLUGIN_ROOT}/scripts/on-session-start.mjs\"';
-const already = s.hooks.SessionStart.some(h =>
-  Array.isArray(h.hooks) && h.hooks.some(hh => (hh.command||'').includes('on-session-start'))
-);
-if (!already) {
-  s.hooks.SessionStart.push({ matcher: '', hooks: [{ type: 'command', command: cmd }] });
-  fs.mkdirSync('.claude', { recursive: true });
-  fs.writeFileSync(f, JSON.stringify(s, null, 2));
-  console.log('hook registered');
-} else { console.log('hook already registered'); }
-"
-```
+> **关于 hooks**：SessionStart / Stop / PostToolUse 三个 hook 已由插件自带的 `hooks/hooks.json` 提供，**插件启用即生效，无需在项目里重复注册**。（早期版本曾在这一步手动把 SessionStart 写进 `.claude/settings.json`，与插件自带的那份重复、会导致每次开会话角色选择触发两次，现已移除。）
 
 ## 第四步：写入初始文件
 

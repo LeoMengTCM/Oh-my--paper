@@ -32,11 +32,25 @@
 
 ```bash
 # 在 Claude Code 里：
-/plugin marketplace add LigphiDonk/Oh-my--paper
+/plugin marketplace add LeoMengTCM/Oh-my--paper
 /plugin install omp@oh-my-paper
 ```
 
 重启 Claude Code，在你的科研项目里运行 `/omp:setup`，然后用 `/omp:survey`、`/omp:experiment`、`/omp:write` 驱动整个科研流程。不需要 GUI，不需要切窗口，所有事情都在终端里完成。
+
+---
+
+## 关于这个分支
+
+这是 **[LigphiDonk/Oh-my--paper](https://github.com/LigphiDonk/Oh-my--paper)**（已停更的原始上游）的个人维护分支。项目的版权与功劳归原作者；本文档里的安装命令指向本分支（`LeoMengTCM/Oh-my--paper`）。
+
+**相对上游的本地改动：**
+
+- 合并社区 PR #7–#10（Codex skill 加载 + 符号链接 `dereference`、agent/命令 YAML frontmatter、research-news 前置说明）。
+- 去掉 agent 的 `model` 锁定——子 agent 继承当前会话模型，不再被钉死在 sonnet/haiku。
+- 修复失效的 `PostToolUse` hook：`scripts/on-stage-transition.mjs` 改为从 stdin JSON 读取工具输入（`CLAUDE_TOOL_INPUT` 环境变量并不存在）；修正残留的 `/vl:plan` → `/omp:plan`；移除 `setup.md` 里重复的 SessionStart 注册；清理 ViewerLeaf 时代命名。
+- 强化命令提示词里的 AskUserQuestion 调用规范，降低 `Invalid tool parameters` 报错（必填字段带齐、参数用纯文本）。
+- 把文献 OCR（`literature-pdf-ocr-library`）重写为当前的 **PaddleOCR-VL 异步 job API**（建任务 → 轮询 → 下载 Markdown），替换旧的同步端点。
 
 ---
 
@@ -81,7 +95,7 @@ Oh My Paper 让 Claude Code **理解科研**，提供：
 ### 第一步：添加 marketplace
 
 ```bash
-/plugin marketplace add LigphiDonk/Oh-my--paper
+/plugin marketplace add LeoMengTCM/Oh-my--paper
 ```
 
 ### 第二步：安装插件
@@ -124,7 +138,7 @@ cp -r /path/to/oh-my-paper/plugins/oh-my-paper/. \
 ### 从本地目录安装
 
 ```bash
-git clone https://github.com/LigphiDonk/Oh-my--paper.git /tmp/oh-my-paper
+git clone https://github.com/LeoMengTCM/Oh-my--paper.git /tmp/oh-my-paper
 # 在 Claude Code 里：
 /plugin marketplace add /tmp/oh-my-paper
 /plugin install omp@oh-my-paper
@@ -345,7 +359,7 @@ Conductor 可以把代码和实验任务交给 Codex 执行：
 
 ```bash
 # 第一步：添加 marketplace
-/plugin marketplace add LigphiDonk/Oh-my--paper
+/plugin marketplace add LeoMengTCM/Oh-my--paper
 
 # 第二步：安装插件
 /plugin install omp@oh-my-paper
@@ -395,7 +409,7 @@ Oh My Paper 同时提供 **Codex 插件**（`oh-my-paper-codex`），共享同�
 
 ```bash
 # 1. 克隆仓库
-git clone https://github.com/LigphiDonk/Oh-my--paper.git /tmp/oh-my-paper
+git clone https://github.com/LeoMengTCM/Oh-my--paper.git /tmp/oh-my-paper
 cd /tmp/oh-my-paper
 
 # 2. 一键安装
@@ -406,7 +420,7 @@ cd /tmp/oh-my-paper
 
 ```powershell
 # 1. 克隆仓库
-git clone https://github.com/LigphiDonk/Oh-my--paper.git $env:TEMP\oh-my-paper
+git clone https://github.com/LeoMengTCM/Oh-my--paper.git $env:TEMP\oh-my-paper
 Set-Location $env:TEMP\oh-my-paper
 
 # 2. 一键安装

@@ -32,11 +32,25 @@
 
 ```bash
 # In Claude Code:
-/plugin marketplace add LigphiDonk/Oh-my--paper
+/plugin marketplace add LeoMengTCM/Oh-my--paper
 /plugin install omp@oh-my-paper
 ```
 
 Restart Claude Code. Run `/omp:setup` inside your research project, then drive the full pipeline with `/omp:survey`, `/omp:experiment`, and `/omp:write`. No GUI, no window-switching — everything in the terminal.
+
+---
+
+## This Fork
+
+This is a personal maintenance fork of **[LigphiDonk/Oh-my--paper](https://github.com/LigphiDonk/Oh-my--paper)** (the original, now-unmaintained upstream). All credit for the project goes to the original author; the install commands in this README point to this fork (`LeoMengTCM/Oh-my--paper`).
+
+**Local changes vs upstream:**
+
+- Merged community PRs #7–#10 (Codex skill loading + symlink `dereference`, agent/command YAML frontmatter, research-news prerequisite note).
+- Removed agent `model` pins — sub-agents inherit the current session model instead of being locked to sonnet/haiku.
+- Fixed a dead `PostToolUse` hook: `scripts/on-stage-transition.mjs` now reads tool input from stdin JSON (the `CLAUDE_TOOL_INPUT` env var does not exist); fixed stale `/vl:plan` → `/omp:plan`; removed the duplicate SessionStart registration in `setup.md`; cleaned up ViewerLeaf-era naming.
+- Hardened AskUserQuestion guidance in the command prompts to reduce `Invalid tool parameters` errors (always include required fields; keep params plain text).
+- Rewrote the literature OCR (`literature-pdf-ocr-library`) to the current **PaddleOCR-VL async job API** (submit → poll → download Markdown), replacing the old synchronous endpoint.
 
 ---
 
@@ -81,7 +95,7 @@ Install it and forget about it. Your sessions get smarter. Your research gets or
 ### Step 1: Add the marketplace
 
 ```bash
-/plugin marketplace add LigphiDonk/Oh-my--paper
+/plugin marketplace add LeoMengTCM/Oh-my--paper
 ```
 
 ### Step 2: Install the plugin
@@ -124,7 +138,7 @@ cp -r /path/to/oh-my-paper/plugins/oh-my-paper/. \
 ### Install from Local Directory
 
 ```bash
-git clone https://github.com/LigphiDonk/Oh-my--paper.git /tmp/oh-my-paper
+git clone https://github.com/LeoMengTCM/Oh-my--paper.git /tmp/oh-my-paper
 # In Claude Code:
 /plugin marketplace add /tmp/oh-my-paper
 /plugin install omp@oh-my-paper
@@ -344,7 +358,7 @@ If you're an AI agent installing this plugin:
 
 ```bash
 # Step 1: Add marketplace
-/plugin marketplace add LigphiDonk/Oh-my--paper
+/plugin marketplace add LeoMengTCM/Oh-my--paper
 
 # Step 2: Install plugin
 /plugin install omp@oh-my-paper
@@ -394,7 +408,7 @@ Oh My Paper also ships a **Codex plugin** (`oh-my-paper-codex`) that shares the 
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/LigphiDonk/Oh-my--paper.git /tmp/oh-my-paper
+git clone https://github.com/LeoMengTCM/Oh-my--paper.git /tmp/oh-my-paper
 cd /tmp/oh-my-paper
 
 # 2. One-command install
@@ -405,7 +419,7 @@ cd /tmp/oh-my-paper
 
 ```powershell
 # 1. Clone the repo
-git clone https://github.com/LigphiDonk/Oh-my--paper.git $env:TEMP\oh-my-paper
+git clone https://github.com/LeoMengTCM/Oh-my--paper.git $env:TEMP\oh-my-paper
 Set-Location $env:TEMP\oh-my-paper
 
 # 2. One-command install

@@ -69,7 +69,9 @@ python .claude/skills/literature-pdf-ocr-library/scripts/search_and_download_pap
   --limit 20 --sources arxiv semanticscholar openalex hf_daily \
   --download-pdfs
 
-# OCR: PaddleOCR API (best quality)
+# OCR: PaddleOCR-VL async API (best quality). Submits a job, polls until done, downloads Markdown.
+# Default endpoint: https://paddleocr.aistudio-app.com/api/v2/ocr/jobs  (override with PADDLEOCR_API_URL)
+# PADDLEOCR_TOKEN is an AI Studio bearer token. Optional: --model (default PaddleOCR-VL-1.6) / PADDLEOCR_MODEL.
 export PADDLEOCR_TOKEN="<token>"  # ask user, never hardcode
 python .claude/skills/literature-pdf-ocr-library/scripts/paddleocr_layout_to_markdown.py \
   .pipeline/literature/my-corpus/papers/*/paper.pdf \

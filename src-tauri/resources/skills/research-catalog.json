@@ -1,9 +1,9 @@
 {
   "schema": "viewerleaf-research-catalog-v1",
-  "generatedAt": "2026-03-20T05:23:15.888Z",
+  "generatedAt": "2026-06-07T08:52:37.804Z",
   "upstream": {
-    "repo": "dr-claw",
-    "revision": "8322dc4ef575affaa374aa7922c0a0971c6db7d7"
+    "repo": "Oh-my--paper",
+    "revision": "296e5ca4a6bcc5ffbf93c7c84a39ee615e6811e1"
   },
   "skills": [
     {
@@ -48,11 +48,6 @@
       ],
       "source": "builtin",
       "status": "verified",
-      "upstream": {
-        "repo": "dr-claw",
-        "path": "skills/academic-researcher",
-        "revision": "8322dc4ef575affaa374aa7922c0a0971c6db7d7"
-      },
       "resourceFlags": {
         "hasReferences": false,
         "hasScripts": false,
@@ -63,13 +58,50 @@
         "templateCount": 0,
         "assetCount": 0,
         "optionalScripts": false
-      },
-      "legacy": {
-        "dirPath": "academic-researcher",
-        "skillFile": "skills/academic-researcher/SKILL.md",
-        "topLevelGroup": "Standalone",
-        "collection": "Survey",
-        "domain": "cs"
+      }
+    },
+    {
+      "id": "bioinformatics-init-analysis",
+      "name": "bioinformatics-init-analysis",
+      "version": "1.0.0",
+      "description": "# bioinformatics-init-analysis",
+      "summary": "# bioinformatics-init-analysis",
+      "stages": [
+        "experiment"
+      ],
+      "tools": [
+        "read_file",
+        "search_project",
+        "write_file",
+        "run_terminal"
+      ],
+      "primaryIntent": "research",
+      "intents": [
+        "research"
+      ],
+      "capabilities": [
+        "research-planning",
+        "data-processing"
+      ],
+      "domains": [
+        "bioinformatics"
+      ],
+      "keywords": [
+        "bioinformatics-init-analysis",
+        "experiment"
+      ],
+      "source": "builtin",
+      "status": "verified",
+      "resourceFlags": {
+        "hasReferences": true,
+        "hasScripts": true,
+        "hasTemplates": false,
+        "hasAssets": false,
+        "referenceCount": 4,
+        "scriptCount": 10,
+        "templateCount": 0,
+        "assetCount": 0,
+        "optionalScripts": true
       }
     },
     {
@@ -117,11 +149,6 @@
       ],
       "source": "builtin",
       "status": "verified",
-      "upstream": {
-        "repo": "dr-claw",
-        "path": "skills/biorxiv-database",
-        "revision": "8322dc4ef575affaa374aa7922c0a0971c6db7d7"
-      },
       "resourceFlags": {
         "hasReferences": true,
         "hasScripts": true,
@@ -132,64 +159,89 @@
         "templateCount": 0,
         "assetCount": 0,
         "optionalScripts": true
-      },
-      "legacy": {
-        "dirPath": "biorxiv-database",
-        "skillFile": "skills/biorxiv-database/SKILL.md",
-        "topLevelGroup": "Standalone",
-        "collection": "Resource Prep",
-        "domain": "q-bio"
       }
     },
     {
-      "id": "bioinformatics-init-analysis",
-      "name": "bioinformatics-init-analysis",
+      "id": "claude-code-dispatch",
+      "name": "claude-code-dispatch",
       "version": "1.0.0",
-      "description": "# bioinformatics-init-analysis",
-      "summary": "# bioinformatics-init-analysis",
+      "description": "Delegate complex coding tasks to Claude Code CLI",
+      "summary": "Delegate complex coding tasks to Claude Code CLI",
       "stages": [
         "experiment"
       ],
       "tools": [
-        "read_file",
-        "search_project",
-        "write_file",
-        "run_terminal"
+        "bash"
       ],
-      "primaryIntent": "research",
+      "primaryIntent": "Invoke Claude Code as a sub-agent for complex coding tasks",
       "intents": [
-        "research"
+        "Invoke Claude Code as a sub-agent for complex coding tasks"
       ],
       "capabilities": [
         "research-planning",
         "data-processing"
       ],
       "domains": [
-        "bioinformatics"
+        "cs-ai"
       ],
       "keywords": [
-        "bioinformatics-init-analysis",
+        "claude-code-dispatch",
         "experiment"
       ],
       "source": "builtin",
       "status": "verified",
-      "upstream": {
-        "repo": "dr-claw",
-        "path": "skills/bioinformatics-init-analysis",
-        "revision": "8322dc4ef575affaa374aa7922c0a0971c6db7d7"
-      },
       "resourceFlags": {
-        "hasReferences": true,
-        "hasScripts": true,
+        "hasReferences": false,
+        "hasScripts": false,
         "hasTemplates": false,
         "hasAssets": false,
-        "referenceCount": 4,
-        "scriptCount": 10,
+        "referenceCount": 0,
+        "scriptCount": 0,
         "templateCount": 0,
         "assetCount": 0,
-        "optionalScripts": true
-      },
-      "legacy": null
+        "optionalScripts": false
+      }
+    },
+    {
+      "id": "codex-dispatch",
+      "name": "codex-dispatch",
+      "version": "1.0.0",
+      "description": "Delegate coding tasks to OpenAI Codex CLI",
+      "summary": "Delegate coding tasks to OpenAI Codex CLI",
+      "stages": [
+        "experiment"
+      ],
+      "tools": [
+        "bash"
+      ],
+      "primaryIntent": "Invoke Codex as a sub-agent for coding tasks when OpenAI models are preferred",
+      "intents": [
+        "Invoke Codex as a sub-agent for coding tasks when OpenAI models are preferred"
+      ],
+      "capabilities": [
+        "research-planning",
+        "data-processing"
+      ],
+      "domains": [
+        "cs-ai"
+      ],
+      "keywords": [
+        "codex-dispatch",
+        "experiment"
+      ],
+      "source": "builtin",
+      "status": "verified",
+      "resourceFlags": {
+        "hasReferences": false,
+        "hasScripts": false,
+        "hasTemplates": false,
+        "hasAssets": false,
+        "referenceCount": 0,
+        "scriptCount": 0,
+        "templateCount": 0,
+        "assetCount": 0,
+        "optionalScripts": false
+      }
     },
     {
       "id": "dataset-discovery",
@@ -236,11 +288,6 @@
       ],
       "source": "builtin",
       "status": "verified",
-      "upstream": {
-        "repo": "dr-claw",
-        "path": "skills/dataset-discovery",
-        "revision": "8322dc4ef575affaa374aa7922c0a0971c6db7d7"
-      },
       "resourceFlags": {
         "hasReferences": false,
         "hasScripts": true,
@@ -251,13 +298,6 @@
         "templateCount": 0,
         "assetCount": 0,
         "optionalScripts": true
-      },
-      "legacy": {
-        "dirPath": "dataset-discovery",
-        "skillFile": "skills/dataset-discovery/SKILL.md",
-        "topLevelGroup": "Standalone",
-        "collection": "Resource Prep",
-        "domain": "Data"
       }
     },
     {
@@ -302,11 +342,6 @@
       ],
       "source": "builtin",
       "status": "verified",
-      "upstream": {
-        "repo": "dr-claw",
-        "path": "skills/gemini-deep-research",
-        "revision": "8322dc4ef575affaa374aa7922c0a0971c6db7d7"
-      },
       "resourceFlags": {
         "hasReferences": false,
         "hasScripts": true,
@@ -317,13 +352,6 @@
         "templateCount": 0,
         "assetCount": 0,
         "optionalScripts": true
-      },
-      "legacy": {
-        "dirPath": "gemini-deep-research",
-        "skillFile": "skills/gemini-deep-research/SKILL.md",
-        "topLevelGroup": "Standalone",
-        "collection": "Survey",
-        "domain": "General"
       }
     },
     {
@@ -368,11 +396,6 @@
       ],
       "source": "builtin",
       "status": "verified",
-      "upstream": {
-        "repo": "dr-claw",
-        "path": "skills/inno-code-survey",
-        "revision": "8322dc4ef575affaa374aa7922c0a0971c6db7d7"
-      },
       "resourceFlags": {
         "hasReferences": true,
         "hasScripts": true,
@@ -383,13 +406,6 @@
         "templateCount": 0,
         "assetCount": 0,
         "optionalScripts": true
-      },
-      "legacy": {
-        "dirPath": "inno-code-survey",
-        "skillFile": "skills/inno-code-survey/SKILL.md",
-        "topLevelGroup": "Standalone",
-        "collection": "Survey",
-        "domain": "General"
       }
     },
     {
@@ -435,11 +451,6 @@
       ],
       "source": "builtin",
       "status": "verified",
-      "upstream": {
-        "repo": "dr-claw",
-        "path": "skills/inno-deep-research",
-        "revision": "8322dc4ef575affaa374aa7922c0a0971c6db7d7"
-      },
       "resourceFlags": {
         "hasReferences": false,
         "hasScripts": false,
@@ -450,13 +461,6 @@
         "templateCount": 0,
         "assetCount": 0,
         "optionalScripts": false
-      },
-      "legacy": {
-        "dirPath": "inno-deep-research",
-        "skillFile": "skills/inno-deep-research/SKILL.md",
-        "topLevelGroup": "Standalone",
-        "collection": "Survey",
-        "domain": "General"
       }
     },
     {
@@ -500,11 +504,6 @@
       ],
       "source": "builtin",
       "status": "verified",
-      "upstream": {
-        "repo": "dr-claw",
-        "path": "skills/inno-experiment-analysis",
-        "revision": "8322dc4ef575affaa374aa7922c0a0971c6db7d7"
-      },
       "resourceFlags": {
         "hasReferences": true,
         "hasScripts": false,
@@ -515,13 +514,6 @@
         "templateCount": 0,
         "assetCount": 0,
         "optionalScripts": false
-      },
-      "legacy": {
-        "dirPath": "inno-experiment-analysis",
-        "skillFile": "skills/inno-experiment-analysis/SKILL.md",
-        "topLevelGroup": "Standalone",
-        "collection": "Analysis",
-        "domain": "General"
       }
     },
     {
@@ -564,11 +556,6 @@
       ],
       "source": "builtin",
       "status": "verified",
-      "upstream": {
-        "repo": "dr-claw",
-        "path": "skills/inno-experiment-dev",
-        "revision": "8322dc4ef575affaa374aa7922c0a0971c6db7d7"
-      },
       "resourceFlags": {
         "hasReferences": true,
         "hasScripts": false,
@@ -579,13 +566,6 @@
         "templateCount": 0,
         "assetCount": 0,
         "optionalScripts": false
-      },
-      "legacy": {
-        "dirPath": "inno-experiment-dev",
-        "skillFile": "skills/inno-experiment-dev/SKILL.md",
-        "topLevelGroup": "Standalone",
-        "collection": "Experiment Dev",
-        "domain": "General"
       }
     },
     {
@@ -629,11 +609,6 @@
       ],
       "source": "builtin",
       "status": "verified",
-      "upstream": {
-        "repo": "dr-claw",
-        "path": "skills/inno-figure-gen",
-        "revision": "8322dc4ef575affaa374aa7922c0a0971c6db7d7"
-      },
       "resourceFlags": {
         "hasReferences": false,
         "hasScripts": true,
@@ -644,13 +619,6 @@
         "templateCount": 0,
         "assetCount": 0,
         "optionalScripts": true
-      },
-      "legacy": {
-        "dirPath": "inno-figure-gen",
-        "skillFile": "skills/inno-figure-gen/SKILL.md",
-        "topLevelGroup": "Standalone",
-        "collection": "Paper Writing",
-        "domain": "Vision"
       }
     },
     {
@@ -696,11 +664,6 @@
       ],
       "source": "builtin",
       "status": "verified",
-      "upstream": {
-        "repo": "dr-claw",
-        "path": "skills/inno-grant-proposal",
-        "revision": "8322dc4ef575affaa374aa7922c0a0971c6db7d7"
-      },
       "resourceFlags": {
         "hasReferences": true,
         "hasScripts": true,
@@ -711,13 +674,6 @@
         "templateCount": 7,
         "assetCount": 0,
         "optionalScripts": true
-      },
-      "legacy": {
-        "dirPath": "inno-grant-proposal",
-        "skillFile": "skills/inno-grant-proposal/SKILL.md",
-        "topLevelGroup": "Standalone",
-        "collection": "Grant Writing",
-        "domain": "general"
       }
     },
     {
@@ -761,11 +717,6 @@
       ],
       "source": "builtin",
       "status": "verified",
-      "upstream": {
-        "repo": "dr-claw",
-        "path": "skills/inno-idea-eval",
-        "revision": "8322dc4ef575affaa374aa7922c0a0971c6db7d7"
-      },
       "resourceFlags": {
         "hasReferences": true,
         "hasScripts": false,
@@ -776,13 +727,6 @@
         "templateCount": 0,
         "assetCount": 0,
         "optionalScripts": false
-      },
-      "legacy": {
-        "dirPath": "inno-idea-eval",
-        "skillFile": "skills/inno-idea-eval/SKILL.md",
-        "topLevelGroup": "Standalone",
-        "collection": "Idea Evaluation",
-        "domain": "General"
       }
     },
     {
@@ -827,11 +771,6 @@
       ],
       "source": "builtin",
       "status": "verified",
-      "upstream": {
-        "repo": "dr-claw",
-        "path": "skills/inno-idea-generation",
-        "revision": "8322dc4ef575affaa374aa7922c0a0971c6db7d7"
-      },
       "resourceFlags": {
         "hasReferences": false,
         "hasScripts": true,
@@ -842,13 +781,6 @@
         "templateCount": 2,
         "assetCount": 0,
         "optionalScripts": true
-      },
-      "legacy": {
-        "dirPath": "inno-idea-generation",
-        "skillFile": "skills/inno-idea-generation/SKILL.md",
-        "topLevelGroup": "Standalone",
-        "collection": "Idea Generation",
-        "domain": "General"
       }
     },
     {
@@ -892,11 +824,6 @@
       ],
       "source": "builtin",
       "status": "verified",
-      "upstream": {
-        "repo": "dr-claw",
-        "path": "skills/inno-paper-reviewer",
-        "revision": "8322dc4ef575affaa374aa7922c0a0971c6db7d7"
-      },
       "resourceFlags": {
         "hasReferences": true,
         "hasScripts": false,
@@ -907,13 +834,6 @@
         "templateCount": 0,
         "assetCount": 0,
         "optionalScripts": false
-      },
-      "legacy": {
-        "dirPath": "inno-paper-reviewer",
-        "skillFile": "skills/inno-paper-reviewer/SKILL.md",
-        "topLevelGroup": "Standalone",
-        "collection": "Paper Review",
-        "domain": "General"
       }
     },
     {
@@ -957,11 +877,6 @@
       ],
       "source": "builtin",
       "status": "verified",
-      "upstream": {
-        "repo": "dr-claw",
-        "path": "skills/inno-paper-writing",
-        "revision": "8322dc4ef575affaa374aa7922c0a0971c6db7d7"
-      },
       "resourceFlags": {
         "hasReferences": true,
         "hasScripts": false,
@@ -972,13 +887,6 @@
         "templateCount": 0,
         "assetCount": 0,
         "optionalScripts": false
-      },
-      "legacy": {
-        "dirPath": "inno-paper-writing",
-        "skillFile": "skills/inno-paper-writing/SKILL.md",
-        "topLevelGroup": "Standalone",
-        "collection": "Paper Writing",
-        "domain": "General"
       }
     },
     {
@@ -1023,11 +931,6 @@
       ],
       "source": "builtin",
       "status": "verified",
-      "upstream": {
-        "repo": "dr-claw",
-        "path": "skills/inno-pipeline-planner",
-        "revision": "8322dc4ef575affaa374aa7922c0a0971c6db7d7"
-      },
       "resourceFlags": {
         "hasReferences": true,
         "hasScripts": false,
@@ -1038,13 +941,6 @@
         "templateCount": 0,
         "assetCount": 0,
         "optionalScripts": false
-      },
-      "legacy": {
-        "dirPath": "inno-pipeline-planner",
-        "skillFile": "skills/inno-pipeline-planner/SKILL.md",
-        "topLevelGroup": "Standalone",
-        "collection": "Standalone",
-        "domain": "General"
       }
     },
     {
@@ -1089,11 +985,6 @@
       ],
       "source": "builtin",
       "status": "verified",
-      "upstream": {
-        "repo": "dr-claw",
-        "path": "skills/inno-prepare-resources",
-        "revision": "8322dc4ef575affaa374aa7922c0a0971c6db7d7"
-      },
       "resourceFlags": {
         "hasReferences": false,
         "hasScripts": false,
@@ -1104,13 +995,6 @@
         "templateCount": 0,
         "assetCount": 0,
         "optionalScripts": false
-      },
-      "legacy": {
-        "dirPath": "inno-prepare-resources",
-        "skillFile": "skills/inno-prepare-resources/SKILL.md",
-        "topLevelGroup": "Standalone",
-        "collection": "Resource Prep",
-        "domain": "Data"
       }
     },
     {
@@ -1156,11 +1040,6 @@
       ],
       "source": "builtin",
       "status": "verified",
-      "upstream": {
-        "repo": "dr-claw",
-        "path": "skills/inno-rclone-to-overleaf",
-        "revision": "8322dc4ef575affaa374aa7922c0a0971c6db7d7"
-      },
       "resourceFlags": {
         "hasReferences": false,
         "hasScripts": true,
@@ -1171,13 +1050,6 @@
         "templateCount": 0,
         "assetCount": 0,
         "optionalScripts": true
-      },
-      "legacy": {
-        "dirPath": "inno-rclone-to-overleaf",
-        "skillFile": "skills/inno-rclone-to-overleaf/SKILL.md",
-        "topLevelGroup": "Standalone",
-        "collection": "Publication Sync",
-        "domain": "General"
       }
     },
     {
@@ -1223,11 +1095,6 @@
       ],
       "source": "builtin",
       "status": "verified",
-      "upstream": {
-        "repo": "dr-claw",
-        "path": "skills/inno-reference-audit",
-        "revision": "8322dc4ef575affaa374aa7922c0a0971c6db7d7"
-      },
       "resourceFlags": {
         "hasReferences": true,
         "hasScripts": true,
@@ -1238,13 +1105,50 @@
         "templateCount": 0,
         "assetCount": 0,
         "optionalScripts": true
-      },
-      "legacy": {
-        "dirPath": "inno-reference-audit",
-        "skillFile": "skills/inno-reference-audit/SKILL.md",
-        "topLevelGroup": "Standalone",
-        "collection": "Paper Review",
-        "domain": "General"
+      }
+    },
+    {
+      "id": "literature-pdf-ocr-library",
+      "name": "literature-pdf-ocr-library",
+      "version": "1.0.0",
+      "description": "Search traceable academic papers, download legally accessible PDFs from arXiv and open-access sources, convert PDFs or page images to Markdown with a PaddleOCR layout-parsing API (or local pdfminer fallback), and organize the results into an AI-readable literature library.",
+      "summary": "Search traceable academic papers, download legally accessible PDFs from arXiv and open-access sources, convert PDFs or page images to Markdown with a PaddleOCR layout-parsing API (or local pdfminer fallback), and organize the results into an AI-readable literature library. Use when Claude Code needs to build a paper corpus, batch OCR PDFs to Markdown, ingest real literature into a knowledge base, fetch arXiv or Hugging Face paper leads, or turn a directory of papers into structured Markdown plus metadata.",
+      "stages": [
+        "survey"
+      ],
+      "tools": [
+        "read_file",
+        "search_project",
+        "write_file",
+        "run_terminal"
+      ],
+      "primaryIntent": "research",
+      "intents": [
+        "research"
+      ],
+      "capabilities": [
+        "search-retrieval",
+        "research-planning"
+      ],
+      "domains": [
+        "cs-ai"
+      ],
+      "keywords": [
+        "literature-pdf-ocr-library",
+        "survey"
+      ],
+      "source": "builtin",
+      "status": "verified",
+      "resourceFlags": {
+        "hasReferences": true,
+        "hasScripts": true,
+        "hasTemplates": false,
+        "hasAssets": false,
+        "referenceCount": 1,
+        "scriptCount": 5,
+        "templateCount": 0,
+        "assetCount": 0,
+        "optionalScripts": true
       }
     },
     {
@@ -1288,11 +1192,6 @@
       ],
       "source": "builtin",
       "status": "verified",
-      "upstream": {
-        "repo": "dr-claw",
-        "path": "skills/making-academic-presentations",
-        "revision": "8322dc4ef575affaa374aa7922c0a0971c6db7d7"
-      },
       "resourceFlags": {
         "hasReferences": true,
         "hasScripts": true,
@@ -1303,13 +1202,6 @@
         "templateCount": 0,
         "assetCount": 0,
         "optionalScripts": true
-      },
-      "legacy": {
-        "dirPath": "making-academic-presentations",
-        "skillFile": "skills/making-academic-presentations/SKILL.md",
-        "topLevelGroup": "Standalone",
-        "collection": "Promotion",
-        "domain": "General"
       }
     },
     {
@@ -1353,11 +1245,6 @@
       ],
       "source": "builtin",
       "status": "verified",
-      "upstream": {
-        "repo": "dr-claw",
-        "path": "skills/ml-paper-writing",
-        "revision": "8322dc4ef575affaa374aa7922c0a0971c6db7d7"
-      },
       "resourceFlags": {
         "hasReferences": true,
         "hasScripts": false,
@@ -1365,16 +1252,9 @@
         "hasAssets": false,
         "referenceCount": 5,
         "scriptCount": 0,
-        "templateCount": 50,
+        "templateCount": 46,
         "assetCount": 0,
         "optionalScripts": false
-      },
-      "legacy": {
-        "dirPath": "ml-paper-writing",
-        "skillFile": "skills/ml-paper-writing/SKILL.md",
-        "topLevelGroup": "Standalone",
-        "collection": "Model & Research",
-        "domain": "cs"
       }
     },
     {
@@ -1419,11 +1299,6 @@
       ],
       "source": "builtin",
       "status": "verified",
-      "upstream": {
-        "repo": "dr-claw",
-        "path": "skills/paper-analyzer",
-        "revision": "8322dc4ef575affaa374aa7922c0a0971c6db7d7"
-      },
       "resourceFlags": {
         "hasReferences": false,
         "hasScripts": true,
@@ -1434,13 +1309,6 @@
         "templateCount": 0,
         "assetCount": 0,
         "optionalScripts": true
-      },
-      "legacy": {
-        "dirPath": "paper-analyzer",
-        "skillFile": "skills/paper-analyzer/SKILL.md",
-        "topLevelGroup": "Standalone",
-        "collection": "Paper Analysis",
-        "domain": "cs"
       }
     },
     {
@@ -1483,11 +1351,6 @@
       ],
       "source": "builtin",
       "status": "verified",
-      "upstream": {
-        "repo": "dr-claw",
-        "path": "skills/paper-finder",
-        "revision": "8322dc4ef575affaa374aa7922c0a0971c6db7d7"
-      },
       "resourceFlags": {
         "hasReferences": false,
         "hasScripts": false,
@@ -1498,13 +1361,6 @@
         "templateCount": 0,
         "assetCount": 0,
         "optionalScripts": false
-      },
-      "legacy": {
-        "dirPath": "paper-finder",
-        "skillFile": "skills/paper-finder/SKILL.md",
-        "topLevelGroup": "Standalone",
-        "collection": "Paper Search",
-        "domain": "cs"
       }
     },
     {
@@ -1549,11 +1405,6 @@
       ],
       "source": "builtin",
       "status": "verified",
-      "upstream": {
-        "repo": "dr-claw",
-        "path": "skills/paper-image-extractor",
-        "revision": "8322dc4ef575affaa374aa7922c0a0971c6db7d7"
-      },
       "resourceFlags": {
         "hasReferences": false,
         "hasScripts": true,
@@ -1564,13 +1415,195 @@
         "templateCount": 0,
         "assetCount": 0,
         "optionalScripts": true
-      },
-      "legacy": {
-        "dirPath": "paper-image-extractor",
-        "skillFile": "skills/paper-image-extractor/SKILL.md",
-        "topLevelGroup": "Standalone",
-        "collection": "Image Extraction",
-        "domain": "cs"
+      }
+    },
+    {
+      "id": "remote-experiment",
+      "name": "Remote Experiment Execution",
+      "version": "2.0.0",
+      "description": "通过 compute-helper CLI 在远程服务器上自主执行、调试、迭代",
+      "summary": "Autonomous remote code execution workflow — edit locally, sync, run remotely, analyze output, iterate",
+      "stages": [
+        "experiment"
+      ],
+      "tools": [
+        "bash",
+        "read_file",
+        "write_file"
+      ],
+      "primaryIntent": "remote_experiment_execution",
+      "intents": [
+        "remote_experiment_execution"
+      ],
+      "capabilities": [
+        "remote_code_sync",
+        "remote_command_execution",
+        "iterative_debugging",
+        "autonomous_optimization"
+      ],
+      "domains": [
+        "general",
+        "machine_learning",
+        "data_processing"
+      ],
+      "keywords": [
+        "experiment",
+        "remote",
+        "server",
+        "ssh",
+        "sync",
+        "compute-helper",
+        "iterate"
+      ],
+      "source": "builtin",
+      "status": "verified",
+      "resourceFlags": {
+        "hasReferences": false,
+        "hasScripts": false,
+        "hasTemplates": false,
+        "hasAssets": false,
+        "referenceCount": 0,
+        "scriptCount": 0,
+        "templateCount": 0,
+        "assetCount": 0,
+        "optionalScripts": false
+      }
+    },
+    {
+      "id": "research-experiment-driver",
+      "name": "Research Experiment Driver",
+      "version": "1.0.0",
+      "description": "Use when the project is ready to translate a selected research idea into executable experiment plans, implementation tasks, metrics, and ablations.",
+      "summary": "Use when the project is ready to translate a selected research idea into executable experiment plans, implementation tasks, metrics, and ablations.",
+      "stages": [
+        "experiment"
+      ],
+      "tools": [
+        "read_file",
+        "write_file",
+        "run_terminal"
+      ],
+      "primaryIntent": "research",
+      "intents": [
+        "research"
+      ],
+      "capabilities": [
+        "research-planning",
+        "data-processing"
+      ],
+      "domains": [
+        "cs-ai"
+      ],
+      "keywords": [
+        "research-experiment-driver",
+        "experiment"
+      ],
+      "source": "builtin",
+      "status": "verified",
+      "resourceFlags": {
+        "hasReferences": false,
+        "hasScripts": false,
+        "hasTemplates": false,
+        "hasAssets": false,
+        "referenceCount": 0,
+        "scriptCount": 0,
+        "templateCount": 0,
+        "assetCount": 0,
+        "optionalScripts": false
+      }
+    },
+    {
+      "id": "research-idea-convergence",
+      "name": "Research Idea Convergence",
+      "version": "1.0.0",
+      "description": "Generates 2-4 candidate research directions from survey results, presents them with pros/cons for user selection, and converges to a publishable angle.",
+      "summary": "Interactive research direction selection. Reads survey reports and gap analysis, generates 2-4 candidate research directions with pros/cons/feasibility, and waits for user selection before writing the final publishable angle.",
+      "stages": [
+        "ideation"
+      ],
+      "tools": [
+        "read_file",
+        "search_project",
+        "write_file"
+      ],
+      "primaryIntent": "ideation",
+      "intents": [
+        "ideation",
+        "research"
+      ],
+      "capabilities": [
+        "research-planning"
+      ],
+      "domains": [
+        "academic"
+      ],
+      "keywords": [
+        "research-idea-convergence",
+        "idea selection",
+        "research direction",
+        "publishable angle",
+        "candidate",
+        "convergence",
+        "interactive",
+        "ideation"
+      ],
+      "source": "builtin",
+      "status": "verified",
+      "resourceFlags": {
+        "hasReferences": false,
+        "hasScripts": false,
+        "hasTemplates": true,
+        "hasAssets": false,
+        "referenceCount": 0,
+        "scriptCount": 0,
+        "templateCount": 1,
+        "assetCount": 0,
+        "optionalScripts": false
+      }
+    },
+    {
+      "id": "research-literature-trace",
+      "name": "Research Literature Trace",
+      "version": "1.0.0",
+      "description": "Use for survey or ideation work that needs literature collection, screening, source tracing, canonical paper URLs, or gap summaries.",
+      "summary": "Use for survey or ideation work that needs literature collection, screening, source tracing, canonical paper URLs, or gap summaries.",
+      "stages": [
+        "survey",
+        "ideation"
+      ],
+      "tools": [
+        "read_file",
+        "search_project",
+        "write_file"
+      ],
+      "primaryIntent": "research",
+      "intents": [
+        "research"
+      ],
+      "capabilities": [
+        "search-retrieval",
+        "research-planning"
+      ],
+      "domains": [
+        "cs-ai"
+      ],
+      "keywords": [
+        "research-literature-trace",
+        "survey",
+        "ideation"
+      ],
+      "source": "builtin",
+      "status": "verified",
+      "resourceFlags": {
+        "hasReferences": false,
+        "hasScripts": false,
+        "hasTemplates": false,
+        "hasAssets": false,
+        "referenceCount": 0,
+        "scriptCount": 0,
+        "templateCount": 0,
+        "assetCount": 0,
+        "optionalScripts": false
       }
     },
     {
@@ -1614,11 +1647,6 @@
       ],
       "source": "builtin",
       "status": "verified",
-      "upstream": {
-        "repo": "dr-claw",
-        "path": "skills/research-news",
-        "revision": "8322dc4ef575affaa374aa7922c0a0971c6db7d7"
-      },
       "resourceFlags": {
         "hasReferences": false,
         "hasScripts": false,
@@ -1629,13 +1657,101 @@
         "templateCount": 0,
         "assetCount": 0,
         "optionalScripts": false
-      },
-      "legacy": {
-        "dirPath": "research-news",
-        "skillFile": "skills/research-news/SKILL.md",
-        "topLevelGroup": "Standalone",
-        "collection": "Paper Discovery",
-        "domain": "cs"
+      }
+    },
+    {
+      "id": "research-paper-handoff",
+      "name": "Research Paper Handoff",
+      "version": "1.0.0",
+      "description": "Use when the workflow moves into paper writing, publication delivery, LaTeX handoff, figure/reference insertion, or promotion follow-up.",
+      "summary": "Use when the workflow moves into paper writing, publication delivery, LaTeX handoff, figure/reference insertion, or promotion follow-up.",
+      "stages": [
+        "publication",
+        "promotion"
+      ],
+      "tools": [
+        "read_file",
+        "write_file"
+      ],
+      "primaryIntent": "research",
+      "intents": [
+        "research"
+      ],
+      "capabilities": [
+        "research-planning",
+        "visualization-reporting"
+      ],
+      "domains": [
+        "cs-ai"
+      ],
+      "keywords": [
+        "research-paper-handoff",
+        "publication",
+        "promotion"
+      ],
+      "source": "builtin",
+      "status": "verified",
+      "resourceFlags": {
+        "hasReferences": false,
+        "hasScripts": false,
+        "hasTemplates": false,
+        "hasAssets": false,
+        "referenceCount": 0,
+        "scriptCount": 0,
+        "templateCount": 0,
+        "assetCount": 0,
+        "optionalScripts": false
+      }
+    },
+    {
+      "id": "research-pipeline-planner",
+      "name": "Research Pipeline Planner",
+      "version": "1.0.0",
+      "description": "Use when the user needs to define, initialize, revise, or checkpoint the project-level research pipeline and stage task plan.",
+      "summary": "Use when the user needs to define, initialize, revise, or checkpoint the project-level research pipeline and stage task plan.",
+      "stages": [
+        "survey",
+        "ideation",
+        "experiment",
+        "publication",
+        "promotion"
+      ],
+      "tools": [
+        "read_file",
+        "write_file",
+        "update_pipeline"
+      ],
+      "primaryIntent": "research",
+      "intents": [
+        "research"
+      ],
+      "capabilities": [
+        "research-planning",
+        "visualization-reporting"
+      ],
+      "domains": [
+        "cs-ai"
+      ],
+      "keywords": [
+        "research-pipeline-planner",
+        "survey",
+        "ideation",
+        "experiment",
+        "publication",
+        "promotion"
+      ],
+      "source": "builtin",
+      "status": "verified",
+      "resourceFlags": {
+        "hasReferences": false,
+        "hasScripts": false,
+        "hasTemplates": false,
+        "hasAssets": false,
+        "referenceCount": 0,
+        "scriptCount": 0,
+        "templateCount": 0,
+        "assetCount": 0,
+        "optionalScripts": false
       }
     },
     {
@@ -1679,11 +1795,6 @@
       ],
       "source": "builtin",
       "status": "verified",
-      "upstream": {
-        "repo": "dr-claw",
-        "path": "skills/scientific-writing",
-        "revision": "8322dc4ef575affaa374aa7922c0a0971c6db7d7"
-      },
       "resourceFlags": {
         "hasReferences": true,
         "hasScripts": false,
@@ -1694,19 +1805,13 @@
         "templateCount": 0,
         "assetCount": 0,
         "optionalScripts": false
-      },
-      "legacy": {
-        "dirPath": "scientific-writing",
-        "skillFile": "skills/scientific-writing/SKILL.md",
-        "topLevelGroup": "Standalone",
-        "collection": "Paper Writing",
-        "domain": "cs"
       }
     }
   ],
   "stageSkillMap": {
     "survey": {
       "base": [
+        "literature-pdf-ocr-library",
         "inno-deep-research",
         "gemini-deep-research",
         "academic-researcher",
@@ -1715,11 +1820,13 @@
       ],
       "byTaskType": {
         "analysis": [
+          "literature-pdf-ocr-library",
           "inno-deep-research",
           "gemini-deep-research",
           "academic-researcher"
         ],
         "exploration": [
+          "literature-pdf-ocr-library",
           "inno-deep-research",
           "gemini-deep-research",
           "dataset-discovery",

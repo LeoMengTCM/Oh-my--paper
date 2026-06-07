@@ -1,10 +1,10 @@
 {
   "schema": "viewerleaf-research-scope-v1",
-  "generatedAt": "2026-03-20T05:23:15.888Z",
+  "generatedAt": "2026-06-07T08:52:37.804Z",
   "skills": [
     "academic-researcher",
-    "biorxiv-database",
     "bioinformatics-init-analysis",
+    "biorxiv-database",
     "claude-code-dispatch",
     "codex-dispatch",
     "dataset-discovery",
@@ -23,6 +23,7 @@
     "inno-prepare-resources",
     "inno-rclone-to-overleaf",
     "inno-reference-audit",
+    "literature-pdf-ocr-library",
     "making-academic-presentations",
     "ml-paper-writing",
     "paper-analyzer",

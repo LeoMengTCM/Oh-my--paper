@@ -1,48 +1,43 @@
+/**
+ * sync-research-skills.mjs
+ *
+ * 以本仓库的 `skills/` 目录为权威源，反向生成研究技能的目录文件：
+ *   - skills/research-catalog.json   （自动生成：每个 skill 一个 manifest）
+ *   - skills/research-scope.json     （自动生成：所有 skill id 列表）
+ *
+ * `skills/research-stage-map.json` 是**人工策划**的数据（哪个阶段推荐哪些技能、
+ * 按 taskType 分类），脚本只读取它来推断每个 skill 的 stages 并做引用校验，
+ * 不会自动重写它。
+ *
+ * 此前的版本依赖原作者本地的外部 `dr-claw` 仓库（写死路径
+ * /Users/donkfeng/Desktop/dr-claw）做单向同步，fork 维护者无法运行，导致
+ * catalog 长期停留在 27 个、与实际 35 个 skill 脱节。现已改为只依赖本仓库。
+ *
+ * 用法：
+ *   node scripts/sync-research-skills.mjs sync     # 生成并写入（默认）
+ *   node scripts/sync-research-skills.mjs check     # 只校验不写，漂移则退出码 1（适合 CI）
+ *   node scripts/sync-research-skills.mjs report     # 打印将生成的内容摘要与自检结果
+ */
 import { execFileSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
   readFileSync,
   readdirSync,
-  rmSync,
   statSync,
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
 
-const RESEARCH_SKILL_IDS = [
-  "academic-researcher",
-  "biorxiv-database",
-  "bioinformatics-init-analysis",
-  "dataset-discovery",
-  "gemini-deep-research",
-  "inno-code-survey",
-  "inno-deep-research",
-  "inno-experiment-analysis",
-  "inno-experiment-dev",
-  "inno-figure-gen",
-  "inno-grant-proposal",
-  "inno-idea-eval",
-  "inno-idea-generation",
-  "inno-paper-reviewer",
-  "inno-paper-writing",
-  "inno-pipeline-planner",
-  "inno-prepare-resources",
-  "inno-rclone-to-overleaf",
-  "inno-reference-audit",
-  "making-academic-presentations",
-  "ml-paper-writing",
-  "paper-analyzer",
-  "paper-finder",
-  "paper-image-extractor",
-  "research-news",
-  "scientific-writing",
-];
+const VALID_STAGES = ["survey", "ideation", "experiment", "publication", "promotion"];
 
+// 没有出现在 research-stage-map.json、且 frontmatter 也未声明合法 stage 时的兜底归属。
 const STAGE_FALLBACKS = {
   "academic-researcher": ["survey", "publication"],
   "biorxiv-database": ["survey"],
   "bioinformatics-init-analysis": ["experiment"],
+  "claude-code-dispatch": ["experiment"],
+  "codex-dispatch": ["experiment"],
   "dataset-discovery": ["survey", "ideation", "experiment"],
   "gemini-deep-research": ["survey"],
   "inno-code-survey": ["ideation", "experiment"],
@@ -59,550 +54,428 @@ const STAGE_FALLBACKS = {
   "inno-prepare-resources": ["survey", "ideation"],
   "inno-rclone-to-overleaf": ["publication"],
   "inno-reference-audit": ["publication"],
+  "literature-pdf-ocr-library": ["survey", "ideation"],
   "making-academic-presentations": ["promotion"],
   "ml-paper-writing": ["publication"],
   "paper-analyzer": ["survey", "publication"],
   "paper-finder": ["survey"],
   "paper-image-extractor": ["publication"],
+  "remote-experiment": ["experiment"],
+  "research-experiment-driver": ["experiment"],
+  "research-idea-convergence": ["ideation"],
+  "research-literature-trace": ["survey"],
   "research-news": ["survey"],
+  "research-paper-handoff": ["publication"],
+  "research-pipeline-planner": ["survey", "ideation", "experiment", "publication", "promotion"],
   "scientific-writing": ["publication"],
 };
 
 const DEFAULT_TOOLS = ["read_file", "search_project", "write_file"];
 
 const repoRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
-const outputSkillsRoot = path.join(repoRoot, "skills");
-const outputCatalogPath = path.join(outputSkillsRoot, "research-catalog.json");
-const outputStageMapPath = path.join(outputSkillsRoot, "research-stage-map.json");
-const outputScopePath = path.join(outputSkillsRoot, "research-scope.json");
+const skillsRoot = path.join(repoRoot, "skills");
+const catalogPath = path.join(skillsRoot, "research-catalog.json");
+const scopePath = path.join(skillsRoot, "research-scope.json");
+const stageMapPath = path.join(skillsRoot, "research-stage-map.json");
+const bundledSkillsRoot = path.join(repoRoot, "src-tauri", "resources", "skills");
 
 function main() {
-  const options = parseArgs(process.argv.slice(2));
-  const sourceRoot = resolveSourceRoot(options.source);
-  const sourceSkillsRoot = path.join(sourceRoot, "skills");
-  const sourceCatalog = readJson(path.join(sourceRoot, "skills", "skills-catalog-v2.json"));
-  const sourceStageMap = readJson(path.join(sourceRoot, "skills", "stage-skill-map.json"));
-  const upstreamRevision = getGitRevision(sourceRoot);
-  const scopeSet = new Set(RESEARCH_SKILL_IDS);
-  const catalogIndex = new Map(
-    (sourceCatalog.skills || [])
-      .filter((item) => scopeSet.has(item.name))
-      .map((item) => [item.name, item]),
-  );
+  const mode = parseMode(process.argv.slice(2));
 
-  const filteredStageMap = filterStageMap(sourceStageMap, scopeSet);
-  const generatedAt = sourceCatalog.generatedAt || upstreamRevision || "unknown";
-  const skillArtifacts = RESEARCH_SKILL_IDS.map((skillId) =>
-    buildSkillArtifact({
-      skillId,
-      sourceRoot,
-      sourceSkillsRoot,
-      catalogEntry: catalogIndex.get(skillId),
-      stageMap: filteredStageMap,
-      upstreamRevision,
-    }),
-  );
+  const stageMap = readJson(stageMapPath);
+  const skillIds = discoverSkillIds();
+  const manifests = skillIds.map((id) => buildManifest(id, stageMap));
 
-  const researchCatalog = {
+  const catalog = {
     schema: "viewerleaf-research-catalog-v1",
-    generatedAt,
-    upstream: {
-      repo: "dr-claw",
-      revision: upstreamRevision,
-    },
-    skills: skillArtifacts.map(({ manifest }) => manifest),
-    stageSkillMap: filteredStageMap,
+    generatedAt: new Date().toISOString(),
+    upstream: { repo: "Oh-my--paper", revision: getGitRevision() },
+    skills: manifests,
+    stageSkillMap: stageMap,
   };
-
-  const scopeManifest = {
+  const scope = {
     schema: "viewerleaf-research-scope-v1",
-    generatedAt,
-    skills: RESEARCH_SKILL_IDS,
+    generatedAt: catalog.generatedAt,
+    skills: skillIds,
   };
 
-  const expectedFiles = buildExpectedFiles({
-    skillArtifacts,
-    researchCatalog,
-    filteredStageMap,
-    scopeManifest,
-  });
-  const report = diffExpectedFiles(expectedFiles);
+  const issues = lint(skillIds, stageMap);
 
-  if (options.mode === "report") {
-    process.stdout.write(`${formatReport(report)}\n`);
+  if (mode === "report") {
+    process.stdout.write(formatReport(skillIds, issues));
+    process.stdout.write(formatDrift(catalog, scope));
+    process.exitCode = issues.errors.length ? 1 : 0;
     return;
   }
 
-  if (options.mode === "check") {
-    if (report.hasDifferences) {
-      process.stderr.write(`${formatReport(report)}\n`);
+  if (mode === "check") {
+    const drift = computeDrift(catalog, scope);
+    process.stdout.write(formatReport(skillIds, issues));
+    process.stdout.write(formatDrift(catalog, scope));
+    if (issues.errors.length || drift.length) {
+      process.stderr.write(
+        `\nFAIL: ${issues.errors.length} error(s), ${drift.length} drifted file(s). ` +
+          `Run \`npm run skills:research:sync\` to regenerate.\n`,
+      );
       process.exitCode = 1;
       return;
     }
-    process.stdout.write("Research skills are in sync.\n");
+    process.stdout.write("\nResearch skills are in sync.\n");
     return;
   }
 
-  syncExpectedFiles(expectedFiles, skillArtifacts);
-  const postReport = diffExpectedFiles(expectedFiles);
-  if (postReport.hasDifferences) {
-    process.stderr.write(`${formatReport(postReport)}\n`);
-    process.exitCode = 1;
-    return;
-  }
+  // sync
+  writeJson(catalogPath, catalog);
+  writeJson(scopePath, scope);
+  mirrorBundledCopy(catalog, scope);
+
+  process.stdout.write(formatReport(skillIds, issues));
   process.stdout.write(
-    `Synced ${skillArtifacts.length} research skills from ${sourceRoot}.\n`,
+    `\nWrote ${manifests.length} skills to ${rel(catalogPath)} and ${rel(scopePath)}.\n`,
   );
+  if (issues.errors.length) {
+    process.stderr.write(`\nWARNING: ${issues.errors.length} error(s) — see above.\n`);
+    process.exitCode = 1;
+  }
 }
 
-function parseArgs(args) {
-  const options = {
-    mode: "sync",
-    source: "",
-  };
-
-  for (let index = 0; index < args.length; index += 1) {
-    const arg = args[index];
-    if (arg === "sync" || arg === "check" || arg === "report") {
-      options.mode = arg;
-      continue;
-    }
-    if (arg === "--source" && args[index + 1]) {
-      options.source = args[index + 1];
-      index += 1;
-      continue;
-    }
-    if (arg.startsWith("--source=")) {
-      options.source = arg.slice("--source=".length);
-      continue;
-    }
+function parseMode(args) {
+  for (const arg of args) {
+    if (arg === "sync" || arg === "check" || arg === "report") return arg;
     throw new Error(`Unknown argument: ${arg}`);
   }
-
-  return options;
+  return "sync";
 }
 
-function resolveSourceRoot(explicitSource) {
-  const candidates = [
-    explicitSource,
-    process.env.DR_CLAW_ROOT,
-    path.resolve(repoRoot, "../dr-claw"),
-    "/Users/donkfeng/Desktop/dr-claw",
-  ].filter(Boolean);
-
-  for (const candidate of candidates) {
-    const resolved = path.resolve(candidate);
-    if (existsSync(path.join(resolved, "skills", "skills-catalog-v2.json"))) {
-      return resolved;
-    }
+function discoverSkillIds() {
+  const ids = [];
+  for (const entry of readdirSync(skillsRoot)) {
+    const dir = path.join(skillsRoot, entry);
+    if (!statSync(dir).isDirectory()) continue;
+    if (!existsSync(path.join(dir, "SKILL.md"))) continue;
+    ids.push(entry);
   }
-
-  throw new Error("Unable to locate dr-claw source root. Use --source or DR_CLAW_ROOT.");
+  return ids.sort();
 }
 
-function readJson(filePath) {
-  return JSON.parse(readFileSync(filePath, "utf8"));
-}
+function buildManifest(id, stageMap) {
+  const dir = path.join(skillsRoot, id);
+  const fm = parseFrontmatter(readFileSync(path.join(dir, "SKILL.md"), "utf8"));
+  const resourceFlags = scanResourceFlags(dir);
+  const stages = inferStages(id, stageMap, fm);
+  const summary = textValue(fm.summary) || textValue(fm.description) || id;
+  const description = firstSentence(textValue(fm.description) || summary);
 
-function getGitRevision(sourceRoot) {
-  try {
-    return execFileSync("git", ["rev-parse", "HEAD"], {
-      cwd: sourceRoot,
-      encoding: "utf8",
-    }).trim();
-  } catch {
-    return "unknown";
-  }
-}
-
-function filterStageMap(stageMap, scopeSet) {
-  const result = {};
-  for (const [stage, config] of Object.entries(stageMap)) {
-    const base = (config.base || []).filter((skillId) => scopeSet.has(skillId));
-    const byTaskType = {};
-    for (const [taskType, skillIds] of Object.entries(config.byTaskType || {})) {
-      const filtered = skillIds.filter((skillId) => scopeSet.has(skillId));
-      if (filtered.length > 0) {
-        byTaskType[taskType] = filtered;
-      }
-    }
-    result[stage] = { base, byTaskType };
-  }
-  return result;
-}
-
-function buildSkillArtifact({
-  skillId,
-  sourceRoot,
-  sourceSkillsRoot,
-  catalogEntry,
-  stageMap,
-  upstreamRevision,
-}) {
-  const sourceDir = path.join(sourceSkillsRoot, skillId);
-  const sourceSkillFile = findSourceSkillFile(sourceDir);
-  const sourceBody = stripFrontmatter(readFileSync(sourceSkillFile, "utf8")).trim();
-  const resourceFlags = buildResourceFlags(sourceDir);
-  const stages = inferStages(skillId, stageMap, catalogEntry);
-  const version = inferVersion(readFileSync(sourceSkillFile, "utf8"));
-  const fallbackSummary = firstParagraph(sourceBody);
-  const manifest = {
-    id: skillId,
-    name: skillId,
-    version,
-    description: firstSentence(catalogEntry?.summary || fallbackSummary || ""),
-    summary: catalogEntry?.summary || fallbackSummary || skillId,
+  return {
+    id,
+    name: textValue(fm.name) || id,
+    version: normalizeVersion(textValue(fm.version)),
+    description,
+    summary,
     stages,
-    tools: inferTools(resourceFlags),
-    primaryIntent: catalogEntry?.primaryIntent || "research",
-    intents: catalogEntry?.intents || [catalogEntry?.primaryIntent || "research"],
-    capabilities: catalogEntry?.capabilities || inferCapabilities(stages),
-    domains: catalogEntry?.domains || inferDomains(skillId),
-    keywords: catalogEntry?.keywords || [skillId, ...stages],
+    tools: listValue(fm.tools) || inferTools(resourceFlags),
+    primaryIntent: textValue(fm.primaryIntent) || "research",
+    intents: listValue(fm.intents) || [textValue(fm.primaryIntent) || "research"],
+    capabilities: listValue(fm.capabilities) || inferCapabilities(stages),
+    domains: listValue(fm.domains) || inferDomains(id),
+    keywords: listValue(fm.keywords) || [id, ...stages],
     source: "builtin",
-    status: catalogEntry?.status || "verified",
-    upstream: {
-      repo: "dr-claw",
-      path: path.relative(sourceRoot, sourceDir).replaceAll(path.sep, "/"),
-      revision: upstreamRevision,
-    },
+    status: textValue(fm.status) || "verified",
     resourceFlags,
-    legacy: catalogEntry?.legacy || null,
   };
+}
 
+function inferStages(id, stageMap, fm) {
+  // 1) research-stage-map.json 里被引用的阶段（人工策划，最权威）
+  const fromMap = [];
+  for (const [stage, config] of Object.entries(stageMap)) {
+    const inBase = (config.base || []).includes(id);
+    const inTasks = Object.values(config.byTaskType || {}).some((list) => list.includes(id));
+    if (inBase || inTasks) fromMap.push(stage);
+  }
+  if (fromMap.length) return VALID_STAGES.filter((s) => fromMap.includes(s));
+
+  // 2) frontmatter 声明的合法阶段
+  const fromFm = (listValue(fm.stages) || []).filter((s) => VALID_STAGES.includes(s));
+  if (fromFm.length) return VALID_STAGES.filter((s) => fromFm.includes(s));
+
+  // 3) 兜底表，再不行归到 survey
+  return STAGE_FALLBACKS[id] || ["survey"];
+}
+
+function inferTools(resourceFlags) {
+  const tools = [...DEFAULT_TOOLS];
+  if (resourceFlags.hasScripts) tools.push("run_terminal");
+  return tools;
+}
+
+function inferCapabilities(stages) {
+  if (stages.includes("publication")) return ["research-planning", "visualization-reporting"];
+  if (stages.includes("experiment")) return ["research-planning", "data-processing"];
+  return ["search-retrieval", "research-planning"];
+}
+
+function inferDomains(id) {
+  return id.includes("bio") ? ["bioinformatics"] : ["cs-ai"];
+}
+
+function scanResourceFlags(dir) {
+  const refs = countFiles(path.join(dir, "references"));
+  const scripts = countFiles(path.join(dir, "scripts"));
+  const templates = countFiles(path.join(dir, "templates"));
+  const assets = countFiles(path.join(dir, "assets"));
   return {
-    manifest,
-    sourceDir,
-    sourceSkillFile,
-    canonicalSkillMd: buildCanonicalSkillMd(manifest, sourceBody),
+    hasReferences: refs > 0,
+    hasScripts: scripts > 0,
+    hasTemplates: templates > 0,
+    hasAssets: assets > 0,
+    referenceCount: refs,
+    scriptCount: scripts,
+    templateCount: templates,
+    assetCount: assets,
+    optionalScripts: scripts > 0,
   };
 }
 
-function findSourceSkillFile(sourceDir) {
-  const candidates = ["SKILL.md", "README.md"];
-  for (const candidate of candidates) {
-    const filePath = path.join(sourceDir, candidate);
-    if (existsSync(filePath)) {
-      return filePath;
-    }
-  }
-  throw new Error(`No SKILL.md or README.md found in ${sourceDir}`);
-}
-
-function stripFrontmatter(content) {
-  const normalized = content.replace(/\r\n/g, "\n");
-  if (!normalized.startsWith("---\n")) {
-    return normalized.trim();
-  }
-  const closingIndex = normalized.indexOf("\n---\n", 4);
-  if (closingIndex === -1) {
-    return normalized.trim();
-  }
-  return normalized.slice(closingIndex + 5).trim();
-}
-
-function inferVersion(content) {
-  const directMatch = content.match(/^version:\s*["']?([^"'\n]+)["']?\s*$/m);
-  if (directMatch?.[1]) {
-    return directMatch[1].trim();
-  }
-  const nestedMatch = content.match(/^\s+version:\s*["']?([^"'\n]+)["']?\s*$/m);
-  if (nestedMatch?.[1]) {
-    return nestedMatch[1].trim();
-  }
-  return "1.0.0";
-}
-
-function buildResourceFlags(sourceDir) {
-  const referencesDir = path.join(sourceDir, "references");
-  const scriptsDir = path.join(sourceDir, "scripts");
-  const templatesDir = path.join(sourceDir, "templates");
-  const assetsDir = path.join(sourceDir, "assets");
-  return {
-    hasReferences: existsSync(referencesDir),
-    hasScripts: existsSync(scriptsDir),
-    hasTemplates: existsSync(templatesDir),
-    hasAssets: existsSync(assetsDir),
-    referenceCount: countFiles(referencesDir),
-    scriptCount: countFiles(scriptsDir),
-    templateCount: countFiles(templatesDir),
-    assetCount: countFiles(assetsDir),
-    optionalScripts: existsSync(scriptsDir),
-  };
-}
-
-function countFiles(targetDir) {
-  if (!existsSync(targetDir)) {
-    return 0;
-  }
+function countFiles(dir) {
+  if (!existsSync(dir) || !statSync(dir).isDirectory()) return 0;
   let count = 0;
-  for (const entry of walkFiles(targetDir)) {
-    if (entry.isFile()) {
+  for (const entry of readdirSync(dir)) {
+    if (entry === ".DS_Store" || entry === "__pycache__") continue;
+    const full = path.join(dir, entry);
+    const stats = statSync(full);
+    if (stats.isDirectory()) {
+      count += countFiles(full);
+    } else if (!full.endsWith(".pyc")) {
       count += 1;
     }
   }
   return count;
 }
 
-function inferStages(skillId, stageMap, catalogEntry) {
-  const stages = [];
+// ---- 校验 / 自检 ----
+
+function lint(skillIds, stageMap) {
+  const errors = [];
+  const warnings = [];
+  const idSet = new Set(skillIds);
+
+  for (const id of skillIds) {
+    const fm = parseFrontmatter(readFileSync(path.join(skillsRoot, id, "SKILL.md"), "utf8"));
+    if (!textValue(fm.name)) warnings.push(`${id}: SKILL.md frontmatter 缺少 name`);
+    if (!textValue(fm.description)) errors.push(`${id}: SKILL.md frontmatter 缺少 description`);
+  }
+
+  // stage-map 不能引用不存在的 skill
   for (const [stage, config] of Object.entries(stageMap)) {
-    const inBase = (config.base || []).includes(skillId);
-    const inTasks = Object.values(config.byTaskType || {}).some((skillIds) =>
-      skillIds.includes(skillId),
-    );
-    if (inBase || inTasks) {
-      stages.push(stage);
+    const refs = [...(config.base || []), ...Object.values(config.byTaskType || {}).flat()];
+    for (const ref of refs) {
+      if (!idSet.has(ref)) errors.push(`research-stage-map.json: 阶段 ${stage} 引用了不存在的 skill "${ref}"`);
     }
   }
-  if (stages.length > 0) {
-    return stages;
+
+  // README 徽章数量与实际一致
+  const commandCount = countCommands();
+  for (const readme of ["README.md", "README.zh.md"]) {
+    const p = path.join(repoRoot, readme);
+    if (!existsSync(p)) continue;
+    const text = readFileSync(p, "utf8");
+    const skillBadge = Number(text.match(/badge\/skills-(\d+)/)?.[1]);
+    const cmdBadge = Number(text.match(/badge\/commands-(\d+)/)?.[1]);
+    if (skillBadge && skillBadge !== skillIds.length) {
+      errors.push(`${readme}: skills 徽章为 ${skillBadge}，实际 ${skillIds.length}`);
+    }
+    if (cmdBadge && commandCount && cmdBadge !== commandCount) {
+      errors.push(`${readme}: commands 徽章为 ${cmdBadge}，实际 ${commandCount}`);
+    }
   }
 
-  const fallback = STAGE_FALLBACKS[skillId];
-  if (fallback) {
-    return fallback;
-  }
-
-  const legacyCollection = catalogEntry?.legacy?.collection || "";
-  if (/Paper|Publication|Writing|Promotion/i.test(legacyCollection)) {
-    return ["publication"];
-  }
-  if (/Experiment|Analysis/i.test(legacyCollection)) {
-    return ["experiment"];
-  }
-  if (/Idea|Ideation/i.test(legacyCollection)) {
-    return ["ideation"];
-  }
-  return ["survey"];
+  return { errors, warnings };
 }
 
-function inferTools(resourceFlags) {
-  const tools = [...DEFAULT_TOOLS];
-  if (resourceFlags.hasScripts) {
-    tools.push("run_terminal");
-  }
-  return tools;
+function countCommands() {
+  const dir = path.join(repoRoot, "plugins", "oh-my-paper", "commands");
+  if (!existsSync(dir)) return 0;
+  return readdirSync(dir).filter((f) => f.endsWith(".md")).length;
 }
 
-function inferCapabilities(stages) {
-  if (stages.includes("publication")) {
-    return ["research-planning", "visualization-reporting"];
-  }
-  if (stages.includes("experiment")) {
-    return ["research-planning", "data-processing"];
-  }
-  return ["search-retrieval", "research-planning"];
+// 比较"实质内容"是否与磁盘一致，忽略 generatedAt / upstream.revision 等易变元数据
+function computeDrift(catalog, scope) {
+  const drift = [];
+  if (!sameContent(catalogPath, canonicalCatalog(catalog))) drift.push(rel(catalogPath));
+  if (!sameContent(scopePath, canonicalScope(scope))) drift.push(rel(scopePath));
+  return drift;
 }
 
-function inferDomains(skillId) {
-  if (skillId.includes("bio")) {
-    return ["bioinformatics"];
-  }
-  return ["cs-ai"];
+function canonicalCatalog(catalog) {
+  return { schema: catalog.schema, skills: catalog.skills, stageSkillMap: catalog.stageSkillMap };
 }
 
-function buildCanonicalSkillMd(manifest, sourceBody) {
-  const frontmatter = [
-    `id: ${manifest.id}`,
-    `name: ${manifest.name}`,
-    `version: ${manifest.version}`,
-    "description: |-",
-    ...indentBlock(manifest.description || manifest.summary || manifest.name),
-    `stages: ${toInlineYamlList(manifest.stages)}`,
-    `tools: ${toInlineYamlList(manifest.tools)}`,
-    "summary: |-",
-    ...indentBlock(manifest.summary || manifest.description || manifest.name),
-    `primaryIntent: ${manifest.primaryIntent}`,
-    `intents: ${toInlineYamlList(manifest.intents)}`,
-    `capabilities: ${toInlineYamlList(manifest.capabilities)}`,
-    `domains: ${toInlineYamlList(manifest.domains)}`,
-    `keywords: ${toInlineYamlList(manifest.keywords)}`,
-    `source: ${manifest.source}`,
-    `status: ${manifest.status}`,
-    "upstream:",
-    `  repo: ${manifest.upstream.repo}`,
-    `  path: ${manifest.upstream.path}`,
-    `  revision: ${manifest.upstream.revision}`,
-    "resourceFlags:",
-    `  hasReferences: ${manifest.resourceFlags.hasReferences}`,
-    `  hasScripts: ${manifest.resourceFlags.hasScripts}`,
-    `  hasTemplates: ${manifest.resourceFlags.hasTemplates}`,
-    `  hasAssets: ${manifest.resourceFlags.hasAssets}`,
-    `  referenceCount: ${manifest.resourceFlags.referenceCount}`,
-    `  scriptCount: ${manifest.resourceFlags.scriptCount}`,
-    `  templateCount: ${manifest.resourceFlags.templateCount}`,
-    `  assetCount: ${manifest.resourceFlags.assetCount}`,
-    `  optionalScripts: ${manifest.resourceFlags.optionalScripts}`,
-  ].join("\n");
-
-  const bundledResources = [];
-  if (manifest.resourceFlags.hasReferences) {
-    bundledResources.push(
-      `- Read from \`references/\` only when the current task needs the extra detail.`,
-    );
-  }
-  if (manifest.resourceFlags.hasScripts) {
-    bundledResources.push(
-      "- Treat `scripts/` as optional helpers. Run them only when their dependencies are available, keep outputs in the project workspace, and explain a manual fallback if execution is blocked.",
-    );
-  }
-  if (manifest.resourceFlags.hasTemplates) {
-    bundledResources.push(
-      "- Reuse files under `templates/` instead of recreating equivalent structure from scratch when the user asks for the matching deliverable.",
-    );
-  }
-  if (manifest.resourceFlags.hasAssets) {
-    bundledResources.push(
-      "- Reuse bundled files under `assets/` when they directly support the requested output.",
-    );
-  }
-  if (bundledResources.length === 0) {
-    bundledResources.push("- This skill has no bundled resource directories beyond its main instructions.");
-  }
-
-  return `---\n${frontmatter}\n---\n\n# ${manifest.name}\n\n## Canonical Summary\n\n${manifest.summary || manifest.description || manifest.name}\n\n## Trigger Rules\n\nUse this skill when the user request matches its research workflow scope. Prefer the bundled resources instead of recreating templates or reference material. Keep outputs traceable to project files, citations, scripts, or upstream evidence.\n\n## Resource Use Rules\n\n${bundledResources.join("\n")}\n\n## Execution Contract\n\n- Resolve every relative path from this skill directory first.\n- Prefer inspection before mutation when invoking bundled scripts.\n- If a required runtime, CLI, credential, or API is unavailable, explain the blocker and continue with the best manual fallback instead of silently skipping the step.\n- Do not write generated artifacts back into the skill directory; save them inside the active project workspace.\n\n## Upstream Instructions\n\n${sourceBody}\n`;
+function canonicalScope(scope) {
+  return { schema: scope.schema, skills: scope.skills };
 }
 
-function indentBlock(text) {
-  return String(text || "")
-    .split("\n")
-    .map((line) => `  ${line}`);
+function sameContent(filePath, canonicalExpected) {
+  if (!existsSync(filePath)) return false;
+  let actual;
+  try {
+    actual = JSON.parse(readFileSync(filePath, "utf8"));
+  } catch {
+    return false;
+  }
+  const canonicalActual =
+    "stageSkillMap" in canonicalExpected
+      ? canonicalCatalog(actual)
+      : canonicalScope(actual);
+  return JSON.stringify(canonicalActual) === JSON.stringify(canonicalExpected);
 }
 
-function toInlineYamlList(values) {
-  return `[${values.map((value) => JSON.stringify(value)).join(", ")}]`;
+// ---- 输出 ----
+
+function mirrorBundledCopy(catalog, scope) {
+  if (!existsSync(bundledSkillsRoot)) return;
+  writeJson(path.join(bundledSkillsRoot, "research-catalog.json"), catalog);
+  writeJson(path.join(bundledSkillsRoot, "research-scope.json"), scope);
+  if (existsSync(stageMapPath)) {
+    writeJson(path.join(bundledSkillsRoot, "research-stage-map.json"), readJson(stageMapPath));
+  }
+  process.stdout.write(`Mirrored catalog/scope/stage-map to ${rel(bundledSkillsRoot)}.\n`);
+}
+
+function formatReport(skillIds, issues) {
+  const lines = [`Discovered ${skillIds.length} skills under ${rel(skillsRoot)}.`];
+  for (const w of issues.warnings) lines.push(`  warn: ${w}`);
+  for (const e of issues.errors) lines.push(`  ERROR: ${e}`);
+  return lines.join("\n") + "\n";
+}
+
+function formatDrift(catalog, scope) {
+  const drift = computeDrift(catalog, scope);
+  if (!drift.length) return "On-disk catalog/scope match generated content.\n";
+  return "Drifted (need regenerate): " + drift.join(", ") + "\n";
+}
+
+// ---- frontmatter 解析（最小 YAML 子集，仓库未安装 YAML 库）----
+
+function parseFrontmatter(content) {
+  const norm = content.replace(/\r\n/g, "\n");
+  if (!norm.startsWith("---\n")) return {};
+  const end = norm.indexOf("\n---", 3);
+  if (end === -1) return {};
+  return parseYamlBlock(norm.slice(4, end));
+}
+
+function parseYamlBlock(block) {
+  const lines = block.split("\n");
+  const result = {};
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    if (!line.trim() || line.trimStart().startsWith("#") || line.startsWith(" ") || line.startsWith("\t")) {
+      i += 1;
+      continue;
+    }
+    const m = line.match(/^([A-Za-z0-9_]+):(.*)$/);
+    if (!m) {
+      i += 1;
+      continue;
+    }
+    const key = m[1];
+    const rest = m[2].trim();
+
+    if (rest === "|" || rest === "|-" || rest === ">" || rest === ">-") {
+      const buf = [];
+      i += 1;
+      while (i < lines.length && (lines[i].startsWith("  ") || !lines[i].trim())) {
+        buf.push(lines[i].replace(/^ {2}/, ""));
+        i += 1;
+      }
+      result[key] = buf.join("\n").trim();
+      continue;
+    }
+
+    if (rest === "") {
+      const items = [];
+      let nested = false;
+      i += 1;
+      while (i < lines.length && (lines[i].startsWith("  ") || lines[i].startsWith("\t") || !lines[i].trim())) {
+        const t = lines[i].trim();
+        if (!t) {
+          i += 1;
+          continue;
+        }
+        if (t.startsWith("- ")) items.push(stripQuotes(t.slice(2).trim()));
+        else nested = true; // 嵌套 map（如 upstream/resourceFlags）— 忽略，由脚本重算
+        i += 1;
+      }
+      result[key] = items.length ? items : nested ? {} : "";
+      continue;
+    }
+
+    if (rest.startsWith("[") && rest.endsWith("]")) {
+      result[key] = rest
+        .slice(1, -1)
+        .split(",")
+        .map((s) => stripQuotes(s.trim()))
+        .filter((s) => s.length > 0);
+      i += 1;
+      continue;
+    }
+
+    result[key] = stripQuotes(rest);
+    i += 1;
+  }
+  return result;
+}
+
+function stripQuotes(s) {
+  const t = String(s).trim();
+  if ((t.startsWith('"') && t.endsWith('"')) || (t.startsWith("'") && t.endsWith("'"))) {
+    return t.slice(1, -1);
+  }
+  return t;
+}
+
+function textValue(v) {
+  if (typeof v === "string") return v.trim();
+  return "";
+}
+
+function listValue(v) {
+  if (Array.isArray(v) && v.length) return v;
+  return null;
+}
+
+function normalizeVersion(v) {
+  if (!v) return "1.0.0";
+  const m = String(v).trim().match(/^(\d+)(?:\.(\d+))?(?:\.(\d+))?$/);
+  if (!m) return String(v).trim();
+  return `${m[1]}.${m[2] || 0}.${m[3] || 0}`;
 }
 
 function firstSentence(input) {
   const normalized = String(input || "").replace(/\s+/g, " ").trim();
-  if (!normalized) {
-    return "";
-  }
-  const match = normalized.match(/^(.+?[.!?])(\s|$)/);
+  if (!normalized) return "";
+  const match = normalized.match(/^(.+?[.!?。！？])(\s|$)/);
   return match ? match[1] : normalized;
 }
 
-function firstParagraph(input) {
-  const normalized = String(input || "").trim();
-  if (!normalized) {
-    return "";
-  }
-  return normalized.split(/\n\s*\n/u)[0].replace(/\s+/g, " ").trim();
+// ---- 通用工具 ----
+
+function readJson(filePath) {
+  return JSON.parse(readFileSync(filePath, "utf8"));
 }
 
-function buildExpectedFiles({
-  skillArtifacts,
-  researchCatalog,
-  filteredStageMap,
-  scopeManifest,
-}) {
-  const files = new Map();
-
-  files.set(outputCatalogPath, `${JSON.stringify(researchCatalog, null, 2)}\n`);
-  files.set(outputStageMapPath, `${JSON.stringify(filteredStageMap, null, 2)}\n`);
-  files.set(outputScopePath, `${JSON.stringify(scopeManifest, null, 2)}\n`);
-
-  for (const artifact of skillArtifacts) {
-    const targetDir = path.join(outputSkillsRoot, artifact.manifest.id);
-    for (const sourceFile of walkFiles(artifact.sourceDir)) {
-      if (!sourceFile.isFile()) {
-        continue;
-      }
-      const relativePath = path.relative(artifact.sourceDir, sourceFile.fullPath);
-      if (relativePath === "SKILL.md") {
-        continue;
-      }
-      const targetPath = path.join(targetDir, relativePath);
-      files.set(targetPath, readFileSync(sourceFile.fullPath));
-    }
-    files.set(path.join(targetDir, "SKILL.md"), artifact.canonicalSkillMd);
-  }
-
-  return files;
+function writeJson(filePath, value) {
+  mkdirSync(path.dirname(filePath), { recursive: true });
+  writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`);
 }
 
-function diffExpectedFiles(expectedFiles) {
-  const missing = [];
-  const changed = [];
-
-  for (const [filePath, expectedContent] of expectedFiles.entries()) {
-    if (!existsSync(filePath)) {
-      missing.push(rel(filePath));
-      continue;
-    }
-    const actualContent = readFileSync(filePath);
-    const expectedBuffer =
-      typeof expectedContent === "string" ? Buffer.from(expectedContent) : expectedContent;
-    if (!actualContent.equals(expectedBuffer)) {
-      changed.push(rel(filePath));
-    }
-  }
-
-  return {
-    expectedCount: expectedFiles.size,
-    missing,
-    changed,
-    hasDifferences: missing.length > 0 || changed.length > 0,
-  };
-}
-
-function formatReport(report) {
-  const lines = [
-    `Expected managed files: ${report.expectedCount}`,
-    `Missing: ${report.missing.length}`,
-    `Changed: ${report.changed.length}`,
-  ];
-  if (report.missing.length > 0) {
-    lines.push("Missing files:");
-    lines.push(...report.missing.map((item) => `  - ${item}`));
-  }
-  if (report.changed.length > 0) {
-    lines.push("Changed files:");
-    lines.push(...report.changed.map((item) => `  - ${item}`));
-  }
-  return lines.join("\n");
-}
-
-function syncExpectedFiles(expectedFiles, skillArtifacts) {
-  for (const artifact of skillArtifacts) {
-    const targetDir = path.join(outputSkillsRoot, artifact.manifest.id);
-    rmSync(targetDir, { recursive: true, force: true });
-  }
-
-  for (const [filePath, content] of expectedFiles.entries()) {
-    mkdirSync(path.dirname(filePath), { recursive: true });
-    if (typeof content === "string") {
-      writeFileSync(filePath, content, "utf8");
-    } else {
-      writeFileSync(filePath, content);
-    }
-  }
-}
-
-function* walkFiles(targetDir) {
-  if (!existsSync(targetDir)) {
-    return;
-  }
-  for (const entryName of readdirSync(targetDir)) {
-    if (entryName === ".DS_Store" || entryName === "__pycache__") {
-      continue;
-    }
-    const fullPath = path.join(targetDir, entryName);
-    const stats = statSync(fullPath);
-    const entry = {
-      fullPath,
-      isFile: () => stats.isFile(),
-      isDirectory: () => stats.isDirectory(),
-    };
-    if (stats.isDirectory()) {
-      yield* walkFiles(fullPath);
-      continue;
-    }
-    if (fullPath.endsWith(".pyc")) {
-      continue;
-    }
-    yield entry;
+function getGitRevision() {
+  try {
+    return execFileSync("git", ["rev-parse", "HEAD"], { cwd: repoRoot, encoding: "utf8" }).trim();
+  } catch {
+    return "unknown";
   }
 }
 

@@ -76,7 +76,7 @@ This skill should be used when:
 **When creating documents with this skill, always consider adding scientific diagrams and schematics to enhance visual communication.**
 
 If your document does not already contain schematics or diagrams:
-- Use the **scientific-schematics** skill to generate AI-powered publication-quality diagrams
+- Use the **inno-figure-gen** skill to generate AI-powered publication-quality diagrams
 - Simply describe your desired diagram in natural language
 - Nano Banana Pro will automatically generate, review, and refine the schematic
 
@@ -84,7 +84,7 @@ If your document does not already contain schematics or diagrams:
 
 **How to generate schematics:**
 ```bash
-python scripts/generate_schematic.py "your diagram description" -o figures/output.png
+uv run .claude/skills/inno-figure-gen/scripts/generate_image.py --prompt "your diagram description" --filename "figure.png" --resolution 4K
 ```
 
 The AI will automatically:
@@ -102,7 +102,7 @@ The AI will automatically:
 - Reporting guidelines compliance diagrams
 - Any complex concept that benefits from visualization
 
-For detailed guidance on creating schematics, refer to the scientific-schematics skill documentation.
+For detailed guidance on creating schematics, refer to the inno-figure-gen skill documentation.
 
 ---
 

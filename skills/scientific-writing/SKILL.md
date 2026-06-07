@@ -7,7 +7,7 @@ description: |-
 stages: ["publication"]
 tools: ["read_file", "search_project", "write_file"]
 summary: |-
-  Core skill for the deep research and writing tool. Write scientific manuscripts in full paragraphs (never bullet points). Use two-stage process: (1) create section outlines with key points using research-lookup, (2) convert to flowing pros...
+  Core skill for the deep research and writing tool. Write scientific manuscripts in full paragraphs (never bullet points). Use two-stage process: (1) create section outlines with key points using literature search, (2) convert to flowing pros...
 primaryIntent: writing
 intents: ["writing", "research"]
 capabilities: ["visualization-reporting"]
@@ -35,7 +35,7 @@ resourceFlags:
 
 ## Canonical Summary
 
-Core skill for the deep research and writing tool. Write scientific manuscripts in full paragraphs (never bullet points). Use two-stage process: (1) create section outlines with key points using research-lookup, (2) convert to flowing pros...
+Core skill for the deep research and writing tool. Write scientific manuscripts in full paragraphs (never bullet points). Use two-stage process: (1) create section outlines with key points using literature search, (2) convert to flowing pros...
 
 ## Trigger Rules
 
@@ -58,11 +58,11 @@ Use this skill when the user request matches its research workflow scope. Prefer
 
 ## Overview
 
-**This is the core skill for the deep research and writing tool**—combining AI-driven deep research with well-formatted written outputs. Every document produced is backed by comprehensive literature search and verified citations through the research-lookup skill.
+**This is the core skill for the deep research and writing tool**—combining AI-driven deep research with well-formatted written outputs. Every document produced is backed by comprehensive literature search and verified citations: gather sources with the **paper-finder** / **inno-deep-research** / **pubmed-search** skills and verify every reference with the **inno-reference-audit** skill.
 
 Scientific writing is a process for communicating research with precision and clarity. Write manuscripts using IMRAD structure, citations (APA/AMA/Vancouver), figures/tables, and reporting guidelines (CONSORT/STROBE/PRISMA). Apply this skill for research papers and journal submissions.
 
-**Critical Principle: Always write in full paragraphs with flowing prose. Never submit bullet points in the final manuscript.** Use a two-stage process: first create section outlines with key points using research-lookup, then convert those outlines into complete paragraphs.
+**Critical Principle: Always write in full paragraphs with flowing prose. Never submit bullet points in the final manuscript.** Use a two-stage process: first create section outlines with key points using literature search, then convert those outlines into complete paragraphs.
 
 ## When to Use This Skill
 
@@ -80,27 +80,26 @@ This skill should be used when:
 
 ## Visual Enhancement with Scientific Schematics
 
-**⚠️ MANDATORY: Every scientific paper MUST include at least 1-2 AI-generated figures using the scientific-schematics skill.**
+**⚠️ STRONGLY RECOMMENDED: Most scientific papers benefit from at least 1-2 figures. For clinical work, a study-flow diagram is usually expected by the target journal — CONSORT for trials, PRISMA for systematic reviews, STROBE for observational studies. The flow diagram should reflect the real participant/record counts and can be drawn directly; it does not need to be AI-generated.**
 
-This is not optional. Scientific papers without visual elements are incomplete. Before finalizing any document:
-1. Generate at minimum ONE schematic or diagram using scientific-schematics
-2. Prefer 2-3 figures for comprehensive papers (methods flowchart, results visualization, conceptual diagram)
+Before finalizing any document:
+1. Generate at minimum ONE schematic or conceptual diagram with the **inno-figure-gen** skill, or draw the reporting-guideline flow diagram from the actual counts if no generator is available
+2. Prefer 2-3 figures for comprehensive papers (methods/CONSORT flowchart, results visualization, conceptual diagram)
 
 **How to generate figures:**
-- Use the **scientific-schematics** skill to generate AI-powered publication-quality diagrams
+- Use the **inno-figure-gen** skill to generate AI-powered publication-quality diagrams
 - Simply describe your desired diagram in natural language
 - Nano Banana Pro will automatically generate, review, and refine the schematic
 
 **How to generate schematics:**
 ```bash
-python scripts/generate_schematic.py "your diagram description" -o figures/output.png
+uv run .claude/skills/inno-figure-gen/scripts/generate_image.py --prompt "your diagram description" --filename "figure.png" --resolution 4K
 ```
 
-The AI will automatically:
+The skill will:
 - Create publication-quality images with proper formatting
-- Review and refine through multiple iterations
-- Ensure accessibility (colorblind-friendly, high contrast)
-- Save outputs in the figures/ directory
+- Let you iterate by passing the previous output back through `--input-image`
+- Save the image to the path you pass via `--filename` (keep outputs in the project's figures/ directory)
 
 **When to add schematics:**
 - Study design and methodology flowcharts (CONSORT, PRISMA, STROBE)
@@ -111,7 +110,7 @@ The AI will automatically:
 - System architecture visualizations
 - Any complex concept that benefits from visualization
 
-For detailed guidance on creating schematics, refer to the scientific-schematics skill documentation.
+For detailed guidance on creating schematics, refer to the **inno-figure-gen** skill documentation.
 
 ---
 
@@ -261,7 +260,7 @@ Scientific papers must be written in complete, flowing prose. Use this two-stage
 **Stage 1: Create Section Outlines with Key Points**
 
 When starting a new section:
-1. Use the research-lookup skill to gather relevant literature and data
+1. Use the literature-search skills (paper-finder / inno-deep-research / pubmed-search) to gather relevant literature and data
 2. Create a structured outline with bullet points marking:
    - Main arguments or findings to present
    - Key studies to cite
@@ -341,10 +340,10 @@ Lists may appear in scientific papers only in specific contexts:
 - **Supplementary Materials**: Extended protocols, equipment lists, detailed parameters
 - **Never in**: Abstract, Introduction, Results, Discussion, Conclusions
 
-**Integration with Research Lookup:**
+**Integration with Literature Search:**
 
-The research-lookup skill is essential for Stage 1 (creating outlines):
-1. Search for relevant papers using research-lookup
+The literature-search skills are essential for Stage 1 (creating outlines):
+1. Search for relevant papers using **paper-finder**, **inno-deep-research**, or — for clinical/biomedical literature — **pubmed-search** and **clinicaltrials-gov**
 2. Extract key findings, methods, and data
 3. Organize findings as bullet points in your outline
 4. Then convert the outline to full paragraphs in Stage 2
@@ -485,7 +484,7 @@ Adapt language, terminology, and conventions to match the specific scientific di
 **Stage 2: Drafting** (Use two-stage writing process for each section)
 1. Start with figures and tables (the core data story)
 2. For each section below, follow the two-stage process:
-   - **First**: Create outline with bullet points using research-lookup
+   - **First**: Create outline with bullet points using the literature-search skills
    - **Second**: Convert bullet points to full paragraphs with flowing prose
 3. Write Methods (often easiest to draft first)
 4. Draft Results (describing figures/tables objectively)

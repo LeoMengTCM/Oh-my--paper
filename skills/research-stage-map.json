@@ -18,7 +18,8 @@
         "systematic-review",
         "inno-deep-research",
         "gemini-deep-research",
-        "academic-researcher"
+        "academic-researcher",
+        "inno-figure-gen"
       ],
       "exploration": [
         "literature-pdf-ocr-library",
@@ -77,7 +78,8 @@
       "inno-experiment-dev",
       "inno-experiment-analysis",
       "bioinformatics-init-analysis",
-      "clinical-study-design"
+      "clinical-study-design",
+      "inno-figure-gen"
     ],
     "byTaskType": {
       "implementation": [
@@ -87,7 +89,8 @@
       ],
       "analysis": [
         "inno-experiment-analysis",
-        "bioinformatics-init-analysis"
+        "bioinformatics-init-analysis",
+        "inno-figure-gen"
       ],
       "exploration": [
         "inno-code-survey",

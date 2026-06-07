@@ -264,6 +264,17 @@ Each stage comes with:
 - **Recommended skills** — which skills to load
 - **Context-aware prompts** — agents read `tasks.json` and `research_brief.json` and know what to do
 
+### Research tracks & gates
+
+The pipeline adapts to a `pipeline.track` chosen at `/omp:setup` — `ml` (default), `clinical`, `systematic-review`, or `bioinformatics`. The track decides how each stage is interpreted, what figures it produces, and which gates apply:
+
+- **Confirmatory vs exploratory** — clinical/SR work runs the pre-specified analysis once and reports it as-is (no iterate-until-significant); ML/bioinformatics iterate freely.
+- **Lock & register gate** — for clinical/SR, no data collection or analysis starts until the protocol + SAP are frozen and the study is registered (ClinicalTrials.gov / PROSPERO) and IRB-approved.
+- **Reporting-guideline gate** — the publication/review gate checks the registration number and the matching checklist (CONSORT / STROBE / STARD / PRISMA).
+- **Figures early** — each stage produces its figures as the work happens (flow diagrams with real counts, forest/KM plots), never deferred to the end.
+
+Defaults keep existing ML projects unchanged.
+
 ---
 
 ## Project Scaffold

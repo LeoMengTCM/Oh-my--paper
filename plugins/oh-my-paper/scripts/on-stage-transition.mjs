@@ -24,8 +24,13 @@ async function main() {
 
   const briefPath = path.join(PROJECT, ".pipeline", "docs", "research_brief.json");
   let currentStage = "unknown";
+  let track = "ml";
   if (existsSync(briefPath)) {
-    try { currentStage = JSON.parse(readFileSync(briefPath, "utf8")).currentStage || "unknown"; } catch {}
+    try {
+      const brief = JSON.parse(readFileSync(briefPath, "utf8"));
+      currentStage = brief.currentStage || "unknown";
+      track = (brief.pipeline && brief.pipeline.track) || brief.track || "ml";
+    } catch {}
   }
 
   const stageTasks = (tasks.tasks || []).filter(t => t.stage === currentStage);
@@ -34,10 +39,14 @@ async function main() {
 
   const statePath = path.join(PROJECT, ".pipeline", "memory", "orchestrator_state.md");
   const ts = new Date().toISOString().slice(0, 16).replace("T", " ");
+  const gateNote =
+    track === "clinical" || track === "systematic-review"
+      ? ` 注意：本项目为 ${track} track——推进前须确认注册/锁定/伦理门与报告规范清单（见 /omp:plan 的闸门检查）。`
+      : "";
   await fs.mkdir(path.dirname(statePath), { recursive: true });
   await fs.appendFile(
     statePath,
-    `\n⚠️ [${ts}] 阶段 '${currentStage}' 所有任务已完成，请运行 /omp:plan 评审并决定是否推进。\n`,
+    `\n⚠️ [${ts}] 阶段 '${currentStage}' 所有任务已完成，请运行 /omp:plan 评审并决定是否推进。${gateNote}\n`,
     "utf8"
   );
 

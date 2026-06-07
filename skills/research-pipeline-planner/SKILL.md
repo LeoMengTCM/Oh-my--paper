@@ -27,6 +27,9 @@ Use this skill when the user needs to define or revise the project-level researc
 5. **When entering ideation stage, use the `research-idea-convergence` skill** to generate candidate directions and let the user choose. Never autonomously decide the research direction.
 6. Ensure every stage transition involves a user checkpoint — do not skip stages or auto-advance without user confirmation.
 7. **严格线性执行**：任务必须按顺序执行，当前任务未完成前不得跳至下一任务。调研未完成 → 不得进入构思；构思未完成 → 不得进入实验。每个阶段的所有任务 done 后才能进入下一阶段。
+8. **确定 `pipeline.track`**（ml / clinical / systematic-review / bioinformatics；缺省 ml）并据此设 `pipeline.analysisMode`。clinical/systematic-review 为 **confirmatory**：按冻结计划跑一次、如实报告，不迭代到达标。细节见 `inno-pipeline-planner/references/track-profiles.md`。
+9. **硬闸门（clinical / systematic-review）**：在锁定/注册门任务（方案+SAP 冻结、已注册 ClinicalTrials.gov/PROSPERO、过 IRB）`done` 之前，任何数据采集/分析（clinical）或筛选/提取（systematic-review）任务都不得开始；用任务依赖接线。
+10. **作图尽早**：每个活跃阶段都要有图产出（`inno-figure-gen`）——流程图/示意图/主结果图边做边出，绝不憋到发表阶段。
 
 ## Expected Outputs
 

@@ -44,6 +44,13 @@ cat .pipeline/memory/decision_log.md
 - 选择调整：`AskUserQuestion` 进一步了解想法，更新计划
 - 选择查看任务：列出当前阶段所有任务及状态
 
+## 阶段推进前的闸门检查（按 track）
+
+读 `research_brief.json` 的 `pipeline.track`，仅当对应闸门通过才允许推进；否则用 `AskUserQuestion` 说明缺口并引导补齐：
+- **clinical / systematic-review**：进入数据采集/分析前——`protocol.md` + `sap.md` 已冻结、已注册（ClinicalTrials.gov / PROSPERO）、过 IRB（综述无需 IRB）。
+- **进入 publication（临床/综述强制）**：按报告规范清单核对——注册号在位；对应清单齐全（CONSORT / STROBE / STARD 或 PRISMA）；伦理与数据可得性声明；流程图/主结果图已就绪。核对依据见 `clinical-study-design`、`systematic-review`、`scientific-writing` 的 references。
+- **ml / bioinformatics**：无硬闸门，但确认每阶段图已产出、版本/依赖可复现。
+
 ## 最后：更新状态文件
 
 ```omp_memory_sync

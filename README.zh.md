@@ -265,6 +265,17 @@ Oh My Paper 注册三个后台运行的 hook：
 - **推荐技能** — 该阶段应该加载哪些技能
 - **上下文感知提示** — agent 读取 `tasks.json` 和 `research_brief.json`，知道该做什么
 
+### 研究类型(track)与闸门
+
+流水线会根据 `/omp:setup` 设定的 `pipeline.track` 自适应——`ml`（缺省）、`clinical`、`systematic-review`、`bioinformatics`。track 决定每个阶段如何解释、产出哪些图、适用哪些闸门：
+
+- **确证 vs 探索** — 临床/综述按预设分析跑一次、如实报告（不迭代到显著）；ML/生信可自由迭代。
+- **锁定与注册门** — 临床/综述在方案 + SAP 冻结、完成注册（ClinicalTrials.gov / PROSPERO）并过 IRB 之前，不得开始采集或分析。
+- **报告规范门** — 发表/评审闸门核对注册号与对应清单（CONSORT / STROBE / STARD / PRISMA）。
+- **作图尽早** — 每个阶段边做边出图（带真实计数的流程图、森林图/KM 曲线），绝不拖到最后。
+
+缺省值保证既有 ML 项目行为不变。
+
 ---
 
 ## 项目结构

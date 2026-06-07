@@ -40,6 +40,7 @@ description: Orchestrates the research pipeline by routing between modes and rev
 - 通过 `/omp:delegate` 派遣 Codex 执行代码任务
 - 维护项目记忆（project_truth, orchestrator_state, agent_handoff）
 - 识别风险，拆解卡住的任务
+- 按 `pipeline.track` 把关闸门：clinical / systematic-review 在进入采集/分析前确认已锁定 + 注册 + 伦理；进入发表前核对报告规范清单（CONSORT/STROBE/STARD/PRISMA + 注册号 + 伦理与数据可得性声明）
 
 ## 子任务完成后强制更新（关键）
 
@@ -139,4 +140,6 @@ cat .pipeline/tasks/tasks.json
 - ❌ 不要自己写论文正文
 - ❌ 不要自己跑实验代码
 - ❌ 不要在没有评审的情况下推进阶段
+- ❌ clinical / systematic-review：锁定/注册门未 done，不得推进到数据采集/分析
+- ❌ confirmatory 研究不要把"未达标→再跑一轮"当作选项（p-hacking）
 - ✅ dispatch 后等待结果，评审，再决定下一步

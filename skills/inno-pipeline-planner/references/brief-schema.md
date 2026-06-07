@@ -2,6 +2,8 @@
 
 Canonical contract for `.pipeline/docs/research_brief.json`.
 
+**`pipeline.track`** ∈ `ml | clinical | systematic-review | bioinformatics` (default `ml`) selects stage interpretation, hard gates, figure timeline, and quality gates — see `track-profiles.md`. **`pipeline.analysisMode`** ∈ `exploratory | confirmatory` (default set by track: clinical/systematic-review → confirmatory, ml/bioinformatics → exploratory).
+
 ```json
 {
   "schemaVersion": "1.1",
@@ -48,6 +50,8 @@ Canonical contract for `.pipeline/docs/research_brief.json`.
   "pipeline": {
     "version": "1.1",
     "mode": "idea",
+    "track": "ml",
+    "analysisMode": "exploratory",
     "startStage": "survey",
     "stages": {
       "survey": {

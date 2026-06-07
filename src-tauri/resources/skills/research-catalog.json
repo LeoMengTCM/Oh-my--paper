@@ -1,9 +1,9 @@
 {
   "schema": "viewerleaf-research-catalog-v1",
-  "generatedAt": "2026-06-07T09:41:20.715Z",
+  "generatedAt": "2026-06-07T10:31:34.402Z",
   "upstream": {
     "repo": "Oh-my--paper",
-    "revision": "f6b5b5078a7ac45718ef4aeaddb0fd02880c8507"
+    "revision": "1a92b1cb5a3d792a711207251e0673cdf61e50d6"
   },
   "skills": [
     {
@@ -680,6 +680,8 @@
       "description": "Generate/edit images with Nano Banana Pro (Gemini 3 Pro Image).",
       "summary": "Generate/edit images with Nano Banana Pro (Gemini 3 Pro Image). Use for image create/modify requests incl. edits. Supports text-to-image + image-to-image; 1K/2K/4K; use --input-image.",
       "stages": [
+        "survey",
+        "experiment",
         "publication"
       ],
       "tools": [
@@ -1041,7 +1043,7 @@
         "hasScripts": false,
         "hasTemplates": false,
         "hasAssets": false,
-        "referenceCount": 4,
+        "referenceCount": 5,
         "scriptCount": 0,
         "templateCount": 0,
         "assetCount": 0,
@@ -2039,7 +2041,8 @@
           "systematic-review",
           "inno-deep-research",
           "gemini-deep-research",
-          "academic-researcher"
+          "academic-researcher",
+          "inno-figure-gen"
         ],
         "exploration": [
           "literature-pdf-ocr-library",
@@ -2098,7 +2101,8 @@
         "inno-experiment-dev",
         "inno-experiment-analysis",
         "bioinformatics-init-analysis",
-        "clinical-study-design"
+        "clinical-study-design",
+        "inno-figure-gen"
       ],
       "byTaskType": {
         "implementation": [
@@ -2108,7 +2112,8 @@
         ],
         "analysis": [
           "inno-experiment-analysis",
-          "bioinformatics-init-analysis"
+          "bioinformatics-init-analysis",
+          "inno-figure-gen"
         ],
         "exploration": [
           "inno-code-survey",

@@ -46,6 +46,18 @@ which codex 2>/dev/null && codex --version 2>/dev/null || echo "Codex not found"
 - `experiment（实验）`
 - `publication（论文写作）`
 
+然后问研究类型（决定阶段含义、硬闸门、作图时机与质量门）：
+
+> 这是哪类研究？
+
+选项：
+- `ml — 机器学习 / 计算实验`
+- `clinical — 临床研究（RCT / 队列 / 病例对照 / 诊断等；需注册与伦理审查）`
+- `systematic-review — 系统综述 / Meta 分析（需 PROSPERO 注册）`
+- `bioinformatics — 生物信息学（组学流程，常用 HPC）`
+
+记下选择写入 `pipeline.track`。clinical / systematic-review 自动设 `analysisMode = confirmatory`，其余为 `exploratory`。
+
 ## 第三步：创建目录结构
 
 ```bash
@@ -65,9 +77,16 @@ cp -rn "${CLAUDE_PLUGIN_ROOT}/skills/." .claude/skills/
   "topic": "[用户填写的主题]",
   "goal": "",
   "currentStage": "[用户选择的阶段]",
-  "successThreshold": "需要在此填写成功标准"
+  "pipeline": {
+    "track": "[ml|clinical|systematic-review|bioinformatics]",
+    "analysisMode": "[clinical/SR 填 confirmatory，其余 exploratory]",
+    "startStage": "[用户选择的阶段]"
+  },
+  "successThreshold": "成功标准（confirmatory 研究：填主要结局与预设分析，而非可反复迭代的阈值）"
 }
 ```
+
+> clinical / systematic-review track 额外创建冻结计划与偏离记录：`.pipeline/docs/protocol.md`、`.pipeline/docs/sap.md`（统计分析计划）、`.pipeline/memory/protocol_deviations.md`。它们是预注册的依据——锁定后不得随意改写，任何变更记入 deviations。
 
 **`.pipeline/memory/project_truth.md`**：
 ```markdown

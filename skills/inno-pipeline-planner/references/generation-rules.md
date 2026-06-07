@@ -38,6 +38,7 @@ Create when missing:
   - Use `"experiment"` when user already has a research idea, problem framing, and success criteria.
   - Use `"publication"` when user already has experimental results and analysis.
   - Use `"promotion"` when user already has a manuscript or publication draft and mainly needs presentation or dissemination assets.
+- Set `pipeline.track` (default `"ml"`) and derive `pipeline.analysisMode` from it — see `track-profiles.md`. The track decides stage interpretation, hard gates, figure timeline, and quality-gate contents.
 - Make `task_blueprints` and `quality_gate` domain-specific to the topic.
 - For skipped stages (before `startStage`): still populate `sections.*` with whatever context the user provided, but `task_blueprints` in those stages will not produce tasks.
 
@@ -54,6 +55,9 @@ Stage order: `survey` < `ideation` < `experiment` < `publication` < `promotion`.
 5. Order tasks by execution flow:
    - exploration -> implementation -> analysis -> writing -> scripting/rendering/narration/delivery
 6. Add dependencies when obvious (for example, implementation depends on exploration in the same stage).
+7. **Figures early (every track):** add one figure task (taskType `figure`, skill `inno-figure-gen`) to each active stage per `track-profiles.md`; never defer all figures to publication.
+8. **Hard gate (clinical / systematic-review):** insert the track's gate task (taskType `gate`) and make data-collection/analysis (clinical) or screening/extraction (systematic-review) tasks depend on it; the gate must be `done` before they start.
+9. **analysisMode:** in `confirmatory` mode (clinical/systematic-review default), generate a single pre-specified analysis task — no "iterate-until-target" tasks; any unplanned analysis is a separate, explicitly exploratory task.
 
 ## `nextActionPrompt` template
 

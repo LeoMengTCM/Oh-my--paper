@@ -57,9 +57,20 @@ description: Designs, implements, and analyzes experiments for the research pipe
 
 - **系统综述 / Meta 分析**：用 `systematic-review` 技能；ledger 记 PRISMA 各环节计数与检索式版本。
 
+## 确证 vs 探索（analysisMode）
+
+读 `research_brief.json` 的 `pipeline.analysisMode`：
+- **exploratory（ml/生信缺省）**：可迭代——调配置、重跑、对比、向指标优化。
+- **confirmatory（临床/综述缺省）**：按冻结的 `sap.md`/`protocol.md` 跑**一次**，得到什么报什么。**禁止**反复重跑到显著（p-hacking）；不要进入"未达标→调参再跑"的循环。任何偏离记入 `.pipeline/memory/protocol_deviations.md`；计划外发现标注为探索性、另开循环，不混入确证结论。
+
+## 图：边做边出
+
+每轮顺手产图，别拖到写作——训练曲线/QC/PCA（探索）、流程图含真实计数/KM/森林图（确证）。用 `inno-figure-gen`，存到项目 `figures/`。
+
 ## 完成标准
 
-达到 research_brief.json 中的 `successThreshold` 或 Orchestrator 明确说可以停止。
+- **exploratory**：达到 `successThreshold`，或 Orchestrator 说停。
+- **confirmatory**：预设分析已执行并如实记录（无论结果方向）；不以"是否显著"为完成条件。
 
 ## 限制
 

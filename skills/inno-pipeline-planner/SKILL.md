@@ -65,6 +65,7 @@ Keep this file short. Load full schemas and field-level rules from:
 
 Read only what you need:
 - `references/generation-rules.md`: generation logic, ordering, dependencies, `nextActionPrompt`
+- `references/track-profiles.md`: per-track stage meaning, hard gates, figure timeline, analysisMode
 - `references/brief-schema.md`: `.pipeline/docs/research_brief.json` contract
 - `references/tasks-schema.md`: `.pipeline/tasks/tasks.json` contract
 
@@ -106,6 +107,8 @@ Capture at least:
 - If the user already has a paper/manuscript and mainly needs a homepage, slide deck, narration, or demo assets -> `startStage = "promotion"`
 - If the user is starting from scratch or only has a vague direction -> `startStage = "survey"` (default)
 - Detect automatically from conversation context (e.g., "I already ran all experiments" implies publication; "I need slides for my paper" implies promotion).
+
+**Determine the track** (`pipeline.track`, default `ml`): is this machine-learning/CS, **clinical** (human studies), a **systematic-review / meta-analysis**, or **bioinformatics**? It sets `analysisMode`, hard gates, the figure timeline, and quality gates — see `references/track-profiles.md`. When the topic is biomedical and the track is ambiguous, ask one question rather than guessing.
 
 Typical question buckets:
 - Project identity: topic, prior paper/method/dataset, target venue (optional)

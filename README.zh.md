@@ -21,8 +21,8 @@
 <p align="center">
   <img src="https://img.shields.io/badge/claude--code-plugin-blueviolet?style=flat-square" />
   <img src="https://img.shields.io/badge/agents-5-ff69b4?style=flat-square" />
-  <img src="https://img.shields.io/badge/skills-34-green?style=flat-square" />
-  <img src="https://img.shields.io/badge/commands-8-blue?style=flat-square" />
+  <img src="https://img.shields.io/badge/skills-35-green?style=flat-square" />
+  <img src="https://img.shields.io/badge/commands-9-blue?style=flat-square" />
   <img src="https://img.shields.io/badge/license-MIT-orange?style=flat-square" />
 </p>
 
@@ -60,7 +60,7 @@
 - [安装](#安装)
 - [Claude Code 命令列表](#claude-code-命令列表)
 - [Agent 团队](#agent-团队)
-- [34 个研究技能](#34-个研究技能)
+- [35 个研究技能](#35-个研究技能)
 - [Hooks](#hooks)
 - [科研流水线](#科研流水线)
 - [项目结构](#项目结构)
@@ -82,7 +82,7 @@ Oh My Paper 让 Claude Code **理解科研**，提供：
 
 - **结构化 5 阶段流水线** — 调研 → 创意 → 实验 → 发表 → 推广
 - **5 个专职 agent 角色** — 各自有独立记忆和明确职责
-- **34 个内置研究技能** — 从论文搜索到图表生成
+- **35 个内置研究技能** — 从论文搜索到图表生成
 - **后台 hooks** — 每次开会话自动注入项目上下文、触发角色选择
 - **Codex 任务委派** — 把并行任务交给另一个终端里的 Codex 跑
 
@@ -114,7 +114,7 @@ hooks 需要重启才能生效。
 /omp:setup
 ```
 
-这一步会创建 `.pipeline/` 目录，并把 SessionStart hook 注册到项目的 `.claude/settings.json`。
+这一步会创建 `.pipeline/` 目录、把自带技能拷贝到 `.claude/skills/`，并写入初始记忆文件。三个 hook 随插件自带、启用即生效——不需要在每个项目里单独注册。
 
 ### 更新插件
 
@@ -155,7 +155,7 @@ Codex 插件目前**不会**在 Codex CLI 里自动注册 `/omp-*` 命令。
 
 | 命令 | 作用 |
 |------|------|
-| `/omp:setup` | 初始化研究项目——创建 `.pipeline/`、记忆文件，注册 SessionStart hook |
+| `/omp:setup` | 初始化研究项目——创建 `.pipeline/`、记忆文件，并把自带技能拷到 `.claude/skills/` |
 | `/omp:survey` | AI 辅助文献调研——搜索论文，整理 `literature_bank.md` |
 | `/omp:ideate` | 基于调研结果生成并评估创新点 |
 | `/omp:experiment` | 设计实验、编写评估代码、在远程节点上运行 |
@@ -163,6 +163,7 @@ Codex 插件目前**不会**在 Codex CLI 里自动注册 `/omp-*` 命令。
 | `/omp:review` | 同行评审——提交前对论文或实验结果做质量把关 |
 | `/omp:delegate` | 生成 Codex prompt 委派代码/实验任务；等待结果后自动更新项目状态 |
 | `/omp:plan` | 查看全局进展，确认下一步方向，更新研究计划 |
+| `/omp:sync` | 进度文档与实际脱节时，强制重建三个核心进度文档（`project_truth` / `orchestrator_state` / `execution_context`） |
 
 ### 典型用法
 
@@ -209,7 +210,7 @@ Codex 插件目前**不会**在 Codex CLI 里自动注册 `/omp-*` 命令。
 
 ---
 
-## 34 个研究技能
+## 35 个研究技能
 
 技能是 Claude 按需加载的结构化指令集，每个技能是一个 markdown 文件，覆盖特定的科研任务。
 
@@ -218,7 +219,7 @@ Codex 插件目前**不会**在 Codex CLI 里自动注册 `/omp-*` 命令。
 
 | 类别 | 技能 |
 |------|------|
-| **文献** | `paper-finder` · `paper-analyzer` · `paper-image-extractor` · `research-literature-trace` · `biorxiv-database` · `dataset-discovery` |
+| **文献** | `paper-finder` · `paper-analyzer` · `paper-image-extractor` · `research-literature-trace` · `biorxiv-database` · `dataset-discovery` · `literature-pdf-ocr-library` |
 | **调研与创意** | `inno-deep-research` · `gemini-deep-research` · `inno-code-survey` · `inno-idea-generation` · `inno-idea-eval` · `research-idea-convergence` |
 | **实验** | `inno-experiment-dev` · `inno-experiment-analysis` · `research-experiment-driver` · `remote-experiment` |
 | **写作** | `inno-paper-writing` · `ml-paper-writing` · `scientific-writing` · `inno-figure-gen` · `inno-reference-audit` · `research-paper-handoff` |
@@ -229,7 +230,7 @@ Codex 插件目前**不会**在 Codex CLI 里自动注册 `/omp-*` 命令。
 
 </details>
 
-技能根据当前流水线阶段自动推荐。也可以在 `skills/` 目录下添加项目本地技能。
+技能根据当前流水线阶段自动推荐。你也可以在研究项目的 `.claude/skills/` 目录下添加项目专属技能。
 
 ---
 
@@ -243,7 +244,7 @@ Oh My Paper 注册三个后台运行的 hook：
 | **Stop** | 任务完成时 | 追踪任务完成，更新 `tasks.json` |
 | **PostToolUse (Write)** | 任何文件写入后 | 检测流水线阶段跳转 |
 
-**重要：** hook 只有在项目里跑过 `/omp:setup` 后才会生效。setup 会把 SessionStart hook 注册到 `.claude/settings.json`，并创建 hook 检测所需的 `.pipeline/` 目录。
+**重要：** 三个 hook 随插件自带（`plugins/oh-my-paper/hooks/hooks.json`），启用插件即生效——**不需要**在每个项目里单独注册。它们会一直保持安静，直到 `/omp:setup` 创建出要检测的 `.pipeline/` 目录；在此之前，每个 hook 检测不到 `.pipeline/` 就直接退出。
 
 ---
 
@@ -267,7 +268,7 @@ Oh My Paper 注册三个后台运行的 hook：
 
 ## 项目结构
 
-`/omp:setup` 创建以下结构：
+一个典型的 Oh My Paper 项目长这样——`/omp:setup` 会搭好 `.pipeline/` 并把自带技能拷到 `.claude/skills/`；其余是推荐布局，随项目推进逐步填充：
 
 ```
 my-research/
@@ -279,7 +280,6 @@ my-research/
 ├── survey/                 # 文献调研产出
 ├── ideation/               # 创新点、评估、计划
 ├── promotion/              # 幻灯片、Demo、推广材料
-├── skills/                 # 项目本地技能
 ├── .pipeline/
 │   ├── tasks/
 │   │   └── tasks.json      # 跨阶段任务树
@@ -287,7 +287,7 @@ my-research/
 │   │   └── research_brief.json
 │   └── memory/             # Agent 记忆文件
 ├── .claude/
-│   └── settings.json       # SessionStart hook 注册
+│   └── skills/             # 自带技能副本（由 /omp:setup 拷入）
 ├── CLAUDE.md
 └── AGENTS.md
 ```
@@ -391,7 +391,7 @@ Conductor 可以把代码和实验任务交给 Codex 执行：
 
 ## 贡献
 
-欢迎 PR。新增技能请放在 `skills/` 目录，带好 YAML frontmatter，并更新 `research-catalog.json`。
+欢迎 PR。新增技能请放在 `skills/<名称>/SKILL.md`，带好 YAML frontmatter（至少含 `name` 和 `description`），然后运行 `npm run skills:research:sync` 重新生成 `research-catalog.json` / `research-scope.json`。提 PR 前运行 `npm run skills:research:check`——它会校验技能/命令数量、frontmatter、README 徽章数是否一致。
 
 任何涉及缓存内容的改动，需要同时更新以下两个文件的版本号：
 - `plugins/oh-my-paper/.claude-plugin/plugin.json`
@@ -459,7 +459,7 @@ Codex CLI 目前**不会**把 `plugins/oh-my-paper-codex/prompts/` 下的文件�
 | Agent 角色（5 个） | `agents/*.md` | `agents/*.toml` |
 | 工作流入口 | `/omp:...` 斜杠命令 | 自然语言 + `prompts/*.md` 模板 |
 | SessionStart Hook | 原生 hook | `AGENTS.md`（自动读取） |
-| 技能（34 个） | ✅ 共享 | ✅ 共享 |
+| 技能（35 个） | ✅ 共享 | ✅ 共享 |
 | `.pipeline/` 记忆 | ✅ | ✅ |
 | Codex 任务委派 | `/omp:delegate` → 新终端 | 原生 `/agent` 子代理 |
 

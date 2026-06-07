@@ -21,8 +21,8 @@
 <p align="center">
   <img src="https://img.shields.io/badge/claude--code-plugin-blueviolet?style=flat-square" />
   <img src="https://img.shields.io/badge/agents-5-ff69b4?style=flat-square" />
-  <img src="https://img.shields.io/badge/skills-34-green?style=flat-square" />
-  <img src="https://img.shields.io/badge/commands-8-blue?style=flat-square" />
+  <img src="https://img.shields.io/badge/skills-35-green?style=flat-square" />
+  <img src="https://img.shields.io/badge/commands-9-blue?style=flat-square" />
   <img src="https://img.shields.io/badge/license-MIT-orange?style=flat-square" />
 </p>
 
@@ -60,7 +60,7 @@ This is a personal maintenance fork of **[LigphiDonk/Oh-my--paper](https://githu
 - [Install](#install)
 - [Claude Code Slash Commands](#claude-code-slash-commands)
 - [The Agent Team](#the-agent-team)
-- [34 Research Skills](#34-research-skills)
+- [35 Research Skills](#35-research-skills)
 - [Hooks](#hooks)
 - [Research Pipeline](#research-pipeline)
 - [Project Scaffold](#project-scaffold)
@@ -82,7 +82,7 @@ Oh My Paper makes Claude Code **research-aware** by adding:
 
 - **A structured 5-stage pipeline** — Survey → Ideation → Experiment → Publication → Promotion
 - **5 specialized agent roles** — each with isolated memory and clear responsibilities
-- **34 built-in research skills** — from paper search to figure generation
+- **35 built-in research skills** — from paper search to figure generation
 - **Background hooks** — auto-inject project context at session start, prompt role selection, track task completion
 - **Codex delegation** — hand off parallel tasks to Codex in a separate terminal
 
@@ -114,7 +114,7 @@ Required for hooks to activate.
 /omp:setup
 ```
 
-This scaffolds the `.pipeline/` directory and registers the `SessionStart` hook for your project.
+This scaffolds the `.pipeline/` directory, copies the bundled skills into `.claude/skills/`, and writes the initial memory files. The hooks ship with the plugin and are already active — there's nothing to register per project.
 
 ### Update
 
@@ -155,7 +155,7 @@ All commands are prefixed with `/omp:`.
 
 | Command | What It Does |
 |---------|-------------|
-| `/omp:setup` | Scaffold a new research project — creates `.pipeline/`, memory files, and registers the SessionStart hook |
+| `/omp:setup` | Scaffold a new research project — creates `.pipeline/`, memory files, and copies the bundled skills into `.claude/skills/` |
 | `/omp:survey` | AI-assisted literature survey — search papers, build `literature_bank.md` |
 | `/omp:ideate` | Generate and evaluate research ideas based on survey findings |
 | `/omp:experiment` | Design experiments, write evaluation code, run on remote compute nodes |
@@ -163,6 +163,7 @@ All commands are prefixed with `/omp:`.
 | `/omp:review` | Peer-review your paper or experiment results before submission |
 | `/omp:delegate` | Generate a Codex prompt for a coding/experiment task; wait for result and update project state |
 | `/omp:plan` | Review global progress, confirm next steps, update research plan |
+| `/omp:sync` | Force-rebuild the progress docs (`project_truth` / `orchestrator_state` / `execution_context`) when they've drifted from reality |
 
 ### Quick Start
 
@@ -209,7 +210,7 @@ Session opens
 
 ---
 
-## 34 Research Skills
+## 35 Research Skills
 
 Skills are structured instruction sets that Claude loads on demand. Each skill is a markdown file covering a specific research task.
 
@@ -218,7 +219,7 @@ Skills are structured instruction sets that Claude loads on demand. Each skill i
 
 | Category | Skills |
 |----------|--------|
-| **Literature** | `paper-finder` · `paper-analyzer` · `paper-image-extractor` · `research-literature-trace` · `biorxiv-database` · `dataset-discovery` |
+| **Literature** | `paper-finder` · `paper-analyzer` · `paper-image-extractor` · `research-literature-trace` · `biorxiv-database` · `dataset-discovery` · `literature-pdf-ocr-library` |
 | **Survey & Ideation** | `inno-deep-research` · `gemini-deep-research` · `inno-code-survey` · `inno-idea-generation` · `inno-idea-eval` · `research-idea-convergence` |
 | **Experiment** | `inno-experiment-dev` · `inno-experiment-analysis` · `research-experiment-driver` · `remote-experiment` |
 | **Writing** | `inno-paper-writing` · `ml-paper-writing` · `scientific-writing` · `inno-figure-gen` · `inno-reference-audit` · `research-paper-handoff` |
@@ -229,7 +230,7 @@ Skills are structured instruction sets that Claude loads on demand. Each skill i
 
 </details>
 
-Skills are auto-recommended based on your current pipeline stage. Add project-local skills in the `skills/` directory.
+Skills are auto-recommended based on your current pipeline stage. Add your own project-specific skills under `.claude/skills/` in your research project.
 
 ---
 
@@ -243,7 +244,7 @@ Oh My Paper registers three hooks that run in the background:
 | **Stop** | When a task completes | Tracks task completion, updates `tasks.json` |
 | **PostToolUse (Write)** | After any file write | Detects pipeline stage transitions |
 
-**Important:** Hooks only activate after running `/omp:setup` in your project. Setup registers the `SessionStart` hook in `.claude/settings.json` and creates the `.pipeline/` directory that the hook checks.
+**Important:** The three hooks ship with the plugin (`plugins/oh-my-paper/hooks/hooks.json`) and go live the moment the plugin is enabled — you do **not** register them per project. They stay dormant until `/omp:setup` creates the `.pipeline/` directory they look for: before that, each hook simply finds no `.pipeline/` and exits.
 
 ---
 
@@ -266,7 +267,7 @@ Each stage comes with:
 
 ## Project Scaffold
 
-`/omp:setup` creates this structure:
+A typical Oh My Paper project looks like this — `/omp:setup` scaffolds `.pipeline/` and copies the bundled skills into `.claude/skills/`; the rest is the recommended layout you grow into:
 
 ```
 my-research/
@@ -278,7 +279,6 @@ my-research/
 ├── survey/                 # Literature survey artifacts
 ├── ideation/               # Ideas, evaluations, plans
 ├── promotion/              # Slides, demos, outreach
-├── skills/                 # Project-local skills
 ├── .pipeline/
 │   ├── tasks/
 │   │   └── tasks.json      # Task tree across all stages
@@ -286,7 +286,7 @@ my-research/
 │   │   └── research_brief.json
 │   └── memory/             # Agent memory files
 ├── .claude/
-│   └── settings.json       # SessionStart hook registration
+│   └── skills/             # Bundled skills, copied here by /omp:setup
 ├── CLAUDE.md
 └── AGENTS.md
 ```
@@ -390,7 +390,7 @@ If you're an AI agent installing this plugin:
 
 ## Contributing
 
-PRs welcome. If you add a new skill, put it in `skills/` with proper YAML frontmatter and update `research-catalog.json`.
+PRs welcome. If you add a new skill, drop it in `skills/<name>/SKILL.md` with proper YAML frontmatter (at least `name` and `description`), then run `npm run skills:research:sync` to regenerate `research-catalog.json` / `research-scope.json`. Run `npm run skills:research:check` before opening the PR — it verifies skill/command counts, frontmatter, and the README badge numbers all line up.
 
 Any change to cached content requires version bumps in **both**:
 - `plugins/oh-my-paper/.claude-plugin/plugin.json`
@@ -458,7 +458,7 @@ Codex CLI does **not** currently auto-register the files in `plugins/oh-my-paper
 | Agent Roles (5) | `agents/*.md` | `agents/*.toml` |
 | Workflow entrypoints | `/omp:...` slash commands | Natural-language prompts + `prompts/*.md` templates |
 | SessionStart Hook | Native hook | `AGENTS.md` (auto-read) |
-| Skills (34) | ✅ shared | ✅ shared |
+| Skills (35) | ✅ shared | ✅ shared |
 | `.pipeline/` Memory | ✅ | ✅ |
 | Codex Delegation | `/omp:delegate` → new terminal | Native `/agent` subagent |
 

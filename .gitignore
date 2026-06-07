@@ -61,3 +61,10 @@ sidecar/dist
 workers/.wrangler
 workers/.dev.vars*
 !workers/.dev.vars.example
+
+# Python caches (skill helper scripts)
+__pycache__/
+*.pyc
+
+# Local MCP server data
+sqlite_mcp_server.db

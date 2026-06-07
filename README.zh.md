@@ -21,7 +21,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/claude--code-plugin-blueviolet?style=flat-square" />
   <img src="https://img.shields.io/badge/agents-5-ff69b4?style=flat-square" />
-  <img src="https://img.shields.io/badge/skills-35-green?style=flat-square" />
+  <img src="https://img.shields.io/badge/skills-39-green?style=flat-square" />
   <img src="https://img.shields.io/badge/commands-9-blue?style=flat-square" />
   <img src="https://img.shields.io/badge/license-MIT-orange?style=flat-square" />
 </p>
@@ -60,7 +60,7 @@
 - [安装](#安装)
 - [Claude Code 命令列表](#claude-code-命令列表)
 - [Agent 团队](#agent-团队)
-- [35 个研究技能](#35-个研究技能)
+- [39 个研究技能](#39-个研究技能)
 - [Hooks](#hooks)
 - [科研流水线](#科研流水线)
 - [项目结构](#项目结构)
@@ -82,7 +82,7 @@ Oh My Paper 让 Claude Code **理解科研**，提供：
 
 - **结构化 5 阶段流水线** — 调研 → 创意 → 实验 → 发表 → 推广
 - **5 个专职 agent 角色** — 各自有独立记忆和明确职责
-- **35 个内置研究技能** — 从论文搜索到图表生成
+- **39 个内置研究技能** — 从论文搜索到图表生成
 - **后台 hooks** — 每次开会话自动注入项目上下文、触发角色选择
 - **Codex 任务委派** — 把并行任务交给另一个终端里的 Codex 跑
 
@@ -210,7 +210,7 @@ Codex 插件目前**不会**在 Codex CLI 里自动注册 `/omp-*` 命令。
 
 ---
 
-## 35 个研究技能
+## 39 个研究技能
 
 技能是 Claude 按需加载的结构化指令集，每个技能是一个 markdown 文件，覆盖特定的科研任务。
 
@@ -220,6 +220,7 @@ Codex 插件目前**不会**在 Codex CLI 里自动注册 `/omp-*` 命令。
 | 类别 | 技能 |
 |------|------|
 | **文献** | `paper-finder` · `paper-analyzer` · `paper-image-extractor` · `research-literature-trace` · `biorxiv-database` · `dataset-discovery` · `literature-pdf-ocr-library` |
+| **临床研究** | `pubmed-search` · `clinicaltrials-gov` · `systematic-review` · `clinical-study-design` |
 | **调研与创意** | `inno-deep-research` · `gemini-deep-research` · `inno-code-survey` · `inno-idea-generation` · `inno-idea-eval` · `research-idea-convergence` |
 | **实验** | `inno-experiment-dev` · `inno-experiment-analysis` · `research-experiment-driver` · `remote-experiment` |
 | **写作** | `inno-paper-writing` · `ml-paper-writing` · `scientific-writing` · `inno-figure-gen` · `inno-reference-audit` · `research-paper-handoff` |
@@ -344,9 +345,10 @@ Conductor 可以把代码和实验任务交给 Codex 执行：
 `remote-experiment` 技能 + `/omp:experiment` 支持完整的自动实验循环：
 
 ```
-设计方案 → 实现代码 → rsync 到服务器 → GPU 节点运行 → 解析指标 → 循环
+设计方案 → 实现代码 → rsync 到服务器 → GPU/HPC 节点运行 → 解析指标 → 循环
 ```
 
+- 适用于任何算力/数据密集型远程任务——ML 训练、**生信流程**（比对 / 变异检测 / 单细胞 / GWAS）、大规模数据处理
 - 通过 `compute-helper` CLI 实现 SSH/rsync 远程计算
 - 可配置成功阈值、最大迭代次数、失败上限
 - 结果自动回写 `experiment_ledger.md`，供论文写手使用
@@ -459,7 +461,7 @@ Codex CLI 目前**不会**把 `plugins/oh-my-paper-codex/prompts/` 下的文件�
 | Agent 角色（5 个） | `agents/*.md` | `agents/*.toml` |
 | 工作流入口 | `/omp:...` 斜杠命令 | 自然语言 + `prompts/*.md` 模板 |
 | SessionStart Hook | 原生 hook | `AGENTS.md`（自动读取） |
-| 技能（35 个） | ✅ 共享 | ✅ 共享 |
+| 技能（39 个） | ✅ 共享 | ✅ 共享 |
 | `.pipeline/` 记忆 | ✅ | ✅ |
 | Codex 任务委派 | `/omp:delegate` → 新终端 | 原生 `/agent` 子代理 |
 

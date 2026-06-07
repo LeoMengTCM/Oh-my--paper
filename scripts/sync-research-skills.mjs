@@ -68,6 +68,10 @@ const STAGE_FALLBACKS = {
   "research-paper-handoff": ["publication"],
   "research-pipeline-planner": ["survey", "ideation", "experiment", "publication", "promotion"],
   "scientific-writing": ["publication"],
+  "pubmed-search": ["survey", "ideation"],
+  "clinicaltrials-gov": ["survey", "ideation"],
+  "systematic-review": ["survey", "publication"],
+  "clinical-study-design": ["ideation", "experiment"],
 };
 
 const DEFAULT_TOOLS = ["read_file", "search_project", "write_file"];
@@ -216,6 +220,9 @@ function inferCapabilities(stages) {
 }
 
 function inferDomains(id) {
+  if (/clinic|pubmed|trial|systematic-review|study-design|medic|epi|cochrane|prisma/.test(id)) {
+    return ["clinical-medicine"];
+  }
   return id.includes("bio") ? ["bioinformatics"] : ["cs-ai"];
 }
 

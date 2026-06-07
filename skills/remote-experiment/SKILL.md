@@ -16,6 +16,7 @@ domains:
   - general
   - machine_learning
   - data_processing
+  - bioinformatics
 keywords:
   - experiment
   - remote
@@ -28,7 +29,7 @@ keywords:
 
 # Remote Experiment Execution
 
-你可以通过 `compute-helper` CLI 在远程服务器上自主执行代码和命令。
+你可以通过 `compute-helper` CLI 在远程服务器上自主执行代码和命令。适用于任何算力/数据密集型远程任务——ML 训练、**生物信息学流程**（比对 / 变异检测 / 单细胞 / GWAS，需 rsync 大数据集）、大规模数据处理，不限于 GPU 作业。
 
 > compute-helper 路径和服务器信息在 system prompt 的 `<compute_node>` 块中给出。
 > 如果没有，在 `sidecar/bin/compute-helper.mjs` 查找。
@@ -67,9 +68,10 @@ keywords:
 
 首次操作远程服务器时，先用 `ssh` 检查环境：
 - `which python` / `python3 --version` — Python 是否可用
-- `nvidia-smi` — GPU 状态（如果需要）
+- `nvidia-smi` — GPU 状态（ML 训练时）
+- `which samtools bcftools nextflow snakemake` / `conda env list` — 生信工具链是否就位（生信流程时）
 - `pip list | grep <package>` — 依赖是否安装
-- `ls <workdir>` — 工作目录状态
+- `ls <workdir>` / `ls <ref_genome_dir>` — 工作目录、参考基因组/索引状态
 
 ### 规则 4：区分 `run` vs `ssh`
 

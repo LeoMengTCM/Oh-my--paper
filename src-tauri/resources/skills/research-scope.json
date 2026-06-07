@@ -1,11 +1,13 @@
 {
   "schema": "viewerleaf-research-scope-v1",
-  "generatedAt": "2026-06-07T08:52:37.804Z",
+  "generatedAt": "2026-06-07T09:41:20.715Z",
   "skills": [
     "academic-researcher",
     "bioinformatics-init-analysis",
     "biorxiv-database",
     "claude-code-dispatch",
+    "clinical-study-design",
+    "clinicaltrials-gov",
     "codex-dispatch",
     "dataset-discovery",
     "gemini-deep-research",
@@ -29,6 +31,7 @@
     "paper-analyzer",
     "paper-finder",
     "paper-image-extractor",
+    "pubmed-search",
     "remote-experiment",
     "research-experiment-driver",
     "research-idea-convergence",
@@ -36,6 +39,7 @@
     "research-news",
     "research-paper-handoff",
     "research-pipeline-planner",
-    "scientific-writing"
+    "scientific-writing",
+    "systematic-review"
   ]
 }

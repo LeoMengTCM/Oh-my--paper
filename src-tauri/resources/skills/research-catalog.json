@@ -1,9 +1,9 @@
 {
   "schema": "viewerleaf-research-catalog-v1",
-  "generatedAt": "2026-06-07T08:52:37.804Z",
+  "generatedAt": "2026-06-07T09:41:20.715Z",
   "upstream": {
     "repo": "Oh-my--paper",
-    "revision": "296e5ca4a6bcc5ffbf93c7c84a39ee615e6811e1"
+    "revision": "f6b5b5078a7ac45718ef4aeaddb0fd02880c8507"
   },
   "skills": [
     {
@@ -200,6 +200,111 @@
         "templateCount": 0,
         "assetCount": 0,
         "optionalScripts": false
+      }
+    },
+    {
+      "id": "clinical-study-design",
+      "name": "clinical-study-design",
+      "version": "1.0.0",
+      "description": "Turn a clinical research idea into a registered protocol with a PICO question, a justified design, a sample-size and power calculation, a statistical analysis plan, and ethics and registration steps.",
+      "summary": "Turn a clinical research idea into a registered protocol with a PICO question, a justified design, a sample-size and power calculation, a statistical analysis plan, and ethics and registration steps.",
+      "stages": [
+        "ideation",
+        "experiment"
+      ],
+      "tools": [
+        "read_file",
+        "search_project",
+        "write_file",
+        "run_terminal"
+      ],
+      "primaryIntent": "research",
+      "intents": [
+        "research"
+      ],
+      "capabilities": [
+        "research-planning",
+        "data-processing"
+      ],
+      "domains": [
+        "clinical-medicine"
+      ],
+      "keywords": [
+        "clinical-trial",
+        "study-design",
+        "pico",
+        "finer",
+        "sample-size",
+        "power",
+        "statistical-analysis-plan",
+        "irb",
+        "spirit",
+        "randomization",
+        "registration"
+      ],
+      "source": "builtin",
+      "status": "verified",
+      "resourceFlags": {
+        "hasReferences": true,
+        "hasScripts": false,
+        "hasTemplates": true,
+        "hasAssets": false,
+        "referenceCount": 1,
+        "scriptCount": 0,
+        "templateCount": 2,
+        "assetCount": 0,
+        "optionalScripts": false
+      }
+    },
+    {
+      "id": "clinicaltrials-gov",
+      "name": "clinicaltrials-gov",
+      "version": "1.0.0",
+      "description": "Search the ClinicalTrials.gov registry through its public API v2 to find interventional and observational studies by condition, intervention, status, or free text.",
+      "summary": "Search the ClinicalTrials.gov registry through its public API v2 to find interventional and observational studies by condition, intervention, status, or free text.",
+      "stages": [
+        "survey",
+        "ideation"
+      ],
+      "tools": [
+        "read_file",
+        "search_project",
+        "write_file",
+        "run_terminal"
+      ],
+      "primaryIntent": "research",
+      "intents": [
+        "research"
+      ],
+      "capabilities": [
+        "search-retrieval",
+        "research-planning"
+      ],
+      "domains": [
+        "clinical-medicine"
+      ],
+      "keywords": [
+        "clinicaltrials",
+        "trial-registry",
+        "recruiting",
+        "intervention",
+        "condition",
+        "nct",
+        "prior-art",
+        "feasibility"
+      ],
+      "source": "builtin",
+      "status": "verified",
+      "resourceFlags": {
+        "hasReferences": false,
+        "hasScripts": true,
+        "hasTemplates": false,
+        "hasAssets": false,
+        "referenceCount": 0,
+        "scriptCount": 1,
+        "templateCount": 0,
+        "assetCount": 0,
+        "optionalScripts": true
       }
     },
     {
@@ -1418,6 +1523,57 @@
       }
     },
     {
+      "id": "pubmed-search",
+      "name": "pubmed-search",
+      "version": "1.0.0",
+      "description": "Search PubMed and MEDLINE for peer-reviewed biomedical and clinical literature through the NCBI E-utilities API with MeSH terms, date filters, and abstracts.",
+      "summary": "Search PubMed and MEDLINE for peer-reviewed biomedical and clinical literature through the NCBI E-utilities API with MeSH terms, date filters, and abstracts.",
+      "stages": [
+        "survey",
+        "ideation"
+      ],
+      "tools": [
+        "read_file",
+        "search_project",
+        "write_file",
+        "run_terminal"
+      ],
+      "primaryIntent": "research",
+      "intents": [
+        "research"
+      ],
+      "capabilities": [
+        "search-retrieval",
+        "research-planning"
+      ],
+      "domains": [
+        "clinical-medicine"
+      ],
+      "keywords": [
+        "pubmed",
+        "medline",
+        "ncbi",
+        "e-utilities",
+        "mesh",
+        "clinical-literature",
+        "evidence-search",
+        "systematic-review"
+      ],
+      "source": "builtin",
+      "status": "verified",
+      "resourceFlags": {
+        "hasReferences": false,
+        "hasScripts": true,
+        "hasTemplates": false,
+        "hasAssets": false,
+        "referenceCount": 0,
+        "scriptCount": 1,
+        "templateCount": 0,
+        "assetCount": 0,
+        "optionalScripts": true
+      }
+    },
+    {
       "id": "remote-experiment",
       "name": "Remote Experiment Execution",
       "version": "2.0.0",
@@ -1444,7 +1600,8 @@
       "domains": [
         "general",
         "machine_learning",
-        "data_processing"
+        "data_processing",
+        "bioinformatics"
       ],
       "keywords": [
         "experiment",
@@ -1759,7 +1916,7 @@
       "name": "scientific-writing",
       "version": "1.0.0",
       "description": "Core skill for the deep research and writing tool.",
-      "summary": "Core skill for the deep research and writing tool. Write scientific manuscripts in full paragraphs (never bullet points). Use two-stage process: (1) create section outlines with key points using research-lookup, (2) convert to flowing pros...",
+      "summary": "Core skill for the deep research and writing tool. Write scientific manuscripts in full paragraphs (never bullet points). Use two-stage process: (1) create section outlines with key points using literature search, (2) convert to flowing pros...",
       "stages": [
         "publication"
       ],
@@ -1806,27 +1963,88 @@
         "assetCount": 0,
         "optionalScripts": false
       }
+    },
+    {
+      "id": "systematic-review",
+      "name": "systematic-review",
+      "version": "1.0.0",
+      "description": "Run a PRISMA 2020 systematic review and meta-analysis end to end from protocol and search through screening, risk-of-bias, evidence synthesis, and GRADE.",
+      "summary": "Run a PRISMA 2020 systematic review and meta-analysis end to end from protocol and search through screening, risk-of-bias, evidence synthesis, and GRADE.",
+      "stages": [
+        "survey",
+        "publication"
+      ],
+      "tools": [
+        "read_file",
+        "search_project",
+        "write_file",
+        "run_terminal"
+      ],
+      "primaryIntent": "research",
+      "intents": [
+        "research",
+        "writing"
+      ],
+      "capabilities": [
+        "research-planning",
+        "visualization-reporting"
+      ],
+      "domains": [
+        "clinical-medicine"
+      ],
+      "keywords": [
+        "systematic-review",
+        "meta-analysis",
+        "prisma",
+        "grade",
+        "risk-of-bias",
+        "rob2",
+        "robins-i",
+        "quadas",
+        "forest-plot",
+        "evidence-synthesis"
+      ],
+      "source": "builtin",
+      "status": "verified",
+      "resourceFlags": {
+        "hasReferences": true,
+        "hasScripts": false,
+        "hasTemplates": true,
+        "hasAssets": false,
+        "referenceCount": 1,
+        "scriptCount": 0,
+        "templateCount": 3,
+        "assetCount": 0,
+        "optionalScripts": false
+      }
     }
   ],
   "stageSkillMap": {
     "survey": {
       "base": [
         "literature-pdf-ocr-library",
+        "pubmed-search",
+        "clinicaltrials-gov",
         "inno-deep-research",
         "gemini-deep-research",
         "academic-researcher",
         "dataset-discovery",
-        "biorxiv-database"
+        "biorxiv-database",
+        "systematic-review"
       ],
       "byTaskType": {
         "analysis": [
           "literature-pdf-ocr-library",
+          "pubmed-search",
+          "systematic-review",
           "inno-deep-research",
           "gemini-deep-research",
           "academic-researcher"
         ],
         "exploration": [
           "literature-pdf-ocr-library",
+          "pubmed-search",
+          "clinicaltrials-gov",
           "inno-deep-research",
           "gemini-deep-research",
           "dataset-discovery",
@@ -1844,14 +2062,18 @@
         "inno-idea-generation",
         "inno-idea-eval",
         "biorxiv-database",
-        "academic-researcher"
+        "academic-researcher",
+        "pubmed-search",
+        "clinicaltrials-gov",
+        "clinical-study-design"
       ],
       "byTaskType": {
         "analysis": [
           "inno-idea-generation",
           "inno-idea-eval",
           "inno-deep-research",
-          "academic-researcher"
+          "academic-researcher",
+          "clinical-study-design"
         ],
         "exploration": [
           "inno-idea-generation",
@@ -1859,10 +2081,13 @@
           "inno-deep-research",
           "dataset-discovery",
           "biorxiv-database",
-          "academic-researcher"
+          "academic-researcher",
+          "pubmed-search",
+          "clinicaltrials-gov"
         ],
         "implementation": [
-          "inno-prepare-resources"
+          "inno-prepare-resources",
+          "clinical-study-design"
         ]
       }
     },
@@ -1872,12 +2097,14 @@
         "dataset-discovery",
         "inno-experiment-dev",
         "inno-experiment-analysis",
-        "bioinformatics-init-analysis"
+        "bioinformatics-init-analysis",
+        "clinical-study-design"
       ],
       "byTaskType": {
         "implementation": [
           "inno-experiment-dev",
-          "bioinformatics-init-analysis"
+          "bioinformatics-init-analysis",
+          "clinical-study-design"
         ],
         "analysis": [
           "inno-experiment-analysis",
@@ -1900,7 +2127,8 @@
         "inno-rclone-to-overleaf",
         "scientific-writing",
         "ml-paper-writing",
-        "inno-grant-proposal"
+        "inno-grant-proposal",
+        "systematic-review"
       ],
       "byTaskType": {
         "writing": [
@@ -1908,12 +2136,14 @@
           "inno-figure-gen",
           "scientific-writing",
           "ml-paper-writing",
-          "inno-grant-proposal"
+          "inno-grant-proposal",
+          "systematic-review"
         ],
         "analysis": [
           "inno-paper-reviewer",
           "inno-reference-audit",
-          "inno-deep-research"
+          "inno-deep-research",
+          "systematic-review"
         ],
         "delivery": [
           "inno-rclone-to-overleaf"

@@ -21,7 +21,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/claude--code-plugin-blueviolet?style=flat-square" />
   <img src="https://img.shields.io/badge/agents-5-ff69b4?style=flat-square" />
-  <img src="https://img.shields.io/badge/skills-35-green?style=flat-square" />
+  <img src="https://img.shields.io/badge/skills-39-green?style=flat-square" />
   <img src="https://img.shields.io/badge/commands-9-blue?style=flat-square" />
   <img src="https://img.shields.io/badge/license-MIT-orange?style=flat-square" />
 </p>
@@ -60,7 +60,7 @@ This is a personal maintenance fork of **[LigphiDonk/Oh-my--paper](https://githu
 - [Install](#install)
 - [Claude Code Slash Commands](#claude-code-slash-commands)
 - [The Agent Team](#the-agent-team)
-- [35 Research Skills](#35-research-skills)
+- [39 Research Skills](#39-research-skills)
 - [Hooks](#hooks)
 - [Research Pipeline](#research-pipeline)
 - [Project Scaffold](#project-scaffold)
@@ -82,7 +82,7 @@ Oh My Paper makes Claude Code **research-aware** by adding:
 
 - **A structured 5-stage pipeline** — Survey → Ideation → Experiment → Publication → Promotion
 - **5 specialized agent roles** — each with isolated memory and clear responsibilities
-- **35 built-in research skills** — from paper search to figure generation
+- **39 built-in research skills** — from paper search to figure generation
 - **Background hooks** — auto-inject project context at session start, prompt role selection, track task completion
 - **Codex delegation** — hand off parallel tasks to Codex in a separate terminal
 
@@ -210,7 +210,7 @@ Session opens
 
 ---
 
-## 35 Research Skills
+## 39 Research Skills
 
 Skills are structured instruction sets that Claude loads on demand. Each skill is a markdown file covering a specific research task.
 
@@ -220,6 +220,7 @@ Skills are structured instruction sets that Claude loads on demand. Each skill i
 | Category | Skills |
 |----------|--------|
 | **Literature** | `paper-finder` · `paper-analyzer` · `paper-image-extractor` · `research-literature-trace` · `biorxiv-database` · `dataset-discovery` · `literature-pdf-ocr-library` |
+| **Clinical Research** | `pubmed-search` · `clinicaltrials-gov` · `systematic-review` · `clinical-study-design` |
 | **Survey & Ideation** | `inno-deep-research` · `gemini-deep-research` · `inno-code-survey` · `inno-idea-generation` · `inno-idea-eval` · `research-idea-convergence` |
 | **Experiment** | `inno-experiment-dev` · `inno-experiment-analysis` · `research-experiment-driver` · `remote-experiment` |
 | **Writing** | `inno-paper-writing` · `ml-paper-writing` · `scientific-writing` · `inno-figure-gen` · `inno-reference-audit` · `research-paper-handoff` |
@@ -343,9 +344,10 @@ The flow:
 The `remote-experiment` skill + `/omp:experiment` support a full auto-experiment loop:
 
 ```
-Design plan → Implement code → rsync to server → Run on GPU → Parse metrics → Repeat
+Design plan → Implement code → rsync to server → Run on GPU / HPC → Parse metrics → Repeat
 ```
 
+- For any compute-heavy remote work — ML training, **bioinformatics pipelines** (alignment, variant calling, single-cell, GWAS), large-scale data processing
 - SSH/rsync-based remote compute via `compute-helper` CLI
 - Configurable success thresholds, max iterations, and failure limits
 - Results flow back into `experiment_ledger.md` for the Paper Writer
@@ -458,7 +460,7 @@ Codex CLI does **not** currently auto-register the files in `plugins/oh-my-paper
 | Agent Roles (5) | `agents/*.md` | `agents/*.toml` |
 | Workflow entrypoints | `/omp:...` slash commands | Natural-language prompts + `prompts/*.md` templates |
 | SessionStart Hook | Native hook | `AGENTS.md` (auto-read) |
-| Skills (35) | ✅ shared | ✅ shared |
+| Skills (39) | ✅ shared | ✅ shared |
 | `.pipeline/` Memory | ✅ | ✅ |
 | Codex Delegation | `/omp:delegate` → new terminal | Native `/agent` subagent |
 

@@ -33,6 +33,30 @@ description: Designs, implements, and analyzes experiments for the research pipe
 | run-002 | 2026-03-31 | lr=1e-3, batch=32, epochs=10 | val_acc | 65.1% | lr 太高，不收敛 |
 ```
 
+## 研究类型适配（ML / 生信 / 临床 / 系统综述）
+
+"实验"按项目类型切换，ledger 也随之换；不要把所有项目都按 ML 超参表来记。
+
+- **ML / 计算实验（默认）**：上面的超参表；代码写到 `experiments/`，配合 `inno-experiment-dev`、`remote-experiment`。
+- **生物信息学（基因组 / 转录组 / 单细胞 / GWAS 等）**：流程通常跑在 HPC/远程节点上——用 `bioinformatics-init-analysis` 起步、`remote-experiment` 远程执行（rsync 大数据集 + 自修复迭代）。ledger 记流程阶段而非超参：
+
+  ```markdown
+  | 阶段 | 日期 | 样本/数据 | 工具 | 指标 | 状态 |
+  | QC | 2026-03-31 | 24 样本 RNA-seq | fastp + MultiQC | Q30 95.2% | done |
+  | 比对 | 2026-04-01 | 24 样本 | STAR → hg38 | 唯一比对率 88% | done |
+  | 定量 | 2026-04-02 | 24 样本 | featureCounts | — | running |
+  ```
+- **临床研究（RCT / 队列 / 病例对照 / 横断面 / 诊断准确性）**：这里的"实验"是一项**研究**。先用 `clinical-study-design` 技能锁定 PICO、设计、样本量/检验效能、统计分析计划（SAP）、伦理（IRB）与方案注册（ClinicalTrials.gov）。ledger 记研究里程碑而非超参：
+
+  ```markdown
+  | 阶段 | 日期 | 关键决定/事件 | 指标 | 状态 |
+  | 设计 | 2026-03-31 | PICO 锁定；选定平行 RCT；α=0.05 双侧、power=0.9 | n=420 | done |
+  | 注册 | 2026-04-02 | ClinicalTrials.gov 已提交 | NCT 待发 | pending |
+  | 分析 | 2026-08-01 | 主要结局 ITT 分析 | RR 0.82 (0.67–1.00) | done |
+  ```
+
+- **系统综述 / Meta 分析**：用 `systematic-review` 技能；ledger 记 PRISMA 各环节计数与检索式版本。
+
 ## 完成标准
 
 达到 research_brief.json 中的 `successThreshold` 或 Orchestrator 明确说可以停止。

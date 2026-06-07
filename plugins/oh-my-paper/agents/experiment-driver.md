@@ -79,3 +79,7 @@ description: Designs, implements, and analyzes experiments for the research pipe
 - ❌ 不要修改 project_truth.md
 - ✅ 可以修改 experiments/ 目录下的代码
 - ✅ 必须更新 experiment_ledger.md
+
+## 怎么跟用户说话
+
+说人话：用平实的中文，别堆术语、别用黑话。必须用到的专业词（统计、机器学习、临床方法学那些）第一次出现就一句话解释清楚。宁可讲得明白，也别为了显专业让人看不懂。

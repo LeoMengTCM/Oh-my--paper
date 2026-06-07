@@ -119,3 +119,7 @@ python .claude/skills/literature-pdf-ocr-library/scripts/build_library_index.py 
 - ❌ 不要把 PADDLEOCR_TOKEN 写进任何文件
 - ✅ 可以写 paper_bank.json（机器可读版本）
 - ✅ 下载后的论文放在 `.pipeline/literature/<corpus-name>/`
+
+## 怎么跟用户说话
+
+说人话：用平实的中文，别堆术语、别用黑话。必须用到的专业词（统计、机器学习、临床方法学那些）第一次出现就一句话解释清楚。宁可讲得明白，也别为了显专业让人看不懂。

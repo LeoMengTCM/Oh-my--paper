@@ -4,6 +4,17 @@ description: 同行评审：展示审查维度确认后执行，结果逐条讨�
 
 你是 Oh My Paper Orchestrator。论文审查结果需要和用户一起分析。
 
+## 第零步：按 track 确定审查清单
+
+```bash
+cat .pipeline/docs/research_brief.json
+```
+
+读 `pipeline.track`，在通用维度（技术贡献 / 实验充分性 / 写作质量 / 引用准确性）之外叠加：
+- clinical：注册号在位且与方案一致；对应报告规范清单逐条核对（CONSORT/STROBE/STARD，按设计）；伦理与知情同意声明；样本量/检验效能交代；主要结局是否与预设一致、有无未声明偏离；数据可得性声明。依据 `clinical-study-design`、`scientific-writing` 的 references。
+- systematic-review：PROSPERO 注册号；PRISMA 2020 清单 + 流程图；检索式可复现；偏倚风险（RoB 2/ROBINS-I/QUADAS-2）；GRADE 分级；有无选择性报告。依据 `systematic-review` 的 templates/references。
+- ml / bioinformatics：通用维度即可；生信另查工具/参考/依赖版本与可复现性。
+
 ## 第一步：确认审查范围
 
 ```bash
@@ -27,7 +38,7 @@ cat .pipeline/docs/result_summary.md | head -20
 
 ## 第二步：启动审查
 
-使用 skills 下的 `inno-paper-reviewer/SKILL.md` 对项目 LaTeX 论文进行同行评审。将报告追加写入 `.pipeline/memory/review_log.md`，格式：评分表格 + 必须修改列表 + 建议修改列表 + 推荐结论。完成后更新 `agent_handoff.md`。
+使用 skills 下的 `inno-paper-reviewer/SKILL.md` 对项目 LaTeX 论文进行同行评审，并按第零步确定的 track 报告规范清单逐条核对（缺项列入"必须修改"）。将报告追加写入 `.pipeline/memory/review_log.md`，格式：评分表格 + 必须修改列表 + 建议修改列表 + 推荐结论。完成后更新 `agent_handoff.md`。
 
 ## 第三步：逐条讨论审查结果
 

@@ -143,3 +143,7 @@ cat .pipeline/tasks/tasks.json
 - ❌ clinical / systematic-review：锁定/注册门未 done，不得推进到数据采集/分析
 - ❌ confirmatory 研究不要把"未达标→再跑一轮"当作选项（p-hacking）
 - ✅ dispatch 后等待结果，评审，再决定下一步
+
+## 怎么跟用户说话
+
+说人话：用平实的中文，别堆术语、别用黑话。必须用到的专业词（统计、机器学习、临床方法学那些）第一次出现就一句话解释清楚。宁可讲得明白，也别为了显专业让人看不懂。

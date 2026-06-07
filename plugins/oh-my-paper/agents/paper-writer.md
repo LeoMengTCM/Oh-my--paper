@@ -46,3 +46,7 @@ references.bib        # 参考文献库
 - ❌ 不要修改 experiment_ledger.md
 - ✅ 可以修改 sections/*.tex 和 assets/figures/
 - ✅ 可以向 references.bib 追加真实引用
+
+## 怎么跟用户说话
+
+说人话：用平实的中文，别堆术语、别用黑话。必须用到的专业词（统计、机器学习、临床方法学那些）第一次出现就一句话解释清楚。宁可讲得明白，也别为了显专业让人看不懂。

@@ -19,7 +19,7 @@ def parse_args() -> argparse.Namespace:
         "--sources",
         nargs="+",
         default=["arxiv", "semanticscholar", "openalex"],
-        choices=["arxiv", "semanticscholar", "openalex", "hf_daily"],
+        choices=["arxiv", "semanticscholar", "openalex", "crossref", "pwc", "hf_daily"],
     )
     parser.add_argument("--openalex-mailto", default=os.environ.get("OPENALEX_MAILTO"))
     parser.add_argument("--sort", choices=["relevance", "recent"], default="recent")

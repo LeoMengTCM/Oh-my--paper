@@ -1,9 +1,9 @@
 {
   "schema": "viewerleaf-research-catalog-v1",
-  "generatedAt": "2026-06-07T10:31:34.402Z",
+  "generatedAt": "2026-06-09T16:15:58.140Z",
   "upstream": {
     "repo": "Oh-my--paper",
-    "revision": "1a92b1cb5a3d792a711207251e0673cdf61e50d6"
+    "revision": "e5a03228f5ebab1621ad8b73fab833ec27264772"
   },
   "skills": [
     {
@@ -1218,8 +1218,8 @@
       "id": "literature-pdf-ocr-library",
       "name": "literature-pdf-ocr-library",
       "version": "1.0.0",
-      "description": "Search traceable academic papers, download legally accessible PDFs from arXiv and open-access sources, convert PDFs or page images to Markdown with a PaddleOCR layout-parsing API (or local pdfminer fallback), and organize the results into an AI-readable literature library.",
-      "summary": "Search traceable academic papers, download legally accessible PDFs from arXiv and open-access sources, convert PDFs or page images to Markdown with a PaddleOCR layout-parsing API (or local pdfminer fallback), and organize the results into an AI-readable literature library. Use when Claude Code needs to build a paper corpus, batch OCR PDFs to Markdown, ingest real literature into a knowledge base, fetch arXiv or Hugging Face paper leads, or turn a directory of papers into structured Markdown plus metadata.",
+      "description": "Search traceable academic papers across arXiv, Semantic Scholar, OpenAlex, Crossref (and optionally Google Scholar via CDP), judge open-access availability, rank by recency + citations into a screening table, download only legally accessible PDFs, convert them to Markdown with a PaddleOCR layout-parsing API (or local pdfminer fallback), and organize the results into an AI-readable literature library.",
+      "summary": "Search traceable academic papers across arXiv, Semantic Scholar, OpenAlex, Crossref (and optionally Google Scholar via CDP), judge open-access availability, rank by recency + citations into a screening table, download only legally accessible PDFs, convert them to Markdown with a PaddleOCR layout-parsing API (or local pdfminer fallback), and organize the results into an AI-readable literature library. Use when Claude Code needs to survey literature, build a paper corpus, judge open access, batch OCR PDFs to Markdown, ingest real papers into a knowledge base, or turn a directory of papers into structured Markdown plus metadata.",
       "stages": [
         "survey"
       ],
@@ -1251,8 +1251,8 @@
         "hasScripts": true,
         "hasTemplates": false,
         "hasAssets": false,
-        "referenceCount": 1,
-        "scriptCount": 5,
+        "referenceCount": 3,
+        "scriptCount": 9,
         "templateCount": 0,
         "assetCount": 0,
         "optionalScripts": true

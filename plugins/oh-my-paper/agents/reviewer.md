@@ -22,7 +22,7 @@ references.bib                        # 参考文献
 1. **技术贡献**：创新点是否清晰？与相关工作的区别是否明确？
 2. **实验充分性**：是否有 ablation？对比基线是否合理？结果是否可复现？
 3. **写作质量**：逻辑链是否完整？表述是否精确？
-4. **引用准确性**：\cite{} 引用是否存在于 references.bib？引用是否相关？
+4. **引用准确性**：先跑 `audit_citations.py --sections-dir sections --tex main.tex --bib refs/references.bib`——dangling（`\cite` 不在 bib）和 unsourced（bib 条目无来源，疑似手写/编造）都要清零；再人工看引用是否相关、是否真的支持论点
 5. **数据一致性**：论文中的数字是否与 result_summary.md 一致？
 
 ## 输出格式

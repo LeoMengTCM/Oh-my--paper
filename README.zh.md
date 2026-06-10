@@ -130,7 +130,7 @@ hooks 需要重启才能生效。
 
 ```bash
 cp -r /path/to/oh-my-paper/plugins/oh-my-paper/. \
-  ~/.claude/plugins/cache/oh-my-paper/omp/1.0.0/
+  ~/.claude/plugins/cache/oh-my-paper/omp/1.1.0/
 # 然后在 Claude Code 里：
 /reload-plugins
 ```
@@ -156,7 +156,7 @@ Codex 插件目前**不会**在 Codex CLI 里自动注册 `/omp-*` 命令。
 | 命令 | 作用 |
 |------|------|
 | `/omp:setup` | 初始化研究项目——创建 `.pipeline/`、记忆文件，并把自带技能拷到 `.claude/skills/` |
-| `/omp:survey` | AI 辅助文献调研——搜索论文，整理 `literature_bank.md` |
+| `/omp:survey` | 文献调研（先筛后深）：多源检索出摘要表→挑核心论文→只对选中的下载+OCR，整理 `literature_bank.md` |
 | `/omp:ideate` | 基于调研结果生成并评估创新点 |
 | `/omp:experiment` | 设计实验、编写评估代码、在远程节点上运行 |
 | `/omp:write` | 撰写论文章节、生成图表和标题、管理 LaTeX 文件 |

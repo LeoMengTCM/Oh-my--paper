@@ -28,6 +28,15 @@ ls sections/
 - 只写缺少的章节
 - 指定某几节
 
+## 引用铁律（贯穿全文）
+
+参考文献唯一可信来源：survey 用 `build_bibliography.py` 生成的 `refs/references.bib`（来自真实 metadata，`bibliography.json` 可追溯）。
+
+- 所有 `\cite{key}` 的 key 必须来自 `literature_bank.md` 的 cite_key 列。
+- 引 survey 已有文献：直接用 cite_key，不重写元数据、不手写 bib。
+- 引 survey 没有的新文献：先用 `search_and_download_papers.py` 确认真实存在 → `build_bibliography.py --origin write` 并入 `refs/references.bib` → 再 `\cite`；查不到就标 `[CITATION NEEDED]`，不要编。
+- 绝不凭记忆写 `\cite` 或手写 bib 条目。
+
 ## 第二步：按节逐步执行
 
 每节开始前，先告知用户：
@@ -38,7 +47,7 @@ ls sections/
 调用 `inno-paper-writing` skill，根据 `.pipeline/memory/project_truth.md` 和 `.pipeline/docs/result_summary.md`，写 `sections/abstract.tex` 和 `sections/introduction.tex`，不捏造数据。
 
 **相关工作：**
-调用 `inno-paper-writing` skill，基于 `.pipeline/memory/literature_bank.md`（Status=accepted），写 `sections/related_work.tex`，`\cite{key}` 引用必须存在于 `references.bib`。
+调用 `inno-paper-writing` skill，基于 `.pipeline/memory/literature_bank.md`（accepted 的）写 `sections/related_work.tex`。引用遵守上面的引用铁律：只用 bank 的 cite_key，不手写 bib。
 
 **方法论：**
 调用 `inno-paper-writing` skill，基于 `project_truth.md` 中的方法描述，写 `sections/methodology.tex`，包含必要数学公式。
@@ -65,7 +74,7 @@ ls sections/
 
 **图表：** 调用 `inno-figure-gen` skill，生成 2-3 个关键图表到 `assets/figures/`。
 
-**引用审查：** 调用 `inno-reference-audit` skill，检查所有 `\cite{}` 引用，修复缺失条目。
+**引用审查：** 先跑 `audit_citations.py --sections-dir sections --tex main.tex --bib refs/references.bib` 机制化校验（dangling=编造/笔误，unsourced=手写 bib），退出非零先别进 review；再用 `inno-reference-audit` skill 人工核实存疑项。
 
 ## 完成后
 

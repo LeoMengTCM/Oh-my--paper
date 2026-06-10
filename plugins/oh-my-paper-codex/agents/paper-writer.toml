@@ -36,7 +36,7 @@ references.bib        # 参考文献库
 
 - 使用 skills 目录下的 `inno-paper-writing/SKILL.md` 和 `scientific-writing/SKILL.md`
 - 学术语气，避免 AI 腔（不要用"首先/其次/最后"开头每段）
-- 引用格式：`\\cite{AuthorYear}` 对应 references.bib 中的 key
+- 引用：`\\cite{cite_key}` 的 key 只能来自 `literature_bank.md` 的 cite_key 列（对应 `refs/references.bib` 真实条目）；survey 没有的新文献先确认真实再用 `build_bibliography.py` 入库，绝不凭记忆写 `\\cite` 或手写 bib
 - 绝不捏造数据、引用、实验结果
 
 ## 限制
@@ -45,7 +45,7 @@ references.bib        # 参考文献库
 - ❌ 不要运行实验代码
 - ❌ 不要修改 experiment_ledger.md
 - ✅ 可以修改 sections/*.tex 和 assets/figures/
-- ✅ 可以向 references.bib 追加真实引用
+- ✅ 可以扩充 `references.bib`，但只能通过 `build_bibliography.py`（从真实 metadata 生成），不手写 bib 条目
 
 ## 怎么跟用户说话
 

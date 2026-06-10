@@ -31,6 +31,19 @@ ls sections/
 - `只写缺少的章节`
 - `指定某几节`
 
+## 引用铁律（贯穿所有章节）
+
+参考文献只有一个可信来源：survey 阶段由 `build_bibliography.py` 生成的 `refs/references.bib`（每条都来自真实 metadata，可在 `bibliography.json` 追溯）。
+
+- **所有 `\cite{key}` 的 key 必须来自 `literature_bank.md` 的 cite_key 列**（一一对应 `references.bib` 的条目）。
+- **引用 survey 已有文献**：直接用它的 cite_key，元数据已在 `references.bib`——不要重写作者/年份/DOI，不要手写 bib 条目。
+- **需要 survey 没有的新文献**：先确认真实存在再引——
+  1. 用检索脚本拿真实元数据：`search_and_download_papers.py --query "..." --summary-only`（或 `--arxiv-ids`）下到一个 corpus；
+  2. `build_bibliography.py --library-root <corpus> --bib-out refs/references.bib --origin write` 并入（自动生成 cite_key）；
+  3. 再 `\cite` 这个新 cite_key。
+  查不到就**不要引**，用 `[CITATION NEEDED]` 标注并告诉用户。
+- **绝不凭记忆写 `\cite` 或手写 bib 条目**——AI 生成的引用约 40% 是错的。第三步会用 `audit_citations.py` 抓悬空引用和无来源 bib 条目。
+
 ## 第二步：按节逐步执行
 
 每节开始前，先告知用户：
@@ -45,7 +58,7 @@ ls sections/
 
 **相关工作：**
 
-调用 `inno-paper-writing` skill，基于 `.pipeline/memory/literature_bank.md`（Status=accepted），写 `sections/related_work.tex`，`\cite{key}` 引用必须存在于 `references.bib`。
+调用 `inno-paper-writing` skill，基于 `.pipeline/memory/literature_bank.md`（accepted 的）写 `sections/related_work.tex`。引用严格遵守上面的"引用铁律"：只用 bank 里的 cite_key，不手写 bib。
 
 **方法论：**
 
@@ -82,7 +95,17 @@ ls sections/
 
 **引用审查：**
 
-调用 `inno-reference-audit` skill，检查所有 `\cite{}` 引用，修复缺失条目。
+先跑审计脚本（机制化校验），再让 `inno-reference-audit` skill 人工核实存疑项：
+
+```bash
+python .claude/skills/literature-pdf-ocr-library/scripts/audit_citations.py \
+  --sections-dir sections --tex main.tex --bib refs/references.bib
+```
+
+- dangling（`\cite` 的 key 不在 bib）：补 survey 的 cite_key，或按引用铁律确认新文献后入库
+- unsourced（bib 条目无来源）：有人手写了 bib——删掉或按铁律重新确认入库
+
+脚本退出非零就先别进 review。
 
 ## 完成后
 

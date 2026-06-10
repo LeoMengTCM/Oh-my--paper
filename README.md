@@ -130,7 +130,7 @@ Or overwrite the plugin cache directly (faster, no restart needed):
 
 ```bash
 cp -r /path/to/oh-my-paper/plugins/oh-my-paper/. \
-  ~/.claude/plugins/cache/oh-my-paper/omp/1.0.0/
+  ~/.claude/plugins/cache/oh-my-paper/omp/1.1.0/
 # Then in Claude Code:
 /reload-plugins
 ```
@@ -156,7 +156,7 @@ All commands are prefixed with `/omp:`.
 | Command | What It Does |
 |---------|-------------|
 | `/omp:setup` | Scaffold a new research project — creates `.pipeline/`, memory files, and copies the bundled skills into `.claude/skills/` |
-| `/omp:survey` | AI-assisted literature survey — search papers, build `literature_bank.md` |
+| `/omp:survey` | Literature survey (filter-first): multi-source search → screening table → pick core papers → download + OCR only those; builds `literature_bank.md` |
 | `/omp:ideate` | Generate and evaluate research ideas based on survey findings |
 | `/omp:experiment` | Design experiments, write evaluation code, run on remote compute nodes |
 | `/omp:write` | Draft paper sections, generate figures and captions, manage LaTeX files |

@@ -55,6 +55,10 @@ def main() -> int:
                 "markdown_paths": collect_markdown_paths(paper_dir),
                 "image_paths": collect_image_paths(paper_dir),
                 "pdf_status": metadata.get("pdf_status"),
+                "full_text_status": metadata.get("full_text_status"),
+                "download_status": metadata.get("download_status"),
+                "citation_count": metadata.get("citation_count"),
+                "code_url": metadata.get("code_url"),
                 "metadata_path": str(metadata_path),
             }
         )

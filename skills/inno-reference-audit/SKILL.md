@@ -53,6 +53,24 @@ Use this skill when the user request matches its research workflow scope. Prefer
 - If a required runtime, CLI, credential, or API is unavailable, explain the blocker and continue with the best manual fallback instead of silently skipping the step.
 - Do not write generated artifacts back into the skill directory; save them inside the active project workspace.
 
+## Mechanized check first, then verify
+
+In Oh My Paper projects the bibliography is built from real metadata by
+`literature-pdf-ocr-library/scripts/build_bibliography.py`, so before the manual
+WebSearch / Google Scholar verification below, run the deterministic audit:
+
+```bash
+python .claude/skills/literature-pdf-ocr-library/scripts/audit_citations.py \
+  --sections-dir sections --tex main.tex --bib refs/references.bib
+```
+
+- **dangling** — a `\cite` key not in `references.bib` (a typo or a fabricated key). Fix by using the real cite_key from `literature_bank.md`, or add the paper via `build_bibliography.py` after verifying it exists.
+- **unsourced** — a `references.bib` entry with no provenance in `bibliography.json` (someone hand-wrote it). Delete it, or re-add it through `build_bibliography.py` from verified metadata.
+
+A non-zero exit means the paper is not citation-clean. The WebSearch / Google
+Scholar principles below still apply to whatever the script cannot judge — above
+all, whether a cited claim actually appears in the paper.
+
 ## Upstream Instructions
 
 # Citation Verification Reference Guide

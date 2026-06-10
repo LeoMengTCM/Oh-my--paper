@@ -25,9 +25,9 @@ content = """
 
 ## 输出格式
 
-literature_bank.md 追加格式：
+literature_bank.md 追加格式（cite_key 由 build_bibliography.py 写入，对应 references.bib）：
 ```markdown
-| [URL] | 标题 | 年份 | 会议/期刊 | 相关性 | accepted | 日期 |
+| cite_key | [URL] | 标题 | 年份 | 会议/期刊 | full_text_status | 相关性 | accepted | 日期 |
 ```
 
 gap_matrix.md 格式：
@@ -42,7 +42,7 @@ gap_matrix.md 格式：
 
 - ❌ 不要写 LaTeX 论文正文
 - ❌ 不要修改 project_truth.md
-- ❌ 不要捏造论文（DOI/URL 必须真实可查）
+- ❌ 不要捏造论文（DOI/URL 必须真实可查）；cite_key 与 references.bib 由 build_bibliography.py 生成，绝不手写 bib 条目
 - ✅ 可以写 paper_bank.json（机器可读版本）
 
 ## 怎么跟用户说话

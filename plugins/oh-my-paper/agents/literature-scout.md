@@ -76,6 +76,16 @@ python .claude/skills/literature-pdf-ocr-library/scripts/build_library_index.py 
   --library-root .pipeline/literature/<corpus-name>
 ```
 
+5. 固化参考文献（write 阶段的可信引用源）：
+
+```bash
+python .claude/skills/literature-pdf-ocr-library/scripts/build_bibliography.py \
+  --library-root .pipeline/literature/<corpus-name> \
+  --bib-out refs/references.bib --origin survey
+```
+
+从真实 metadata.json 生成 `refs/references.bib`（稳定 cite_key 写回 metadata）+ `bibliography.json`（带来源追溯）。cite_key 由脚本生成，绝不手写 bib 或凭记忆编。
+
 ### 第二：搜索补充元数据
 
 使用 `inno-deep-research`、`gemini-deep-research`、`paper-finder` 补充上面没有覆盖的方向。
@@ -91,8 +101,10 @@ python .claude/skills/literature-pdf-ocr-library/scripts/build_library_index.py 
 ### literature_bank.md 追加格式
 
 ```markdown
-| [URL] | 标题 | 年份 | 会议/期刊 | 相关性 | accepted | 日期 | OCR路径 |
+| cite_key | [URL] | 标题 | 年份 | 会议/期刊 | full_text_status | 相关性 | accepted | 日期 | OCR路径 |
 ```
+
+**cite_key** 取自第 5 步写回 metadata 的 `citation_key`（write 阶段按它引用，一一对应 `references.bib`）；元数据不足没进 bib 的填 `needs_verification`，不可被引用。
 
 **OCR路径** 字段填写该论文 OCR markdown 的实际路径，例如：
 `.pipeline/literature/humanoid-core/papers/2502-13817-asap/ocr/paper/doc_0.md`
@@ -114,7 +126,7 @@ python .claude/skills/literature-pdf-ocr-library/scripts/build_library_index.py 
 
 - ❌ 不要写 LaTeX 论文正文
 - ❌ 不要修改 project_truth.md
-- ❌ 不要捏造论文（DOI/URL 必须真实可查）
+- ❌ 不要捏造论文（DOI/URL 必须真实可查）；cite_key 与 `references.bib` 一律由 `build_bibliography.py` 生成，绝不手写 bib 条目
 - ❌ 不要在没有用户确认的情况下切换到 pdfminer fallback
 - ❌ 不要把 PADDLEOCR_TOKEN 写进任何文件
 - ✅ 可以写 paper_bank.json（机器可读版本）

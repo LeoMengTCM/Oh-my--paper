@@ -188,8 +188,8 @@ When you open Claude Code in an Oh My Paper project, the `SessionStart` hook fir
 |------|---------------|-------------|
 | **Conductor** | Global planning, review outputs, dispatch tasks, auto-update `project_truth` after each subtask | `project_truth` · `orchestrator_state` · `tasks.json` · `review_log` · `agent_handoff` · `decision_log` |
 | **Literature Scout** | Search papers, organize literature bank | `project_truth` · `execution_context` · `literature_bank` · `decision_log` |
-| **Experiment Driver** | Design experiments, write code, run evaluations | `execution_context` · `experiment_ledger` · `research_brief.json` · `project_truth` |
-| **Paper Writer** | Draft sections, generate figures, audit references | `execution_context` · `result_summary` · `literature_bank` · `agent_handoff` |
+| **Experiment Driver** | Design experiments, write code, run evaluations, produce figures every round | `execution_context` · `experiment_ledger` · `figure_ledger` · `research_brief.json` · `project_truth` |
+| **Paper Writer** | Draft sections, assemble multi-panel figures, audit references | `execution_context` · `result_summary` · `experiment_ledger` · `figure_ledger` · `literature_bank` · `agent_handoff` |
 | **Reviewer** | Peer review, quality gate, consistency check | `execution_context` · `project_truth` · `result_summary` |
 
 ### How It Works

@@ -188,8 +188,8 @@ Codex 插件目前**不会**在 Codex CLI 里自动注册 `/omp-*` 命令。
 |------|------|---------|
 | **Conductor（统筹者）** | 全局规划、评审产出、派发任务、每个子任务完成后自动更新 `project_truth` | `project_truth` · `orchestrator_state` · `tasks.json` · `review_log` · `agent_handoff` · `decision_log` |
 | **Literature Scout（文献侦察）** | 搜索论文、整理文献库 | `project_truth` · `execution_context` · `literature_bank` · `decision_log` |
-| **Experiment Driver（实验执行）** | 设计实验、编写代码、运行评估 | `execution_context` · `experiment_ledger` · `research_brief.json` · `project_truth` |
-| **Paper Writer（论文写手）** | 撰写章节、生成图表、审查引用 | `execution_context` · `result_summary` · `literature_bank` · `agent_handoff` |
+| **Experiment Driver（实验执行）** | 设计实验、编写代码、运行评估、每轮强制出图 | `execution_context` · `experiment_ledger` · `figure_ledger` · `research_brief.json` · `project_truth` |
+| **Paper Writer（论文写手）** | 撰写章节、组装多面板图、审查引用 | `execution_context` · `result_summary` · `experiment_ledger` · `figure_ledger` · `literature_bank` · `agent_handoff` |
 | **Reviewer（评审者）** | 同行评审、质量把关、一致性检查 | `execution_context` · `project_truth` · `result_summary` |
 
 ### 工作流

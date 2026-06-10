@@ -1,9 +1,9 @@
 {
-  "schema": "viewerleaf-research-catalog-v1",
-  "generatedAt": "2026-06-09T16:15:58.140Z",
+  "schema": "omp-research-catalog-v1",
+  "generatedAt": "2026-06-10T02:39:16.781Z",
   "upstream": {
     "repo": "Oh-my--paper",
-    "revision": "e5a03228f5ebab1621ad8b73fab833ec27264772"
+    "revision": "d6d3d577d7107e4fa22b55133d4b9f71c47ffb7e"
   },
   "skills": [
     {
@@ -1618,14 +1618,14 @@
       "status": "verified",
       "resourceFlags": {
         "hasReferences": false,
-        "hasScripts": false,
+        "hasScripts": true,
         "hasTemplates": false,
         "hasAssets": false,
         "referenceCount": 0,
-        "scriptCount": 0,
+        "scriptCount": 1,
         "templateCount": 0,
         "assetCount": 0,
-        "optionalScripts": false
+        "optionalScripts": true
       }
     },
     {

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./src/assets/qrcode.jpg" alt="交流群二维码" width="180" />
+  <img src="./assets/qrcode.jpg" alt="交流群二维码" width="180" />
   <br/>
   <em>扫码加入交流群</em>
 </p>
@@ -51,6 +51,7 @@
 - 修复失效的 `PostToolUse` hook：`scripts/on-stage-transition.mjs` 改为从 stdin JSON 读取工具输入（`CLAUDE_TOOL_INPUT` 环境变量并不存在）；修正残留的 `/vl:plan` → `/omp:plan`；移除 `setup.md` 里重复的 SessionStart 注册；清理 ViewerLeaf 时代命名。
 - 强化命令提示词里的 AskUserQuestion 调用规范，降低 `Invalid tool parameters` 报错（必填字段带齐、参数用纯文本）。
 - 把文献 OCR（`literature-pdf-ocr-library`）重写为当前的 **PaddleOCR-VL 异步 job API**（建任务 → 轮询 → 下载 Markdown），替换旧的同步端点。
+- 移除遗留的 ViewerLeaf 桌面 GUI（Tauri/React 应用、sidecar、Cloudflare workers、桌面 CI）——本仓库现在只包含插件。`compute-helper.mjs` 移入 `skills/remote-experiment/scripts/`，装插件的用户也能用上。
 
 ---
 
@@ -130,7 +131,7 @@ hooks 需要重启才能生效。
 
 ```bash
 cp -r /path/to/oh-my-paper/plugins/oh-my-paper/. \
-  ~/.claude/plugins/cache/oh-my-paper/omp/1.1.0/
+  ~/.claude/plugins/cache/oh-my-paper/omp/<已安装版本号>/
 # 然后在 Claude Code 里：
 /reload-plugins
 ```

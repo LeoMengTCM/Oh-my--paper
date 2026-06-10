@@ -1,8 +1,0 @@
-{
-  "rootPath": "/Users/donkfeng/Desktop/viwerleaf",
-  "mainTex": "main.tex",
-  "engine": "xelatex",
-  "bibTool": "biber",
-  "autoCompile": true,
-  "forwardSync": true
-}

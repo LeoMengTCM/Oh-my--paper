@@ -32,7 +32,31 @@ keywords:
 你可以通过 `compute-helper` CLI 在远程服务器上自主执行代码和命令。适用于任何算力/数据密集型远程任务——ML 训练、**生物信息学流程**（比对 / 变异检测 / 单细胞 / GWAS，需 rsync 大数据集）、大规模数据处理，不限于 GPU 作业。
 
 > compute-helper 路径和服务器信息在 system prompt 的 `<compute_node>` 块中给出。
-> 如果没有，在 `sidecar/bin/compute-helper.mjs` 查找。
+> 如果没有，用本技能自带的 `scripts/compute-helper.mjs`（与本 SKILL.md 同目录）。
+
+## 节点配置
+
+compute-helper 从 `~/.viewerleaf/compute-nodes.json` 读取节点信息（历史路径，沿用即可）。首次使用前手动创建：
+
+```json
+{
+  "activeNodeId": "gpu-1",
+  "nodes": [
+    {
+      "id": "gpu-1",
+      "name": "Lab GPU server",
+      "host": "192.168.1.100",
+      "port": 22,
+      "user": "researcher",
+      "authMethod": "key",
+      "keyPath": "~/.ssh/id_ed25519",
+      "workDir": "~/experiments"
+    }
+  ]
+}
+```
+
+`authMethod` 用 `key`（推荐，配 `keyPath`）。配置好后运行 `node <helper> info` 验证连接信息。
 
 ## 命令速查
 

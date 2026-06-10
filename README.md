@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./src/assets/qrcode.jpg" alt="交流群二维码" width="180" />
+  <img src="./assets/qrcode.jpg" alt="交流群二维码" width="180" />
   <br/>
   <em>扫码加入交流群</em>
 </p>
@@ -51,6 +51,7 @@ This is a personal maintenance fork of **[LigphiDonk/Oh-my--paper](https://githu
 - Fixed a dead `PostToolUse` hook: `scripts/on-stage-transition.mjs` now reads tool input from stdin JSON (the `CLAUDE_TOOL_INPUT` env var does not exist); fixed stale `/vl:plan` → `/omp:plan`; removed the duplicate SessionStart registration in `setup.md`; cleaned up ViewerLeaf-era naming.
 - Hardened AskUserQuestion guidance in the command prompts to reduce `Invalid tool parameters` errors (always include required fields; keep params plain text).
 - Rewrote the literature OCR (`literature-pdf-ocr-library`) to the current **PaddleOCR-VL async job API** (submit → poll → download Markdown), replacing the old synchronous endpoint.
+- Removed the legacy ViewerLeaf desktop GUI (Tauri/React app, sidecar, Cloudflare workers, desktop CI) — this repo is now plugin-only. `compute-helper.mjs` moved into `skills/remote-experiment/scripts/` so plugin users get it too.
 
 ---
 
@@ -130,7 +131,7 @@ Or overwrite the plugin cache directly (faster, no restart needed):
 
 ```bash
 cp -r /path/to/oh-my-paper/plugins/oh-my-paper/. \
-  ~/.claude/plugins/cache/oh-my-paper/omp/1.1.0/
+  ~/.claude/plugins/cache/oh-my-paper/omp/<installed-version>/
 # Then in Claude Code:
 /reload-plugins
 ```

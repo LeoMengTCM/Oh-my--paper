@@ -81,7 +81,6 @@ const skillsRoot = path.join(repoRoot, "skills");
 const catalogPath = path.join(skillsRoot, "research-catalog.json");
 const scopePath = path.join(skillsRoot, "research-scope.json");
 const stageMapPath = path.join(skillsRoot, "research-stage-map.json");
-const bundledSkillsRoot = path.join(repoRoot, "src-tauri", "resources", "skills");
 
 function main() {
   const mode = parseMode(process.argv.slice(2));
@@ -91,14 +90,14 @@ function main() {
   const manifests = skillIds.map((id) => buildManifest(id, stageMap));
 
   const catalog = {
-    schema: "viewerleaf-research-catalog-v1",
+    schema: "omp-research-catalog-v1",
     generatedAt: new Date().toISOString(),
     upstream: { repo: "Oh-my--paper", revision: getGitRevision() },
     skills: manifests,
     stageSkillMap: stageMap,
   };
   const scope = {
-    schema: "viewerleaf-research-scope-v1",
+    schema: "omp-research-scope-v1",
     generatedAt: catalog.generatedAt,
     skills: skillIds,
   };
@@ -131,7 +130,6 @@ function main() {
   // sync
   writeJson(catalogPath, catalog);
   writeJson(scopePath, scope);
-  mirrorBundledCopy(catalog, scope);
 
   process.stdout.write(formatReport(skillIds, issues));
   process.stdout.write(
@@ -338,16 +336,6 @@ function sameContent(filePath, canonicalExpected) {
 }
 
 // ---- 输出 ----
-
-function mirrorBundledCopy(catalog, scope) {
-  if (!existsSync(bundledSkillsRoot)) return;
-  writeJson(path.join(bundledSkillsRoot, "research-catalog.json"), catalog);
-  writeJson(path.join(bundledSkillsRoot, "research-scope.json"), scope);
-  if (existsSync(stageMapPath)) {
-    writeJson(path.join(bundledSkillsRoot, "research-stage-map.json"), readJson(stageMapPath));
-  }
-  process.stdout.write(`Mirrored catalog/scope/stage-map to ${rel(bundledSkillsRoot)}.\n`);
-}
 
 function formatReport(skillIds, issues) {
   const lines = [`Discovered ${skillIds.length} skills under ${rel(skillsRoot)}.`];

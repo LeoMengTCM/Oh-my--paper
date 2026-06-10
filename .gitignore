@@ -2,18 +2,9 @@
 logs
 *.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
 
 # Dependencies
 node_modules
-
-# Build output
-dist
-dist-ssr
-*.local
 
 # Editor directories and files
 .vscode/*
@@ -21,46 +12,11 @@ dist-ssr
 .idea
 .DS_Store
 *.suo
-*.ntvs*
-*.njsproj
-*.sln
 *.sw?
-
-# Rust / Tauri build artifacts
-src-tauri/target/
-src-tauri/resources/worker-template/
-src-tauri/resources/sidecar/
-
-# LaTeX auxiliary files
-*.aux
-*.bbl
-*.bcf
-*.blg
-*.fdb_latexmk
-*.fls
-*.out
-*.run.xml
-*.synctex.gz
-*.xdv
-main.pdf
-main.log
-
-# Sidecar node_modules and build output
-sidecar/node_modules
-sidecar/dist
 
 # OMC files
 .omc
 .claude
-
-# ViewerLeaf opencode runtime data
-.viewerleaf/opencode-home/
-.viewerleaf/opencode-session-map.json
-
-# Cloudflare worker files
-workers/.wrangler
-workers/.dev.vars*
-!workers/.dev.vars.example
 
 # Python caches (skill helper scripts)
 __pycache__/

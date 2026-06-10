@@ -29,8 +29,8 @@ description: Orchestrates the research pipeline by routing between modes and rev
 |------|---------|---------|
 | 统筹规划 | project_truth + orchestrator_state + tasks + review_log + agent_handoff + decision_log | 以 Conductor 身份，运行 `/omp:plan` |
 | 文献调研 | project_truth + execution_context + literature_bank + decision_log | 以 Literature Scout 身份，运行 `/omp:survey` |
-| 实验执行 | execution_context + project_truth + experiment_ledger + decision_log + research_brief | 以 Experiment Driver 身份，运行 `/omp:experiment` |
-| 论文写作 | execution_context + project_truth + result_summary + literature_bank + agent_handoff | 以 Paper Writer 身份，运行 `/omp:write` |
+| 实验执行 | execution_context + project_truth + experiment_ledger + figure_ledger + decision_log + research_brief | 以 Experiment Driver 身份，运行 `/omp:experiment` |
+| 论文写作 | execution_context + project_truth + result_summary + experiment_ledger + figure_ledger + literature_bank + agent_handoff | 以 Paper Writer 身份，运行 `/omp:write` |
 | 论文评审 | execution_context + project_truth + result_summary | 以 Reviewer 身份，运行 `/omp:review` |
 
 ## Conductor 核心职责（统筹规划模式）

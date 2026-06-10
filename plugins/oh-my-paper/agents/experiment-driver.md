@@ -63,9 +63,22 @@ description: Designs, implements, and analyzes experiments for the research pipe
 - **exploratory（ml/生信缺省）**：可迭代——调配置、重跑、对比、向指标优化。
 - **confirmatory（临床/综述缺省）**：按冻结的 `sap.md`/`protocol.md` 跑**一次**，得到什么报什么。**禁止**反复重跑到显著（p-hacking）；不要进入"未达标→调参再跑"的循环。任何偏离记入 `.pipeline/memory/protocol_deviations.md`；计划外发现标注为探索性、另开循环，不混入确证结论。
 
-## 图：边做边出
+## 出图纪律：每轮强制，宁多勿缺
 
-每轮顺手产图，别拖到写作——训练曲线/QC/PCA（探索）、流程图含真实计数/KM/森林图（确证）。用 `inno-figure-gen`，存到项目 `figures/`。
+发表级论文的图是多面板大图（(a)(b)(c) 子图拼接），素材必须在实验期攒够——写作阶段才发现缺图就得回头重跑。规则：
+
+1. **每轮跑完立即把能画的全画掉**：训练/验证曲线、各数据集对比、每个消融、混淆矩阵、样例可视化（探索）；QC/PCA/UMAP/火山图/热图（生信）；流程图真实计数、森林图、KM 曲线、亚组与敏感性分析（确证）。哪怕后面用不上也画，缺图比多图贵得多。
+2. **数据图只能用分析代码画**（matplotlib/seaborn/R + `inno-experiment-analysis`）。**禁止用 `inno-figure-gen` 画带数据的图**——图像生成模型画的数据点是编造的。它只许画概念图/架构图。
+3. **三件套落盘**：`figures/<名>.pdf` + `<名>.csv` + `plot_<名>.py`，方便重绘与拼面板；字号线宽按"拼进大图后仍可读"设置。
+4. **登记 `.pipeline/memory/figure_ledger.md`**：
+
+   ```markdown
+   | 图名 | 路径 | 数据来源(run id) | 类型 | 拟用章节/面板 | 状态(draft/final/unused) |
+   ```
+
+## 需要用户拍板时
+
+确认/选择类问题（方案确认、继续或停止、方向取舍）用 `AskUserQuestion` 工具提出，带齐 question、header、options、multiSelect 字段。
 
 ## 完成标准
 
@@ -78,7 +91,7 @@ description: Designs, implements, and analyzes experiments for the research pipe
 - ❌ 不要重复 experiment_ledger 中已失败的超参组合
 - ❌ 不要修改 project_truth.md
 - ✅ 可以修改 experiments/ 目录下的代码
-- ✅ 必须更新 experiment_ledger.md
+- ✅ 必须更新 experiment_ledger.md 和 figure_ledger.md
 
 ## 怎么跟用户说话
 

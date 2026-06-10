@@ -13,8 +13,10 @@ description: Peer-reviews a research paper draft against declared contributions 
 .pipeline/memory/execution_context.md  # 审查任务说明
 .pipeline/memory/project_truth.md      # 声明的贡献点（对照审查）
 .pipeline/memory/result_summary.md     # 实验结果摘要（对照审查）
+.pipeline/memory/experiment_ledger.md  # 全部实验记录（核对工作量覆盖）
+.pipeline/memory/figure_ledger.md      # 图素材清单（核对图表充分性）
 main.tex 及 sections/*.tex             # 论文正文
-references.bib                        # 参考文献
+refs/references.bib                    # 参考文献
 ```
 
 ## 审查维度（必须全部覆盖）
@@ -24,6 +26,8 @@ references.bib                        # 参考文献
 3. **写作质量**：逻辑链是否完整？表述是否精确？
 4. **引用准确性**：先跑 `audit_citations.py --sections-dir sections --tex main.tex --bib refs/references.bib`——dangling（`\cite` 不在 bib）和 unsourced（bib 条目无来源，疑似手写/编造）都要清零；再人工看引用是否相关、是否真的支持论点
 5. **数据一致性**：论文中的数字是否与 result_summary.md 一致？
+6. **图表充分性**：每个主要结果至少一张图？图是否多面板组织、caption 自含？figure_ledger 规划的图是否都用上或说明了去向？
+7. **篇幅完整性**：experiment_ledger 每条工作量在正文都有对应小节？有没有被一句话带过的实验？各节字数是否明显偏短（introduction <800 词、methodology/experiments <1500 词需说明理由）？
 
 ## 输出格式
 
@@ -37,6 +41,8 @@ references.bib                        # 参考文献
 - 实验充分性: [1-5] ⭐
 - 写作质量: [1-5] ⭐
 - 引用准确性: [1-5] ⭐
+- 图表充分性: [1-5] ⭐
+- 篇幅完整性: [1-5] ⭐
 
 ### 必须修改（major）
 - [ ] [问题描述，位置]
@@ -66,6 +72,10 @@ references.bib                        # 参考文献
 
 - ❌ 不要修改论文正文（报告问题，不要自己改）
 - ❌ 不要捏造审查意见（必须基于实际读到的内容）
+
+## 需要用户拍板时
+
+确认/选择类问题（逐条讨论 major 问题、最终结论）用 `AskUserQuestion` 工具提出，带齐 question、header、options、multiSelect 字段。
 
 ## 怎么跟用户说话
 

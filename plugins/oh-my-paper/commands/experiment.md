@@ -45,9 +45,9 @@ cat .pipeline/memory/experiment_ledger.md
 
 ## 第二步：确定方案（按 track 分流）
 
-- **exploratory（ml / bioinformatics）**：设计可迭代的实验方案。
+- **exploratory（ml / bioinformatics）**：设计可迭代的实验方案。把下面的任务交给 Codex（用 `codex-dispatch` 技能或 `/omp:delegate` 流程；Codex 不可用就自己执行）：
   ```
-  /codex:rescue 阅读 .pipeline/memory/project_truth.md 和 .pipeline/memory/experiment_ledger.md（避免重复失败配置），使用 .claude/skills/inno-experiment-dev/SKILL.md 设计实验方案，写入 .pipeline/docs/experiment_plan.md，不要写代码
+  阅读 .pipeline/memory/project_truth.md 和 .pipeline/memory/experiment_ledger.md（避免重复失败配置），使用 .claude/skills/inno-experiment-dev/SKILL.md 设计实验方案，写入 .pipeline/docs/experiment_plan.md，不要写代码
   ```
 - **confirmatory（clinical / systematic-review）**：方案 = **已冻结**的 `protocol.md` + `sap.md`。**不要在这里"重新设计"**，只把预设分析具体化为可执行步骤（分析人群 ITT/PP、主要结局模型、缺失数据处理、多重性）。任何与冻结计划不一致之处，先记入 `.pipeline/memory/protocol_deviations.md` 再执行。
 
@@ -60,15 +60,33 @@ cat .pipeline/memory/experiment_ledger.md
 
 ## 第三步：实现并运行
 
+把下面的任务交给 Codex（用 `codex-dispatch` 技能或 `/omp:delegate` 流程，建议后台运行；Codex 不可用就自己执行）：
+
 ```
-/codex:rescue --background --resume 根据冻结方案（confirmatory：protocol.md + sap.md；exploratory：experiment_plan.md）实现并运行分析，结果追加到 .pipeline/memory/experiment_ledger.md
+根据冻结方案（confirmatory：protocol.md + sap.md；exploratory：experiment_plan.md）实现并运行分析，结果追加到 .pipeline/memory/experiment_ledger.md
 ```
 
-> **作图就在此刻，别拖到写作**：exploratory 出训练/验证曲线、QC、PCA/UMAP；confirmatory 出流程图（CONSORT/PRISMA/STROBE，填**真实**计数）与主要结局图（Kaplan–Meier / 森林 / 效应图）。用 `inno-figure-gen`。
+## 出图纪律（每轮强制，宁多勿缺）
+
+**好论文的图是多面板大图拼出来的，而拼图的前提是子图素材足够多。写作阶段才发现缺图，就只能回头重跑实验——所以图在实验期出，每轮出，能画的全画。** 哪怕最后 80% 用不上，也比写作时缺一张强。
+
+1. **数据图必须由分析代码画**（matplotlib/seaborn/R + `inno-experiment-analysis`）。**绝不用 `inno-figure-gen` 画任何带数据的图**——它是图像生成模型，画出来的数据点是编的。`inno-figure-gen` 只许画概念图、架构图、流程示意。
+2. **每轮跑完立即清点可画清单，全部画掉**：
+   - exploratory（ML）：训练/验证曲线、各数据集对比图、每个消融一张图、混淆矩阵、成功与失败样例可视化、超参敏感性曲线
+   - 生信：QC 图、PCA/UMAP、火山图、聚类热图、富集分析条形图
+   - confirmatory（临床/综述）：CONSORT/PRISMA/STROBE 流程图（**真实**计数）、主要与次要结局效应图（森林图）、Kaplan–Meier 曲线、亚组森林图、敏感性分析图
+3. **每张图落三件套**：`figures/<名称>.pdf` + 同名数据 `<名称>.csv` + 绘图脚本 `plot_<名称>.py`。后期改样式、重绘、拼面板全靠这三样。
+4. **按子图标准做素材**：单图当成未来大图里的 (a)(b)(c) 面板来画——字号、线宽、分辨率按拼接后仍可读的标准设置。
+5. **登记 `.pipeline/memory/figure_ledger.md`**，每张图一行：
+
+   ```markdown
+   | 图名 | 路径 | 数据来源(run id) | 类型 | 拟用章节/面板 | 状态 |
+   | val-curve-baseline | figures/val_curve_baseline.pdf | run-001 | 曲线 | experiments 图2(a) | draft |
+   ```
 
 ## 第四步：结果回来后，由你决定下一步（按 analysisMode 分流）
 
-读取 `experiment_ledger.md` 最新行，向用户展示结果。
+读取 `experiment_ledger.md` 最新行，向用户展示结果；**同时读取 `figure_ledger.md`，报告本轮新增几张图、累计几张、哪些主要结果还没有图**。
 
 **exploratory** — 用 `AskUserQuestion`：
 
@@ -81,6 +99,9 @@ cat .pipeline/memory/experiment_ledger.md
 选项（达标时）：
 - `很好，进入 /omp:write`
 - `还想多跑几组对比实验`
+- `图素材不够，先补图再写作`
+
+**进入写作前的图检查**：选"进入 /omp:write"之前，对照 `figure_ledger.md` 确认每个主要结果、每个消融、每个数据集都至少有一张子图素材；缺的先补——写作阶段回头补图的代价远高于现在顺手画。
 
 **confirmatory** — 预设分析**只跑一次，得到什么报什么**。**不提供"调整后再跑到达标"的选项**（反复重跑到显著是 p-hacking）。用 `AskUserQuestion`：
 - `分析完成，进入写作` — 按 CONSORT/STROBE/STARD/PRISMA 如实报告，含预设与实际的任何偏离
@@ -89,4 +110,4 @@ cat .pipeline/memory/experiment_ledger.md
 
 ## 收尾
 
-按 Conductor 规则更新 `tasks.json`（标记完成）与 `project_truth.md`（追加进展）。
+按 Conductor 规则更新 `tasks.json`（标记完成）与 `project_truth.md`（追加进展）；本轮所有新图登记进 `figure_ledger.md`。

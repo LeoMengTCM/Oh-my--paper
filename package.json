@@ -1,7 +1,7 @@
 {
   "name": "oh-my-paper",
   "private": true,
-  "version": "1.1.1",
+  "version": "1.1.2",
   "type": "module",
   "scripts": {
     "skills:research:sync": "node scripts/sync-research-skills.mjs sync",

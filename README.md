@@ -52,6 +52,7 @@ This is a personal maintenance fork of **[LigphiDonk/Oh-my--paper](https://githu
 - Hardened AskUserQuestion guidance in the command prompts to reduce `Invalid tool parameters` errors (always include required fields; keep params plain text).
 - Rewrote the literature OCR (`literature-pdf-ocr-library`) to the current **PaddleOCR-VL async job API** (submit → poll → download Markdown), replacing the old synchronous endpoint.
 - Removed the legacy ViewerLeaf desktop GUI (Tauri/React app, sidecar, Cloudflare workers, desktop CI) — this repo is now plugin-only. `compute-helper.mjs` moved into `skills/remote-experiment/scripts/` so plugin users get it too.
+- Hardened the experiment/write loop: experiments must over-produce figures into a `figure_ledger.md` (data figures via plotting code only, never image-generation models); writing enforces per-section word floors, full `experiment_ledger` coverage, and a completeness gate before review. Fixed dead `/codex:rescue` command, dead `omp_memory_sync` block, and inconsistent `result_summary.md` paths.
 
 ---
 
@@ -316,6 +317,7 @@ Each agent role reads and writes specific memory files. The Conductor is respons
 ├── orchestrator_state.md   # Conductor's planning state
 ├── execution_context.md    # Current task context for executors
 ├── experiment_ledger.md    # Experiment history & results
+├── figure_ledger.md        # Figure inventory (collected during experiments, assembled at write time)
 ├── result_summary.md       # Latest results for writing & review
 ├── review_log.md           # Review feedback history
 ├── literature_bank.md      # Organized paper notes

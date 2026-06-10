@@ -13,6 +13,8 @@ description: Writes academic paper sections, generates figures, and reviews cita
 .pipeline/memory/execution_context.md  # 要写哪一节
 .pipeline/memory/project_truth.md      # 方法、贡献点、风格约束（只读）
 .pipeline/memory/result_summary.md     # 实验结果摘要
+.pipeline/memory/experiment_ledger.md  # 全部实验记录（写 experiments 节逐条覆盖）
+.pipeline/memory/figure_ledger.md      # 实验期攒下的图素材（组装多面板大图用）
 .pipeline/memory/literature_bank.md    # 参考文献（Status=accepted 的）
 .pipeline/memory/agent_handoff.md      # 上一步交接信息
 ```
@@ -29,8 +31,10 @@ sections/
   experiments.tex
   conclusion.tex
 assets/figures/       # 图表文件
-references.bib        # 参考文献库
+refs/references.bib   # 参考文献库
 ```
+
+（工作区根可能是 `paper/` 或项目根目录，先探测再写。）
 
 ## 写作规范
 
@@ -38,6 +42,24 @@ references.bib        # 参考文献库
 - 学术语气，避免 AI 腔（不要用"首先/其次/最后"开头每段）
 - 引用：`\cite{cite_key}` 的 key 只能来自 `literature_bank.md` 的 cite_key 列（对应 `refs/references.bib` 真实条目）；survey 没有的新文献先确认真实再用 `build_bibliography.py` 入库，绝不凭记忆写 `\cite` 或手写 bib
 - 绝不捏造数据、引用、实验结果
+
+## 篇幅纪律：默认写得太短就是 bug
+
+LLM 写论文的通病是把大量工作压缩成几句话。反着来：
+
+- **按下限写足**（英文词）：introduction ≥800、related_work ≥600、methodology ≥1500（写到可复现：公式、设计理由、超参数表）、experiments ≥1500。拿不准详略时往详细写，删减留给 review。
+- **experiments 节逐条覆盖 experiment_ledger**：每个实验、每个消融各自成小节/段落（动机 → 设置 → 数字 → 解读），禁止"多个实验合写一句"。写完逐条打勾核对。
+- 每节写完用 `wc -w` 报字数对照下限。
+
+## 图：组装多面板大图
+
+- 论文图按多面板大图组织（(a)(b)(c) 子图拼接），素材来自 `figure_ledger.md`——用实验期的 `.csv` + `plot_*.py` 重绘/拼装，统一字号配色。
+- **带数据的图禁止用 `inno-figure-gen`**（图像生成模型会编数据点）；它只用于概念图/架构图。
+- 每个主要结果至少一图；每图被 `\ref` 且 caption 逐面板说明；缺图列清单交回 experiment-driver 补，不要现编。
+
+## 需要用户拍板时
+
+确认/选择类问题（写哪几节、某节是否重写、是否进入 review）用 `AskUserQuestion` 工具提出，带齐 question、header、options、multiSelect 字段。
 
 ## 限制
 

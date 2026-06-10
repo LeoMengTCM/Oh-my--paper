@@ -40,15 +40,24 @@ cat .pipeline/memory/experiment_ledger.md
 
 根据冻结方案（confirmatory：protocol.md + sap.md；exploratory：experiment_plan.md）实现并运行分析，把每次结果追加到 `.pipeline/memory/experiment_ledger.md`。
 
-作图就在此刻，别拖到写作：exploratory 出训练/验证曲线、QC、PCA/UMAP；confirmatory 出流程图（CONSORT/PRISMA/STROBE，填真实计数）与主要结局图（Kaplan–Meier / 森林 / 效应图）。用 `inno-figure-gen`。
+## 出图纪律（每轮强制，宁多勿缺）
+
+好论文的图是多面板大图 (a)(b)(c) 拼出来的，素材必须在实验期攒够——写作时才发现缺图就得回头重跑。规则：
+
+1. **数据图必须由分析代码画**（matplotlib/seaborn/R + `inno-experiment-analysis`）。**绝不用 `inno-figure-gen` 画带数据的图**——图像生成模型画的数据点是编的；它只许画概念图/架构图/流程示意。
+2. **每轮跑完把能画的全画掉**：训练/验证曲线、各数据集对比、每个消融、混淆矩阵、样例可视化（exploratory ML）；QC、PCA/UMAP、火山图、热图、富集条形图（生信）；CONSORT/PRISMA/STROBE 流程图（真实计数）、森林图、KM 曲线、亚组与敏感性分析（confirmatory）。哪怕 80% 最后用不上也画。
+3. **每张图落三件套**：`figures/<名>.pdf` + `<名>.csv` + `plot_<名>.py`，字号线宽按"拼进大图后仍可读"设置。
+4. **登记 `.pipeline/memory/figure_ledger.md`**：`| 图名 | 路径 | 数据来源(run id) | 类型 | 拟用章节/面板 | 状态 |`
 
 ## 第四步：结果回来后，由你决定下一步（按 analysisMode 分流）
 
-读取 `experiment_ledger.md` 最新行，向用户展示结果。
+读取 `experiment_ledger.md` 最新行，向用户展示结果；同时读取 `figure_ledger.md`，报告本轮新增几张图、累计几张、哪些主要结果还没有图。
 
 exploratory — 询问用户：
 - 未达标：调整超参再跑一轮 / 修改实验设计重新来 / 这个方向有问题返回 /omp-ideate / 结果够用了进入写作
-- 达标：很好进入 /omp-write / 还想多跑几组对比实验
+- 达标：很好进入 /omp-write / 还想多跑几组对比实验 / 图素材不够先补图再写作
+
+进入写作前的图检查：对照 `figure_ledger.md` 确认每个主要结果、每个消融、每个数据集都至少有一张子图素材；缺的先补。
 
 confirmatory — 预设分析只跑一次，得到什么报什么。不提供"调整后再跑到达标"的选项（反复重跑到显著是 p-hacking）。询问用户：
 - 分析完成，进入写作 — 按 CONSORT/STROBE/STARD/PRISMA 如实报告，含预设与实际的任何偏离

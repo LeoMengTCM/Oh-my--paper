@@ -52,6 +52,7 @@
 - 强化命令提示词里的 AskUserQuestion 调用规范，降低 `Invalid tool parameters` 报错（必填字段带齐、参数用纯文本）。
 - 把文献 OCR（`literature-pdf-ocr-library`）重写为当前的 **PaddleOCR-VL 异步 job API**（建任务 → 轮询 → 下载 Markdown），替换旧的同步端点。
 - 移除遗留的 ViewerLeaf 桌面 GUI（Tauri/React 应用、sidecar、Cloudflare workers、桌面 CI）——本仓库现在只包含插件。`compute-helper.mjs` 移入 `skills/remote-experiment/scripts/`，装插件的用户也能用上。
+- 实验/写作流程加固：实验期强制"宁多勿缺"出图并登记 `figure_ledger.md`（数据图禁用图像生成模型）、写作期按字数下限逐条覆盖 `experiment_ledger` 并在进 review 前做完整性核对；修复死命令 `/codex:rescue`、死块 `omp_memory_sync`、`result_summary.md` 路径不一致。
 
 ---
 
@@ -317,6 +318,7 @@ my-research/
 ├── orchestrator_state.md   # Conductor 的编排状态
 ├── execution_context.md    # 当前执行任务上下文（执行者看）
 ├── experiment_ledger.md    # 实验历史和结果
+├── figure_ledger.md        # 图素材台账（实验期攒图，写作期拼大图）
 ├── result_summary.md       # 最新结果（写作和评审用）
 ├── review_log.md           # 评审反馈历史
 ├── literature_bank.md      # 整理好的文献笔记

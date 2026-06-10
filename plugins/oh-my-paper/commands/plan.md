@@ -53,17 +53,7 @@ cat .pipeline/memory/decision_log.md
 
 ## 最后：更新状态文件
 
-```omp_memory_sync
-{
-  "updates": [
-    {
-      "file": "orchestrator_state.md",
-      "content": "（更新后的状态）"
-    },
-    {
-      "file": "execution_context.md",
-      "content": "（为下一步准备的任务包）"
-    }
-  ]
-}
-```
+用 Write/Edit 工具直接更新两个文件（没有任何后台机制代劳，必须自己写）：
+
+- `.pipeline/memory/orchestrator_state.md` — 更新后的全局状态
+- `.pipeline/memory/execution_context.md` — 为下一步准备的任务包

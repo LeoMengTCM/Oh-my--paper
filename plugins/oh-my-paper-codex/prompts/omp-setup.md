@@ -83,7 +83,7 @@ mkdir -p .pipeline/memory .pipeline/tasks .pipeline/docs .pipeline/.hook-events
 |------|-------------|
 | 统筹规划 | project_truth + orchestrator_state + tasks.json + review_log + agent_handoff + decision_log |
 | 文献调研 | project_truth + execution_context + literature_bank + decision_log |
-| 实验执行 | execution_context + project_truth + experiment_ledger + decision_log + research_brief |
+| 实验执行 | execution_context + project_truth + experiment_ledger + figure_ledger + decision_log + research_brief |
 | 论文写作 | execution_context + project_truth + result_summary + literature_bank + agent_handoff |
 | 论文评审 | execution_context + project_truth + result_summary |
 
@@ -113,6 +113,7 @@ mkdir -p .pipeline/memory .pipeline/tasks .pipeline/docs .pipeline/.hook-events
     ├── orchestrator_state.md
     ├── execution_context.md
     ├── experiment_ledger.md
+    ├── figure_ledger.md
     ├── result_summary.md
     ├── review_log.md
     ├── literature_bank.md
@@ -153,7 +154,7 @@ mkdir -p .pipeline/memory .pipeline/tasks .pipeline/docs .pipeline/.hook-events
 （空，随项目推进逐步填充）
 ```
 
-**`.pipeline/memory/orchestrator_state.md`**、**`execution_context.md`**、**`review_log.md`**、**`agent_handoff.md`**、**`decision_log.md`**、**`literature_bank.md`**、**`experiment_ledger.md`**：均创建空白初始版本。
+**`.pipeline/memory/orchestrator_state.md`**、**`execution_context.md`**、**`review_log.md`**、**`agent_handoff.md`**、**`decision_log.md`**、**`literature_bank.md`**、**`experiment_ledger.md`**、**`figure_ledger.md`**：均创建空白初始版本。
 
 **`.pipeline/tasks/tasks.json`**：
 ```json

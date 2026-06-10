@@ -7,9 +7,7 @@ description: 初始化研究项目结构（.pipeline/），并检查 Codex 插�
 
 你正在为当前目录初始化 Oh My Paper 研究 harness。
 
-## 第一步：检查 Codex 插件
-
-先确认 Codex 插件已安装。如果 `/codex:setup` 命令可用，运行它：
+## 第一步：检查 Codex CLI（可选依赖）
 
 ```bash
 node -e "process.exit(0)" 2>/dev/null && echo "Node.js OK"
@@ -22,11 +20,12 @@ which codex 2>/dev/null && codex --version 2>/dev/null || echo "Codex not found"
 > - Node.js：[OK / 未安装]
 > - Codex CLI：[版本 / 未安装]
 >
-> Codex 插件用于执行子任务。如果未安装：
-> `/plugin install codex@openai-codex` 然后 `/reload-plugins`
+> Codex 用于并行执行代码/实验子任务（/omp:delegate）。没有它一切照常——子任务由 Claude 自己执行。
+> 安装方法：`npm install -g @openai/codex`（详见 github.com/openai/codex）
 
 选项：
 - `Codex 已就绪，继续初始化`
+- `不用 Codex，继续初始化（子任务由 Claude 执行）`
 - `先去安装 Codex，稍后再运行 /omp:setup`
 
 ## 第二步：询问研究信息
@@ -65,6 +64,8 @@ mkdir -p .pipeline/memory .pipeline/tasks .pipeline/docs .pipeline/.hook-events 
 cp -rn "${CLAUDE_PLUGIN_ROOT}/skills/." .claude/skills/
 ```
 
+> 如果 `.claude/skills/` 已存在（重复运行 setup，常见于插件升级后），`cp -rn` 不会覆盖旧副本。此时用 `AskUserQuestion` 问一句：`保留现有技能副本` / `用插件最新版覆盖刷新（cp -rf）`——项目里自己改过技能的选保留，否则建议刷新。
+
 > **关于 hooks**：SessionStart / Stop / PostToolUse 三个 hook 已由插件自带的 `hooks/hooks.json` 提供，**插件启用即生效，无需在项目里重复注册**。（早期版本曾在这一步手动把 SessionStart 写进 `.claude/settings.json`，与插件自带的那份重复、会导致每次开会话角色选择触发两次，现已移除。）
 
 ## 第四步：写入初始文件
@@ -99,7 +100,7 @@ cp -rn "${CLAUDE_PLUGIN_ROOT}/skills/." .claude/skills/
 （空，随项目推进逐步填充）
 ```
 
-**`.pipeline/memory/orchestrator_state.md`**、**`execution_context.md`**、**`review_log.md`**、**`agent_handoff.md`**、**`decision_log.md`**、**`literature_bank.md`**、**`experiment_ledger.md`**：均创建空白初始版本。
+**`.pipeline/memory/orchestrator_state.md`**、**`execution_context.md`**、**`review_log.md`**、**`agent_handoff.md`**、**`decision_log.md`**、**`literature_bank.md`**、**`experiment_ledger.md`**、**`figure_ledger.md`**：均创建空白初始版本。
 
 **`.pipeline/tasks/tasks.json`**：
 ```json

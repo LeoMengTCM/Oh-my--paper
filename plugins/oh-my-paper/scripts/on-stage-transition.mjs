@@ -1,6 +1,7 @@
 /**
  * on-stage-transition.mjs
- * PostToolUse(Write) hook — 检测阶段任务全部完成时提示推进
+ * PostToolUse(Write|Edit) hook — 检测阶段任务全部完成时提示推进
+ * 兼容内置 Write/Edit 与 filesystem MCP 的 write_file/edit_file（file_path 或 path 字段）
  */
 import fs from "node:fs/promises";
 import { existsSync, readFileSync } from "node:fs";

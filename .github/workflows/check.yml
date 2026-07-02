@@ -24,3 +24,6 @@ jobs:
 
       - name: Validate research skills catalog
         run: npm run skills:research:check
+
+      - name: Check plugin consistency (versions, JSON, syntax, frontmatter, parity)
+        run: npm run check:consistency

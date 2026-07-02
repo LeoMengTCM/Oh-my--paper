@@ -4,6 +4,8 @@
   "version": "1.1.2",
   "type": "module",
   "scripts": {
+    "check": "npm run skills:research:check && npm run check:consistency",
+    "check:consistency": "node scripts/check-plugin-consistency.mjs",
     "skills:research:sync": "node scripts/sync-research-skills.mjs sync",
     "skills:research:check": "node scripts/sync-research-skills.mjs check",
     "skills:research:report": "node scripts/sync-research-skills.mjs report"

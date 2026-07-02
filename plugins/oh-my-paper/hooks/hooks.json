@@ -25,7 +25,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Write",
+        "matcher": "Write|Edit|mcp__filesystem__write_file|mcp__filesystem__edit_file",
         "hooks": [
           {
             "type": "command",

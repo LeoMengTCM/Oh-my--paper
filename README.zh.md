@@ -53,6 +53,7 @@
 - 把文献 OCR（`literature-pdf-ocr-library`）重写为当前的 **PaddleOCR-VL 异步 job API**（建任务 → 轮询 → 下载 Markdown），替换旧的同步端点。
 - 移除遗留的 ViewerLeaf 桌面 GUI（Tauri/React 应用、sidecar、Cloudflare workers、桌面 CI）——本仓库现在只包含插件。`compute-helper.mjs` 移入 `skills/remote-experiment/scripts/`，装插件的用户也能用上。
 - 实验/写作流程加固：实验期强制"宁多勿缺"出图并登记 `figure_ledger.md`（数据图禁用图像生成模型）、写作期按字数下限逐条覆盖 `experiment_ledger` 并在进 review 前做完整性核对；修复死命令 `/codex:rescue`、死块 `omp_memory_sync`、`result_summary.md` 路径不一致。
+- 阶段推进 hook 的 matcher 从 `Write` 放宽为 `Write|Edit`（含 filesystem MCP 的写/改工具）——用 Edit 更新 `tasks.json` 不再漏掉"阶段完成"提示。新增 `scripts/check-plugin-consistency.mjs` 并接入 CI（`npm run check:consistency`）：五处版本号一致、JSON/`.mjs` 有效性、frontmatter 字段、hook 脚本引用、skills 符号链接、README 徽章数字，以及 Claude↔Codex 双插件关键概念平价检查，防止两套文本静默漂移。清理了约 2 MB 桌面应用残留图标。
 
 ---
 

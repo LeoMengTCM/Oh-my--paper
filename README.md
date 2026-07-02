@@ -53,6 +53,7 @@ This is a personal maintenance fork of **[LigphiDonk/Oh-my--paper](https://githu
 - Rewrote the literature OCR (`literature-pdf-ocr-library`) to the current **PaddleOCR-VL async job API** (submit → poll → download Markdown), replacing the old synchronous endpoint.
 - Removed the legacy ViewerLeaf desktop GUI (Tauri/React app, sidecar, Cloudflare workers, desktop CI) — this repo is now plugin-only. `compute-helper.mjs` moved into `skills/remote-experiment/scripts/` so plugin users get it too.
 - Hardened the experiment/write loop: experiments must over-produce figures into a `figure_ledger.md` (data figures via plotting code only, never image-generation models); writing enforces per-section word floors, full `experiment_ledger` coverage, and a completeness gate before review. Fixed dead `/codex:rescue` command, dead `omp_memory_sync` block, and inconsistent `result_summary.md` paths.
+- Widened the stage-transition hook matcher to `Write|Edit` (plus the filesystem MCP write/edit tools) — `tasks.json` updates made via Edit no longer skip the "stage complete" prompt. Added `scripts/check-plugin-consistency.mjs` (run in CI as `npm run check:consistency`): version sync across all five manifests, JSON/`.mjs` validity, frontmatter fields, hook-script references, skills symlinks, README badge counts, and Claude↔Codex keyword parity to catch drift between the two plugin variants. Removed ~2 MB of leftover desktop-app icons.
 
 ---
 

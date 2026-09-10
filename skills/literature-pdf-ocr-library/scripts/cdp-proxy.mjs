@@ -4,7 +4,16 @@
 // 要求：Chrome 已开启远程调试（chrome://inspect/#remote-debugging）、Node.js 22+（原生 WebSocket）
 //
 // Vendored from the academic-search skill (MIT, Copyright (c) 2026 Chengmingyue)
-// https://github.com/ustc-ai4science/academic-search — logic unmodified.
+// https://github.com/ustc-ai4science/academic-search
+//
+// 本地改动（1 处，2026-09-10）：/eval 的返回值判断顺序。
+// 原实现先判 `result.value !== undefined` 再判 `exceptionDetails`。但当 awaitPromise 的
+// promise 被 reject 时，Chrome 会同时返回 exceptionDetails 和一个 result（被抛出的 Error
+// 对象）；Error 在 returnByValue 下序列化为 `{}`，是 defined，于是第一个分支抢先命中，
+// 接口返回 HTTP 200 + {"value":{}} —— 页面里的报错被静默吞成"空结果"。
+// 把 exceptionDetails 提到前面后，reject 会正常返回 400 + 真实错误信息。
+// 实测：reject → 400 "Uncaught (in promise) Error: ..."；同步抛错、resolve 对象、
+// resolve undefined 三种情况行为不变。
 
 import http from 'node:http';
 import { URL } from 'node:url';
@@ -393,11 +402,11 @@ const server = http.createServer(async (req, res) => {
         returnByValue: true,
         awaitPromise: true,
       }, sid);
-      if (resp.result?.result?.value !== undefined) {
-        res.end(JSON.stringify({ value: resp.result.result.value }));
-      } else if (resp.result?.exceptionDetails) {
+      if (resp.result?.exceptionDetails) {
         res.statusCode = 400;
         res.end(JSON.stringify({ error: resp.result.exceptionDetails.text }));
+      } else if (resp.result?.result?.value !== undefined) {
+        res.end(JSON.stringify({ value: resp.result.result.value }));
       } else {
         res.end(JSON.stringify(resp.result));
       }

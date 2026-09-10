@@ -69,12 +69,13 @@ node .claude/skills/cnki-search/scripts/cnki.mjs status
 
 ```bash
 node .claude/skills/cnki-search/scripts/cnki.mjs advanced \
-  --query "<检索式A>" --source 北大核心 CSSCI --from-year <起始年>
+  --query "<检索式A>" --source 北大核心 CSSCI --from-year <起始年> --sort citations
 
 # 需要多页时逐页取，页间留间隔
 node .claude/skills/cnki-search/scripts/cnki.mjs pages --action next
-node .claude/skills/cnki-search/scripts/cnki.mjs sort --by citations
 ```
+
+**排序一定要显式指定**：CNKI 会跨检索保留上次的排序，不传 `--sort` 可能拿到按发表时间排的结果（全是当天网络首发），对调研没用。取回后核对 `activeSort` 字段是不是你要的。
 
 把返回的 `papers[]` 并进 `survey_screening.md`，数据源列标 `cnki`，`full_text_status` 按经验填：CNKI 全文要机构权限，**一般填 `needs_institution`**，别默认写成 `open_pdf`。
 

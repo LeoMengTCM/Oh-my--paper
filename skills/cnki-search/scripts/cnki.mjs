@@ -31,6 +31,7 @@ import {
   copyFileSync,
   existsSync,
   mkdirSync,
+  readFileSync,
   readdirSync,
   renameSync,
   statSync,
@@ -183,6 +184,37 @@ async function navigate(target, url) {
 }
 
 /**
+ * 只在当前 URL 不对时才导航。ensureCnkiTab 新开的标签页已经等过加载，
+ * 紧跟一次多余的同址导航会和随后的 eval 抢跑，实测能把标签页卡到 CDP 求值超时。
+ */
+async function navigateIfNeeded(target, url) {
+  const pages = await listPages();
+  const current = pages.find((p) => p.targetId === target)?.url || "";
+  if (current.startsWith(url)) return;
+  await navigate(target, url);
+}
+
+// 上一次 search/advanced 用的标签页。同时开着多个 kns.cnki.net 标签时，
+// /targets 的顺序会变，光靠"取最后一个"会让 parse/pages/sort 操作到别的页面上。
+const TARGET_STATE = path.join(os.tmpdir(), "omp-cnki-last-target");
+
+function rememberTarget(targetId) {
+  try {
+    writeFileSync(TARGET_STATE, targetId);
+  } catch {
+    /* 记不住就退回到原来的挑选逻辑，不影响主流程 */
+  }
+}
+
+function rememberedTarget() {
+  try {
+    return readFileSync(TARGET_STATE, "utf8").trim();
+  } catch {
+    return "";
+  }
+}
+
+/**
  * 取一个可用的 CNKI 标签页（保留登录态）。
  *
  * 只复用本技能自己开的那种页面（URL 前缀匹配 reusePrefix），绝不抢占用户正在看的
@@ -197,6 +229,10 @@ async function ensureCnkiTab({ reusePrefix, anyCnki = false, openUrl } = {}) {
     if (match) return match.targetId;
   }
   if (anyCnki) {
+    // 优先回到上一次检索用的那个标签，避免在多标签场景下操作错页面
+    const remembered = rememberedTarget();
+    if (remembered && pages.some((p) => p.targetId === remembered)) return remembered;
+
     const cnki = pages.filter((p) => (p.url || "").includes("cnki.net"));
     // 检索工作站在 kns.cnki.net，优先回到它；期刊页在 navi.cnki.net，兜底
     const kns = cnki.filter((p) => /kns\.cnki\.net/.test(p.url || ""));
@@ -207,6 +243,19 @@ async function ensureCnkiTab({ reusePrefix, anyCnki = false, openUrl } = {}) {
 }
 
 async function evalJs(target, expression) {
+  // 语法自检：先在本机把它当函数体解析一遍。发到页面才报 "Uncaught" 的话，
+  // proxy 只回三个字，根本看不出哪行错了。
+  try {
+    // eslint-disable-next-line no-new-func
+    new Function(`return (${expression})`);
+  } catch (error) {
+    throw new Error(`页面脚本语法错误：${error.message}`);
+  }
+
+  // CNKI_DEBUG_JS=1 时把实际发到页面的脚本打到 stderr，排查选择器/语法问题用
+  if (process.env.CNKI_DEBUG_JS) {
+    process.stderr.write(`\n=== /eval target=${target} ===\n${expression}\n=== end ===\n`);
+  }
   const resp = await fetch(
     `${PROXY}/eval?target=${encodeURIComponent(target)}`,
     { method: "POST", body: expression },
@@ -219,7 +268,22 @@ async function evalJs(target, expression) {
     throw new Error(`/eval 返回非 JSON：${text.slice(0, 300)}`);
   }
   if (data.error) throw new Error(`页面脚本报错：${data.error}`);
-  if (data.value !== undefined) return data.value;
+  if (data.value !== undefined) {
+    // proxy 把「被拒绝的 promise」报成 HTTP 200 + {"value":{}}，不这样做的话
+    // 页面里的超时会被静默吞成空结果。页面脚本一律不 reject（见 WAIT_HELPER_JS），
+    // 这里再兜一层，免得以后有人写回 reject 又变成哑失败。
+    if (
+      data.value !== null &&
+      typeof data.value === "object" &&
+      !Array.isArray(data.value) &&
+      Object.keys(data.value).length === 0
+    ) {
+      throw new Error(
+        "页面脚本返回了空对象——通常意味着里面有个 promise 被 reject 了（CDP 会把它报成 {}）",
+      );
+    }
+    return data.value;
+  }
   return data;
 }
 
@@ -268,11 +332,77 @@ const PARSE_RESULTS_JS = `(() => {
   return {
     total: document.querySelector('.pagerTitleCell')?.innerText?.match(/([\\d,]+)/)?.[1] || '0',
     page: document.querySelector('.countPageMark')?.innerText || '1/1',
+    // CNKI 会跨检索保留排序状态，调用方必须知道当前是什么排序，
+    // 否则"相关度"检索可能实际拿到的是按发表时间排的结果
+    activeSort: (() => { const li = document.querySelector('#orderList li.cur'); return li ? (li.innerText || '').trim() : ''; })(),
+    activeSortDirection: (() => {
+      const li = document.querySelector('#orderList li.cur');
+      if (!li) return '';
+      const c = li.className || '';
+      return /ASC/i.test(c) ? 'asc' : /DESC/i.test(c) ? 'desc' : '';
+    })(),
+    pageUrl: location.href,
     papers
   };
 })()`;
 
 const READY_RESULTS_JS = `document.body.innerText.includes('条结果')`;
+
+/**
+ * 页面内排序片段。插进 async IIFE 体内，调用 `await applySort('citations')`。
+ *
+ * 三个坑（2026-09-10 实机验证）：
+ *  - 排序后仍停在第 1 页，`.countPageMark` 一直是 "1/300"，不能当刷新信号；
+ *    改用首行标题变化来判断。
+ *  - 重复点同一个排序项会反转升降序，所以已是当前排序就直接返回，不点。
+ *  - **只能按文本匹配**。新版（kns8s）的 `#orderList li` 有 id（FFD/PT/CF/DFR/ZH），
+ *    旧版高级检索界面（kns/AdvSearch）**没有 id**，且两项顺序还对调
+ *    （新版 ...被引/下载/综合，旧版 ...被引/综合/下载），按序号或 id 都会匹配错。
+ */
+const SORT_LABELS = {
+  relevance: "相关度",
+  date: "发表时间",
+  citations: "被引",
+  downloads: "下载",
+  comprehensive: "综合",
+};
+
+/**
+ * 页面内轮询等待。**绝不 reject**——CDP proxy 会把被拒绝的 promise 报成
+ * HTTP 200 + `{"value":{}}`，错误就被静默吞成空结果了（2026-09-10 实测）。
+ * 所以一律返回 { ok, label } 让调用方自己判断。
+ */
+const WAIT_HELPER_JS = `
+  const waitUntil = async (pred, tries, label, interval) => {
+    const step = interval || 500;
+    for (let n = 0; n < tries; n += 1) {
+      try { if (pred()) return { ok: true }; } catch (e) { /* 页面重绘瞬间可能抛错，继续等 */ }
+      await new Promise(r => setTimeout(r, step));
+    }
+    return { ok: false, label: label || 'timeout' };
+  };
+`;
+
+const SORT_HELPER_JS = `
+  const SORT_LABELS_INNER = ${JSON.stringify(SORT_LABELS)};
+  const firstTitleInner = () => document.querySelector('.result-table-list tbody tr td.name a.fz14')?.innerText?.trim() || '';
+  const applySort = async (name) => {
+    const label = SORT_LABELS_INNER[name];
+    if (!label) return 'unknown_sort';
+    const li = Array.from(document.querySelectorAll('#orderList li'))
+      .find(e => (e.innerText || '').trim() === label);
+    if (!li) return 'sort_option_not_found';
+    // 已是当前排序就不点：实测新版界面再点一次是空操作，旧版行为未知，不赌
+    if (li.classList.contains('cur')) return 'already_active';
+    const prev = firstTitleInner();
+    li.click();
+    const w = await waitUntil(() => { const t = firstTitleInner(); return !!t && t !== prev; }, 40, '排序超时：结果列表未刷新');
+    return w.ok ? 'sorted' : 'sort_timeout';
+  };
+`;
+
+/** 排序相关的两个片段要按序注入（sort 依赖 waitUntil）。 */
+const PAGE_HELPERS_JS = WAIT_HELPER_JS + SORT_HELPER_JS;
 
 // ---------------------------------------------------------------- 子命令
 
@@ -307,22 +437,17 @@ async function cmdStatus(args) {
 async function cmdSearch(args) {
   const query = argText(args.query) || args._.join(" ");
   if (!query) fail("缺少 --query", '例：node cnki.mjs search --query "深度学习"');
+  const sortBy = requireSortName(argText(args.sort));
 
   await ensureProxy();
   const target = await ensureCnkiTab({ reusePrefix: URLS.search });
   await navigate(target, URLS.search);
 
   const js = `(async () => {
+${PAGE_HELPERS_JS}
     const query = ${JSON.stringify(query)};
-    await new Promise((resolve, reject) => {
-      let n = 0;
-      const tick = () => {
-        if (document.querySelector('input.search-input')) resolve();
-        else if (++n > 30) reject(new Error('搜索框未出现'));
-        else setTimeout(tick, 500);
-      };
-      tick();
-    });
+    const wInput = await waitUntil(() => !!document.querySelector('input.search-input'), 30, '搜索框未出现');
+    if (!wInput.ok) return { error: 'timeout', label: wInput.label };
 
     const cap = document.querySelector('#tcaptcha_transform_dy');
     if (cap && cap.getBoundingClientRect().top >= 0) return { error: 'captcha' };
@@ -332,27 +457,22 @@ async function cmdSearch(args) {
     input.dispatchEvent(new Event('input', { bubbles: true }));
     document.querySelector('input.search-btn')?.click();
 
-    await new Promise((resolve, reject) => {
-      let n = 0;
-      const tick = () => {
-        if (document.body.innerText.includes('条结果')) resolve();
-        else if (++n > 40) reject(new Error('结果未返回'));
-        else setTimeout(tick, 500);
-      };
-      tick();
-    });
+    const wResults = await waitUntil(() => document.body.innerText.includes('条结果'), 40, '结果未返回');
+    if (!wResults.ok) return { error: 'timeout', label: wResults.label };
 
     const cap2 = document.querySelector('#tcaptcha_transform_dy');
     if (cap2 && cap2.getBoundingClientRect().top >= 0) return { error: 'captcha' };
+    const sortResult = ${sortBy ? `await applySort(${JSON.stringify(sortBy)})` : "null"};
 
-    return ${PARSE_RESULTS_JS};
+    return Object.assign({ sortResult }, ${PARSE_RESULTS_JS});
   })()`;
 
   const result = await evalJs(target, js);
   if (result?.error === "captcha") {
     fail("captcha", "CNKI 正在显示滑块验证码。请在 Chrome 里手动完成拼图验证，完成后告诉我继续。");
   }
-  emit({ query, targetId: target, url: URLS.search, ...result });
+  rememberTarget(target);
+  emit({ query, targetId: target, ...result });
 }
 
 const FIELD_TYPES = ["SU", "TI", "KY", "TKA", "AB", "AU", "FT"];
@@ -366,6 +486,7 @@ async function cmdAdvanced(args) {
   if (!FIELD_TYPES.includes(field)) {
     fail(`不支持的 --field：${field}`, `可选：${FIELD_TYPES.join(" ")}（SU=主题 TI=篇名 KY=关键词 TKA=篇关摘 AB=摘要）`);
   }
+  const sortBy = requireSortName(argText(args.sort));
 
   const sourceNames = listOf(args.source);
   const sourceIds = [];
@@ -395,17 +516,11 @@ async function cmdAdvanced(args) {
   };
 
   const js = `(async () => {
+${PAGE_HELPERS_JS}
     const cfg = ${JSON.stringify(config)};
 
-    await new Promise((resolve, reject) => {
-      let n = 0;
-      const tick = () => {
-        if (document.querySelector('#txt_1_value1')) resolve();
-        else if (++n > 30) reject(new Error('高级检索表单未出现'));
-        else setTimeout(tick, 500);
-      };
-      tick();
-    });
+    const wForm = await waitUntil(() => !!document.querySelector('#txt_1_value1'), 30, '高级检索表单未出现');
+    if (!wForm.ok) return { error: 'timeout', label: wForm.label };
 
     const cap = document.querySelector('#tcaptcha_transform_dy');
     if (cap && cap.getBoundingClientRect().top >= 0) return { error: 'captcha' };
@@ -450,26 +565,22 @@ async function cmdAdvanced(args) {
 
     document.querySelector('div.search')?.click();
 
-    await new Promise((resolve, reject) => {
-      let n = 0;
-      const tick = () => {
-        if (document.body.innerText.includes('条结果')) resolve();
-        else if (++n > 40) reject(new Error('结果未返回'));
-        else setTimeout(tick, 500);
-      };
-      setTimeout(tick, 2000);
-    });
+    await new Promise(r => setTimeout(r, 2000));
+    const wResults = await waitUntil(() => document.body.innerText.includes('条结果'), 40, '结果未返回');
+    if (!wResults.ok) return { error: 'timeout', label: wResults.label };
 
     const cap2 = document.querySelector('#tcaptcha_transform_dy');
     if (cap2 && cap2.getBoundingClientRect().top >= 0) return { error: 'captcha' };
+    const sortResult = ${sortBy ? `await applySort(${JSON.stringify(sortBy)})` : "null"};
 
-    return ${PARSE_RESULTS_JS};
+    return Object.assign({ sortResult }, ${PARSE_RESULTS_JS});
   })()`;
 
   const result = await evalJs(target, js);
   if (result?.error === "captcha") {
     fail("captcha", "CNKI 正在显示滑块验证码。请在 Chrome 里手动完成拼图验证，完成后告诉我继续。");
   }
+  rememberTarget(target);
   emit({
     query,
     field,
@@ -505,6 +616,7 @@ async function cmdPages(args) {
   await guardCaptcha(target);
 
   const js = `(async () => {
+${WAIT_HELPER_JS}
     const action = ${JSON.stringify(action)};
     const links = document.querySelectorAll('.pages a');
     const prevMark = document.querySelector('.countPageMark')?.innerText;
@@ -524,16 +636,8 @@ async function cmdPages(args) {
       el.click();
     }
 
-    await new Promise((resolve, reject) => {
-      let n = 0;
-      const tick = () => {
-        const mark = document.querySelector('.countPageMark')?.innerText;
-        if (mark && mark !== prevMark) resolve();
-        else if (++n > 30) reject(new Error('翻页超时'));
-        else setTimeout(tick, 500);
-      };
-      setTimeout(tick, 1000);
-    });
+    const wPage = await waitUntil(() => { const m = document.querySelector('.countPageMark')?.innerText; return !!m && m !== prevMark; }, 30, '翻页超时');
+    if (!wPage.ok) return { error: 'timeout', label: wPage.label };
 
     const cap = document.querySelector('#tcaptcha_transform_dy');
     if (cap && cap.getBoundingClientRect().top >= 0) return { error: 'captcha' };
@@ -549,38 +653,32 @@ async function cmdPages(args) {
   emit({ action, ...result });
 }
 
-const SORT_IDS = { relevance: "FFD", date: "PT", citations: "CF", downloads: "DFR", comprehensive: "ZH" };
+/** 校验 --sort / --by 的取值，返回空串表示不排序。 */
+function requireSortName(value) {
+  if (!value) return "";
+  if (!SORT_LABELS[value]) {
+    fail(`不支持的排序：${value}`, `可选：${Object.keys(SORT_LABELS).join(" ")}（相关度/发表时间/被引/下载/综合）`);
+  }
+  return value;
+}
 
 async function cmdSort(args) {
-  const by = argText(args.by) || args._[0];
-  const sortId = SORT_IDS[by];
-  if (!sortId) fail(`不支持的 --by：${by}`, `可选：${Object.keys(SORT_IDS).join(" ")}（相关度/发表时间/被引/下载/综合）`);
+  const by = requireSortName(argText(args.by) || args._[0]);
+  if (!by) fail("缺少 --by", `可选：${Object.keys(SORT_LABELS).join(" ")}（相关度/发表时间/被引/下载/综合）`);
 
   await ensureProxy();
   const target = await ensureCnkiTab({ anyCnki: true });
   await guardCaptcha(target);
 
   const js = `(async () => {
-    const li = document.querySelector('#orderList li#${sortId}');
-    if (!li) return { error: 'sort_option_not_found' };
-    const prevMark = document.querySelector('.countPageMark')?.innerText;
-    li.click();
-
-    await new Promise((resolve, reject) => {
-      let n = 0;
-      const tick = () => {
-        const mark = document.querySelector('.countPageMark')?.innerText;
-        if (mark && mark !== prevMark) resolve();
-        else if (++n > 30) reject(new Error('排序超时'));
-        else setTimeout(tick, 500);
-      };
-      setTimeout(tick, 1000);
-    });
+${PAGE_HELPERS_JS}
+    const sortResult = await applySort(${JSON.stringify(by)});
+    if (sortResult === 'sort_option_not_found') return { error: 'sort_option_not_found' };
 
     const cap = document.querySelector('#tcaptcha_transform_dy');
     if (cap && cap.getBoundingClientRect().top >= 0) return { error: 'captcha' };
 
-    return ${PARSE_RESULTS_JS};
+    return Object.assign({ sortResult }, ${PARSE_RESULTS_JS});
   })()`;
 
   const result = await evalJs(target, js);
@@ -588,7 +686,22 @@ async function cmdSort(args) {
     fail("captcha", "CNKI 正在显示滑块验证码。请在 Chrome 里手动完成拼图验证，完成后告诉我继续。");
   }
   if (result?.error) fail(result.error, "确认当前停在检索结果页（排序控件只在结果页有）。");
-  emit({ sortedBy: by, ...result });
+
+  if (result?.sortResult === "already_active") {
+    emit({
+      requestedSort: by,
+      note: `${SORT_LABELS[by]} 已经是当前排序，没有重复点击。升降序由 CNKI 决定（新版界面点已激活项是空操作），看 activeSortDirection 字段。`,
+      ...result,
+    });
+  }
+  if (result?.sortResult === "sort_timeout") {
+    emit({
+      requestedSort: by,
+      note: "点了排序但结果列表没刷新。当前结果可能仍是旧排序，以 activeSort 字段为准。",
+      ...result,
+    });
+  }
+  emit({ requestedSort: by, ...result });
 }
 
 const DETAIL_JS = `(() => {
@@ -603,9 +716,13 @@ const DETAIL_JS = `(() => {
   const authors = [];
   if (authorH3s[0]) {
     authorH3s[0].querySelectorAll('a').forEach(a => {
-      const raw = a.innerText || '';
-      const sup = raw.match(/(\\d+)$/);
-      authors.push({ name: raw.replace(/\\d+$/, '').trim(), affiliationNum: sup ? sup[1] : '' });
+      const raw = (a.innerText || '').trim();
+      // 上标有 "1"、"1,2"、"1,2," 几种写法，数字和逗号要一起剥掉，只留姓名
+      const sup = raw.match(/([\\d,，]+)$/);
+      authors.push({
+        name: raw.replace(/[\\d,，\\s]+$/, '').trim(),
+        affiliationNum: sup ? sup[1].replace(/[,，]+$/, '') : '',
+      });
     });
   }
   const affiliations = [];
@@ -623,7 +740,7 @@ const DETAIL_JS = `(() => {
     keywords: keywordsP ? Array.from(keywordsP.querySelectorAll('a')).map(a => a.innerText?.replace(/;$/, '').trim()) : [],
     fund: document.querySelector('p.funds')?.innerText?.trim() || '',
     classification: document.querySelector('.clc-code')?.innerText?.trim() || '',
-    journal: document.querySelector('.doc-top a')?.innerText?.trim() || '',
+    journal: (document.querySelector('.doc-top a')?.innerText || '').trim().replace(/[\\s.·]+$/, ''),
     pubInfo: document.querySelector('.head-time')?.innerText?.trim() || '',
     onlineFirst: !!brief.querySelector('.icon-shoufa'),
     toc: document.querySelector('.catalog-list, .catalog-listDiv')?.innerText?.trim() || '',
@@ -645,15 +762,9 @@ async function cmdDetail(args) {
   await guardCaptcha(target);
 
   const js = `(async () => {
-    await new Promise((resolve, reject) => {
-      let n = 0;
-      const tick = () => {
-        if (document.querySelector('.brief h1')) resolve();
-        else if (++n > 30) reject(new Error('详情页未加载'));
-        else setTimeout(tick, 500);
-      };
-      tick();
-    });
+${WAIT_HELPER_JS}
+    const wDetail = await waitUntil(() => !!document.querySelector('.brief h1'), 30, '详情页未加载');
+    if (!wDetail.ok) return { error: 'timeout', label: wDetail.label };
     return ${DETAIL_JS};
   })()`;
 
@@ -676,6 +787,8 @@ async function cmdExport(args) {
   await guardCaptcha(target);
 
   const js = `(async () => {
+    // 导出串里带 <br> 等 HTML 标签，会污染下游（GB/T 7714、BibTeX 解析）
+    const cleanVal = (v) => String(v || '').replace(/<br[^>]*>/gi, ' ').replace(/<[^>]+>/g, '').replace(/\\s+/g, ' ').trim();
     const API_URL = ${JSON.stringify(URLS.exportApi)};
     const INDICES = ${JSON.stringify(indices)};
     const rows = document.querySelectorAll('.result-table-list tbody tr');
@@ -701,7 +814,7 @@ async function cmdExport(args) {
         const data = await resp.json();
         if (data.code !== 1) { out.push({ n: i + 1, error: data.msg || 'export_failed' }); continue; }
         const item = { n: i + 1, pageUrl: rows[i]?.querySelector('td.name a.fz14')?.href || '' };
-        for (const entry of data.data) item[entry.mode] = entry.value[0];
+        for (const entry of data.data) item[entry.mode] = cleanVal(entry.value[0]);
         item.issn = item.ENDNOTE?.match(/%@\\s*([^\\s<]+)/)?.[1] || '';
         out.push(item);
       }
@@ -726,7 +839,7 @@ async function cmdExport(args) {
     const data = await resp.json();
     if (data.code !== 1) return { error: data.msg || 'export_failed' };
     const item = { n: 1, pageUrl: location.href };
-    for (const entry of data.data) item[entry.mode] = entry.value[0];
+    for (const entry of data.data) item[entry.mode] = cleanVal(entry.value[0]);
     item.issn = document.body.innerText.match(/ISSN[：:]\\s*(\\S+)/)?.[1] || '';
     return { scope: 'detail', papers: [item] };
   })()`;
@@ -759,23 +872,27 @@ async function cmdExport(args) {
   emit(result);
 }
 
-const JOURNAL_JS = `(async () => {
-  const items = Array.from(document.querySelectorAll('.result-table-list tbody tr, .knavi-list li, li.item'))
-    .map(li => {
-      const link = li.querySelector('a');
+const JOURNAL_JS = `(() => {
+  // 结果条目实测为 #searchResult（.sort.jsResult）下的 dl.result（2026-09-10）
+  const items = Array.from(document.querySelectorAll('#searchResult dl.result, .sort.jsResult dl.result'))
+    .map(dl => {
+      const link = dl.querySelector('a');
       return {
-        name: li.querySelector('.journal-title, .tit, a')?.innerText?.trim() || '',
+        name: (dl.querySelector('.re_brief, dt, .tit')?.innerText || '').replace(/\\s+/g, ' ').trim().slice(0, 120),
         url: link?.href || '',
-        info: li.innerText?.replace(/\\s+/g, ' ').trim().slice(0, 300) || ''
+        info: (dl.innerText || '').replace(/\\s+/g, ' ').trim().slice(0, 300)
       };
     })
     .filter(x => x.name || x.url);
 
+  const cap = document.querySelector('#tcaptcha_transform_dy');
+
   return {
     items,
     url: location.href,
-    indexing: Array.from(document.querySelectorAll('.journal-head-tag, .tag, .b-db, span')).map(e => e.innerText?.trim()).filter(Boolean).slice(0, 20),
-    bodyText: document.body.innerText.slice(0, 4000)
+    // 收录数据库 / 影响因子都在正文里，调用方从 bodyText 读，别自己编
+    bodyText: document.body.innerText.slice(0, 4000),
+    captcha: !!(cap && cap.getBoundingClientRect().top >= 0)
   };
 })()`;
 
@@ -785,34 +902,35 @@ async function cmdJournal(args) {
 
   await ensureProxy();
   const target = await ensureCnkiTab({ reusePrefix: URLS.journalSearch });
-  await navigate(target, URLS.journalSearch);
+  await navigateIfNeeded(target, URLS.journalSearch);
   await guardCaptcha(target);
 
-  const js = `(async () => {
-    const query = ${JSON.stringify(name)};
-    await new Promise((resolve, reject) => {
-      let n = 0;
-      const tick = () => {
-        if (document.querySelector('input.researchbtn') || document.querySelector('input#txt_search')) resolve();
-        else if (++n > 30) reject(new Error('期刊检索页未加载'));
-        else setTimeout(tick, 500);
-      };
-      tick();
-    });
+  // 第一步：填词 + 点检索。**点完立刻返回，不要等**——navi 的检索按钮会触发整页跳转，
+  // 执行上下文随之销毁，await 永远不 resolve，表现是 CDP "Runtime.evaluate" 超时。
+  const submitJs = `(async () => {
+${WAIT_HELPER_JS}
+    // navi.cnki.net 的真实检索框是 #txt_1_value1（class=rekeyword）；
+    // 页面上其他 type=text 的输入框全是登录框，绝不能拿 input[type=text] 兜底
+    const wForm = await waitUntil(() => !!document.querySelector('#txt_1_value1'), 30, '期刊检索表单未出现');
+    if (!wForm.ok) return { error: 'timeout', label: wForm.label };
 
-    const input = document.querySelector('input#txt_search') || document.querySelector('input[type=text]');
-    if (!input) return { error: 'no_search_input' };
-    input.value = query;
+    const input = document.querySelector('#txt_1_value1');
+    input.value = ${JSON.stringify(name)};
     input.dispatchEvent(new Event('input', { bubbles: true }));
-    (document.querySelector('input.researchbtn') || document.querySelector('input[type=button]'))?.click();
 
-    await new Promise(resolve => setTimeout(resolve, 2500));
-    return { ok: true, url: location.href };
+    const btn = document.querySelector('#btnSearch') || document.querySelector('input.researchbtn');
+    if (!btn) return { error: 'no_search_button' };
+    btn.click();
+    return { submitted: true };
   })()`;
 
-  const searched = await evalJs(target, js);
-  if (searched?.error) fail(searched.error, "期刊检索页结构可能变了，改用 cnki-journal 的详情 URL。");
+  const submitted = await evalJs(target, submitJs);
+  if (submitted?.error) {
+    fail(submitted.error, "期刊检索页结构可能变了，可改用 journal 返回的详情 URL 直接查收录。");
+  }
 
+  // 第二步：等跳转完成后另起一次求值解析结果
+  await sleep(3500);
   await guardCaptcha(target);
   emit({ query: name, targetId: target, ...(await evalJs(target, JOURNAL_JS)) });
 }
@@ -825,21 +943,30 @@ async function cmdToc(args) {
   const target = await ensureCnkiTab({ anyCnki: true });
 
   const js = `(() => ({
-    journal,
+    // 期刊名要从 Node 侧插值进来；写成裸标识符会在页面里 ReferenceError
+    journal: ${JSON.stringify(journal)},
     url: location.href,
-    issues: Array.from(document.querySelectorAll('a')).filter(a => /\\d{4}\\s*年\\s*\\d+\\s*期/.test(a.innerText || ''))
+    issues: Array.from(document.querySelectorAll('a'))
+      .filter(a => /\\d{4}\\s*年\\s*\\d+\\s*期/.test(a.innerText || ''))
       .map(a => ({ label: a.innerText.trim(), url: a.href })).slice(0, 40),
-    paperRows: Array.from(document.querySelectorAll('.result-table-list tbody tr, li.item'))
-      .map(li => ({ text: li.innerText?.replace(/\\s+/g, ' ').trim().slice(0, 200) })).slice(0, 60)
+    paperRows: Array.from(document.querySelectorAll('#searchResult dl.result, .result-table-list tbody tr, li.item'))
+      .map(li => ({ text: (li.innerText || '').replace(/\\s+/g, ' ').trim().slice(0, 200) })).slice(0, 60)
   }))()`;
 
-  emit({
+  const result = await evalJs(target, js);
+  const out = {
     journal,
     year: argText(args.year) || "",
     issue: argText(args.issue) || "",
-    note: "期刊目录需要先在 Chrome 里打开该刊的详情页；本命令只解析当前页面陈列的年份/期号与文章列表。",
-    ...(await evalJs(target, js)),
-  });
+    targetId: target,
+    ...result,
+  };
+  // 只解析当前页面，所以必须先说清楚解析的是哪一页，否则用户会以为拿到的是期刊目录
+  if (!(result?.url || "").includes("navi.cnki.net")) {
+    out.warning =
+      "当前标签页不是 navi.cnki.net 的期刊页，下面的 paperRows 是那个页面的内容，不是期刊目录。先在 Chrome 里打开该刊详情页再跑一次（cnki.mjs journal --name 只给检索结果，详情页需要点进去）。";
+  }
+  emit(out);
 }
 
 async function cmdDownload(args) {
@@ -855,15 +982,9 @@ async function cmdDownload(args) {
   await guardCaptcha(target);
 
   const js = `(async () => {
-    await new Promise((resolve, reject) => {
-      let n = 0;
-      const tick = () => {
-        if (document.querySelector('.brief h1')) resolve();
-        else if (++n > 30) reject(new Error('详情页未加载'));
-        else setTimeout(tick, 500);
-      };
-      tick();
-    });
+${WAIT_HELPER_JS}
+    const wDetail = await waitUntil(() => !!document.querySelector('.brief h1'), 30, '详情页未加载');
+    if (!wDetail.ok) return { error: 'timeout', label: wDetail.label };
 
     const cap = document.querySelector('#tcaptcha_transform_dy');
     if (cap && cap.getBoundingClientRect().top >= 0) return { error: 'captcha' };

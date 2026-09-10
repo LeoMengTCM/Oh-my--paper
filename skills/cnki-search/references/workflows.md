@@ -55,12 +55,21 @@ node cnki.mjs advanced --query "机器学习" --author "周志华" --journal "�
 ```bash
 node cnki.mjs pages --action next        # prev / page:3
 node cnki.mjs sort --by citations        # relevance date citations downloads comprehensive
+node cnki.mjs search --query "X" --sort citations   # 检索完直接排好，省一次调用
+node cnki.mjs advanced --query "X" --sort citations
 ```
 
-两者都基于"当前结果页"，会复用已有的 `kns.cnki.net` 标签。翻页完成靠 `.countPageMark`
-变化判断，排序完成同理。命令返回新的整页结果表。
+两者都基于"当前结果页"，会复用已有的 `kns.cnki.net` 标签。翻页靠 `.countPageMark` 变化
+判断；**排序不能用它**（排序后仍在第 1 页，标记不变），改用首行标题变化。
+
+**排序状态是跨检索保留的**，所以每次返回都带 `activeSort` / `activeSortDirection`，
+以它为准，不要默认检索结果就是按相关度排的。已经是目标排序时命令会返回
+`sortResult: already_active` 并跳过点击（新版界面点已激活项是空操作）。
 
 **批量取多页时**：逐页 `pages --action next`，每页之间留出间隔，别连续猛翻。
+
+（排序项必须按文本匹配，新版/旧版界面的 id 与顺序都不一样，细节见
+`site-patterns/cnki.net.md`。）
 
 ## 4. 论文详情
 
@@ -96,12 +105,16 @@ node cnki.mjs export --indices 1,3,5 --mode gbt \
 node cnki.mjs journal --name "计算机学报"
 ```
 
-返回 `items[]`（候选期刊）、`indexing[]`（页面上的收录标签）、`bodyText`（详情页前 4000 字，
-收录数据库与影响因子在里面）。
+返回 `items[]`（命中期刊，含 `name` / `url`，`url` 是 `navi.cnki.net/knavi/detail?p=...`）、
+`bodyText`（结果页正文前 4000 字，**收录数据库与影响因子都在这里**）、`captcha` 标志。
 
-回答"这本刊是不是核心期刊"这类问题时：先 `journal` 拿到页面文本，再从里面读
-北大核心 / CSSCI / CSCD / SCI / EI 的收录情况与复合影响因子。**不要把页面没写的
-指标补上去**。
+回答"这本刊是不是核心期刊"这类问题时：先 `journal` 拿到 `bodyText`，再从里面读
+主办单位 / ISSN / CN / 复合影响因子 / 综合影响因子 / 被引次数，以及收录情况。
+**不要把页面没写的指标补上去。**
+
+实现上要点：检索按钮会触发整页跳转，所以命令拆成两次求值（填词点击 → 等 → 解析）；
+检索框是 `#txt_1_value1`，不是 `input#txt_search`（那个 id 在新版 navi 上不存在）。
+细节见 `site-patterns/cnki.net.md`。
 
 ## 7. 期刊目录
 

@@ -40,10 +40,12 @@ python .claude/skills/literature-pdf-ocr-library/scripts/search_and_download_pap
 
 ```bash
 node .claude/skills/cnki-search/scripts/cnki.mjs advanced \
-  --query "<检索式A>" --source 北大核心 CSSCI --from-year <起始年>
+  --query "<检索式A>" --source 北大核心 CSSCI --from-year <起始年> --sort citations
 node .claude/skills/cnki-search/scripts/cnki.mjs pages --action next   # 需要多页时逐页取
 node .claude/skills/cnki-search/scripts/cnki.mjs journal --name "<刊名>"  # 查北大核心/CSSCI/CSCD 收录
 ```
+
+**排序一定要显式指定**：CNKI 跨检索保留上次排序，不传 `--sort` 可能拿到按发表时间排的结果（全是当天网络首发），对调研没用。取回后核对 `activeSort` 是不是你要的。
 
 把 `papers[]` 并进 `survey_screening.md`，数据源列标 `cnki`；全文要机构权限，`full_text_status` 一般填 `needs_institution`，别默认写 `open_pdf`。撞到滑块验证码会返回 `{"error": "captcha"}` 且退出码 2——停下让用户在 Chrome 里手动完成拼图，等他回话再继续。
 

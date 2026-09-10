@@ -2,12 +2,17 @@
 domain: cnki.net
 aliases: [CNKI, 中国知网, 知网]
 updated: 2026-09-10
+verified: 2026-09-10
 ---
 
 > 选择器与 URL 结构来自上游 [cookjohn/cnki-skills](https://github.com/cookjohn/cnki-skills)
-> @ `20d65f660456daf53ad0f7c74494ac3b829b925f`，上游标注为"已验证"。本仓库把它们搬进
-> `scripts/cnki.mjs` 时**未做逐条实机复验**——CNKI 改版后如果取数为空，先怀疑选择器，
-> 用 Chrome DevTools 重新核对后再更新本文件和脚本。
+> @ `20d65f660456daf53ad0f7c74494ac3b829b925f`。
+>
+> **2026-09-10 在真实浏览器 + 已登录机构账号下逐条复验过**（Chrome 152 /
+> `kns8s/search` + `kns/AdvSearch` + `navi.cnki.net` 三处界面）。本文件里标了
+> "实测"的都是那天验证的结论；下方「实测踩到的坑」一节是那次验证的主要产出，
+> 多数是上游文档里没有、但踩了必炸的问题。CNKI 改版后如果取数为空，先怀疑选择器，
+> 用 `CNKI_DEBUG_JS=1` 打出实际发出的脚本比对。
 
 ## 平台特征
 
@@ -66,6 +71,18 @@ const active = !!(el && el.getBoundingClientRect().top >= 0);
 
 排序项 ID：`#FFD` 相关度、`#PT` 发表时间、`#CF` 被引、`#DFR` 下载、`#ZH` 综合。
 当前生效项带 `.cur`。
+
+**排序项一定要按文本匹配，不要按 id 或序号**（实测）：
+
+| | 新版 `kns8s/search` | 旧版 `kns/AdvSearch` |
+|---|---|---|
+| `li` 有没有 `id` | 有（FFD/PT/CF/DFR/ZH） | **没有** |
+| 5 项顺序 | 相关度/发表时间/被引/下载/综合 | 相关度/发表时间/被引/**综合/下载**（后两项对调） |
+| 当前项标记 | `class="DESC cur"` | `class="DESC cur"` |
+
+所以按 id 匹配会在旧版界面上直接失配（`"" === "CF"` 恒为 false），按序号匹配会把下载和综合搞反。
+统一用 `Array.from(document.querySelectorAll('#orderList li')).find(e => e.innerText.trim() === '被引')`。
+升降序在 `class` 里（`ASC` / `DESC`），不是独立的控件。
 
 ## 高级检索表单选择器（旧版界面）
 
@@ -143,14 +160,91 @@ filename=<加密ID>&displaymode=GBTREFER,elearning,EndNote&uniplatform=NZKPT
 
 ## 期刊导航站（navi.cnki.net）
 
+实测（2026-09-10）：
+
 | 数据 | 选择器 | 备注 |
 |------|--------|------|
-| 检索输入框 | `input#txt_search` | 兜底 `input[type=text]` |
-| 检索按钮 | `input.researchbtn` | 兜底 `input[type=button]` |
-| 收录数据库 | 详情页 "该刊被以下数据库收录" | 等待文本出现 |
+| 检索输入框 | `input#txt_1_value1` | class `rekeyword`，placeholder "请输入检索词" |
+| 检索按钮 | `input#btnSearch` | class `researchbtn` |
+| 字段类型下拉 | `select#txt_1_sel` | 来源名称 / 主办单位 / ISSN / CN 等 |
+| 结果容器 | `#searchResult` | 即 `.sort.jsResult` |
+| 结果条目 | `#searchResult dl.result` | 每条一个 `dl`，内含 `.re_brief` |
 
-期刊详情页在**新标签页**打开，需要 `list_pages` + 切标签。`cnki.mjs` 的 `journal` 命令
-只解析当前页文本，收录信息见返回的 `bodyText`。
+**⚠️ 不要用 `input[type=text]` 兜底检索框**。navi 页面上所有其他可见 `type=text` 输入框
+都是登录框（`oauth1-name` 手机号、`ecp_userName` 用户名、`ecp_phone` 等），兜底会填错地方。
+
+**⚠️ 点检索按钮会整页跳转**。点击后执行上下文被销毁，await 永远不 resolve，
+表现为 CDP `Runtime.evaluate` 超时。必须拆成两次求值：先填词点击并**立刻返回**，
+在 Node 侧 `sleep` 几秒，再起一次求值解析结果。
+
+期刊名别按 `input#txt_search` 找（那个 id 在新版 navi 上不存在）；收录数据库、影响因子、
+ISSN/CN 都在结果页正文里，`cnki.mjs journal` 返回的 `bodyText` 是主要交付物。
+详情页 URL 形如 `navi.cnki.net/knavi/detail?p=...`，在 `items[].url` 里。
+
+## 实测踩到的坑（2026-09-10）
+
+这一节是那次实机验证的主要产出，多数在上游文档里没有，但踩了必炸。
+
+### 1. CDP proxy 会把「被拒绝的 promise」吞成空结果
+
+`cdp-proxy.mjs` 的 `/eval` 对各种返回的处理（实测）：
+
+| 页面脚本 | proxy 返回 |
+|---------|-----------|
+| resolve 一个对象 | HTTP 200 `{"value": {...}}` |
+| resolve `undefined` | HTTP 200 `{"result":{"type":"undefined"}}` |
+| promise 被 reject | HTTP 400 `{"error":"Uncaught (in promise) Error: ..."}` |
+| 同步抛错 | HTTP 400 `{"error":"Uncaught"}` |
+
+**这个 reject 分支曾经是坏的**（本次验证时修掉，见 `cdp-proxy.mjs` 文件头的改动说明）：
+原实现先判 `result.value !== undefined` 再判 `exceptionDetails`；而 promise 被 reject 时
+Chrome 会**同时**返回 exceptionDetails 和一个 result（被抛出的 Error 对象），Error 在
+`returnByValue` 下序列化成 `{}` 是 defined，于是返回 HTTP 200 + `{"value":{}}`——
+页面里的报错被静默吞成"空结果"。上游那套"超时就 reject"的写法搬过来后，排序超时会
+静默返回空结果，看起来像成功。
+
+现在 proxy 已修，但仍然保持两条规矩（纵深防御，也防止将来 proxy 被换回旧版）：
+
+- 页面脚本里**一律不 reject**。用 `waitUntil(pred, tries, label)` 返回 `{ok, label}`，
+  调用方自己判断（见 `scripts/cnki.mjs` 的 `WAIT_HELPER_JS`）。
+- `evalJs` 里对空对象 `{}` 直接报错兜底。
+
+### 2. 模板字符串里的反斜杠会被吃掉
+
+页面脚本是 JS 模板字面量。`\s` 在模板字面量里不是合法转义，反斜杠会被丢掉变成 `s`，
+于是 `/<br\s*\/?>/` 静默变成 `/<brs*\/?>/`——**语法合法、语义全错**，而且不会报错。
+正则里要写成 `\\s`。用 Python/脚本批量改写这段代码时尤其容易踩。
+
+### 3. 弹出的排序刷新信号不是页标记
+
+排序后仍停在第 1 页，`.countPageMark` 一直是 `1/300`。等它变化必然超时。
+改用**首行标题变化**当刷新信号。
+
+### 4. 点已激活的排序项是空操作
+
+新版界面下再次点击当前生效的排序项**不会反转升降序**（实测确认页面无跳转、标记不变、
+首行不变）。所以已经是目标排序时直接跳过点击，别赌。
+
+### 5. 排序状态跨检索保留
+
+CNKI 会记住上次的排序。实测一次 `search` 默认落在"发表时间"上，结果全是当天网络首发；
+显式切到"被引"之后，后续检索都保持"被引"。所以**每次解析都要带上 `activeSort`**，
+否则"相关度检索"可能实际拿到的是按时间排的结果。
+
+### 6. 被引/下载为空多半不是选择器坏了
+
+`td.quote` / `td.download` 单元格确实存在，只是 CNKI 对新论文不显示计数。
+判断选择器是否失效要看**单元格是否存在**，不是看文本是否为空。
+
+### 7. 其他零碎
+
+- 作者上标有 `1`、`1,2`、`1,2,` 三种写法，剥名字时数字和逗号要一起处理。
+- 导出串（GBTREFER / ENDNOTE）带 `<br>` 标签，落盘前要清掉。
+- `#orderList` 只在有结果时才出现，空白检索页上取到 0 项是正常的。
+- 调试时用 `CNKI_DEBUG_JS=1` 把实际发到页面的脚本打到 stderr；proxy 只回
+  "Uncaught" 三个字，看不出哪行错了。（脚本还会先在本机 `new Function()` 过一遍语法。）
+- 多个 `kns.cnki.net` 标签页会同时存在，`ensureCnkiTab` 取最后一个；调试时别用
+  `.pop()` 想当然，先列 `/targets` 确认。
 
 ## 已知陷阱
 

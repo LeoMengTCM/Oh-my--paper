@@ -72,11 +72,12 @@ upstream:
 # 环境自检
 node cnki.mjs status
 
-# 基础检索（返回 total/page/papers，title 带 url 与 exportId）
+# 基础检索（返回 total/page/papers 与 activeSort，papers 带 url 与 exportId）
 node cnki.mjs search --query "深度学习"
+node cnki.mjs search --query "深度学习" --sort citations   # 检索完直接排序
 
 # 高级检索：字段 + 来源类别 + 年份 + 作者 + 期刊
-node cnki.mjs advanced --query "脓毒症" --source CSSCI 北大核心 --from-year 2020 --to-year 2025
+node cnki.mjs advanced --query "脓毒症" --source CSSCI 北大核心 --from-year 2020 --to-year 2025 --sort citations
 node cnki.mjs advanced --query "脓毒症" --field TI --query2 "早期预警" --field2 KY --logic AND
 node cnki.mjs advanced --query "机器学习" --author "周志华" --journal "计算机学报"
 
@@ -101,6 +102,15 @@ node cnki.mjs collect --title "<论文标题>" --into .pipeline/literature/<corp
 
 字段代码：`SU` 主题、`TI` 篇名、`KY` 关键词、`TKA` 篇关摘、`AB` 摘要、`AU` 作者、`FT` 全文。
 来源类别：`SCI` `EI` `北大核心` `CSSCI` `CSCD`（可多选）。
+
+**排序状态是跨检索保留的**（CNKI 页面行为）。一次 `search` 可能沿用上次的排序——
+默认那次实测落在"发表时间"，结果全是当天网络首发。所以每个结果里都带 `activeSort` /
+`activeSortDirection`，以它为准；想要相关度或被引就显式传 `--sort`。
+
+排查取数为空时用 `CNKI_DEBUG_JS=1` 打出实际发到页面的脚本——proxy 只会回 "Uncaught"，
+看不出哪行错。常见坑（reject 被吞成空对象、模板字符串反斜杠被吃掉、排序匹配方式）
+都记在 `references/site-patterns/cnki.net.md` 的「实测踩到的坑」。这套选择器已于
+2026-09-10 在真实浏览器 + 已登录机构账号下逐条复验。
 
 ## 在 survey 里的用法
 

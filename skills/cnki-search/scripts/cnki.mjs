@@ -243,6 +243,31 @@ async function ensureCnkiTab({ reusePrefix, anyCnki = false, openUrl } = {}) {
   return openPage(openUrl || reusePrefix || URLS.home);
 }
 
+/** 是不是检索结果/高级检索那一页（`parse` / `pages` / `sort` 只该在这两处操作）。 */
+function isSearchWorkbench(url) {
+  return /kns8s\/search|kns\/AdvSearch/.test(url || "");
+}
+
+/**
+ * 给 `parse` / `pages` / `sort` 选标签页：**必须是检索结果页**。
+ *
+ * 不能直接用 `anyCnki`：`detail` 与 `download` 也会 rememberTarget（记的是详情页），
+ * 而它们和这三个命令共用同一份记忆。曾经三个命令跟着记忆跑到详情页上，
+ * 报「当前不是检索结果页」——功能没坏，但一次 `detail` 之后它们就都不好使了。
+ */
+async function ensureSearchTab() {
+  const pages = await listPages();
+  const remembered = rememberedTarget();
+  const own = pages.find((p) => p.targetId === remembered && isSearchWorkbench(p.url));
+  if (own) return own.targetId;
+
+  const benches = pages.filter((p) => isSearchWorkbench(p.url));
+  if (benches.length) return benches[benches.length - 1].targetId;
+
+  // 一个都没有：交给 anyCnki 兜底，让调用方的 READY_RESULTS_JS 去报"不是结果页"
+  return ensureCnkiTab({ anyCnki: true });
+}
+
 async function evalJs(target, expression) {
   // 语法自检：先在本机把它当函数体解析一遍。发到页面才报 "Uncaught" 的话，
   // proxy 只回三个字，根本看不出哪行错了。
@@ -595,7 +620,7 @@ ${PAGE_HELPERS_JS}
 
 async function cmdParse() {
   await ensureProxy();
-  const target = await ensureCnkiTab({ anyCnki: true });
+  const target = await ensureSearchTab();
   await guardCaptcha(target);
 
   const ready = await evalJs(target, READY_RESULTS_JS);
@@ -613,45 +638,68 @@ async function cmdPages(args) {
   if (!action) fail("缺少 --action", "可选：next / prev / page:3");
 
   await ensureProxy();
-  const target = await ensureCnkiTab({ anyCnki: true });
+  const target = await ensureSearchTab();
   await guardCaptcha(target);
 
-  const js = `(async () => {
-${WAIT_HELPER_JS}
+  // 点击单独一次求值、点完立刻返回。翻页会整页跳转，执行上下文随之销毁，
+  // 在同一个 eval 里 await 等页码变化会永远不 resolve，表现为 CDP
+  // Runtime.evaluate 超时（和 journal 点检索按钮是同一个坑）。
+  const clickJs = `(() => {
+    const links = Array.from(document.querySelectorAll('.pages a'));
+    const mark = document.querySelector('.countPageMark')?.innerText || '';
+    const curPage = mark.split('/')[0].trim();
     const action = ${JSON.stringify(action)};
-    const links = document.querySelectorAll('.pages a');
-    const prevMark = document.querySelector('.countPageMark')?.innerText;
 
-    if (action === 'next') {
-      const el = Array.from(links).find(a => a.innerText.trim() === '下一页');
-      if (!el) return { error: 'no_next_page' };
-      el.click();
-    } else if (action === 'prev' || action === 'previous') {
-      const el = Array.from(links).find(a => a.innerText.trim() === '上一页');
-      if (!el) return { error: 'no_previous_page' };
-      el.click();
-    } else {
-      const num = String(action).replace(/\\D/g, '');
-      const el = Array.from(links).find(a => a.innerText.trim() === num);
-      if (!el) return { error: 'page_not_found', available: Array.from(links).map(a => a.innerText.trim()) };
-      el.click();
+    let label;
+    if (action === 'next') label = '下一页';
+    else if (action === 'prev' || action === 'previous') label = '上一页';
+    else label = String(action).replace(/\\D/g, '');
+
+    // 点当前页是空操作，页码不会变，等下去必然超时。直接说清楚，别点。
+    if (label && label === curPage) return { alreadyThere: true, page: mark };
+
+    const el = links.find(a => a.innerText.trim() === label);
+    if (!el) {
+      return {
+        error: 'page_not_found',
+        wanted: label,
+        available: links.map(a => a.innerText.trim()).filter(Boolean),
+        page: mark,
+      };
     }
-
-    const wPage = await waitUntil(() => { const m = document.querySelector('.countPageMark')?.innerText; return !!m && m !== prevMark; }, 30, '翻页超时');
-    if (!wPage.ok) return { error: 'timeout', label: wPage.label };
-
-    const cap = document.querySelector('#tcaptcha_transform_dy');
-    if (cap && cap.getBoundingClientRect().top >= 0) return { error: 'captcha' };
-
-    return ${PARSE_RESULTS_JS};
+    el.click();
+    return { clicked: true, from: mark };
   })()`;
 
-  const result = await evalJs(target, js);
-  if (result?.error === "captcha") {
-    fail("captcha", "CNKI 正在显示滑块验证码。请在 Chrome 里手动完成拼图验证，完成后告诉我继续。");
+  const clicked = await evalJs(target, clickJs);
+  if (clicked?.error === "page_not_found") {
+    fail(
+      `翻页失败：第 ${clicked.wanted} 页的链接不存在`,
+      `当前在 ${clicked.page}。可点的有：${clicked.available.join(" / ")}`,
+    );
   }
-  if (result?.error) fail(result.error, "确认当前停在检索结果页。");
-  emit({ action, ...result });
+  if (clicked?.error) fail(`翻页失败：${clicked.error}`, "确认当前停在检索结果页。");
+
+  if (clicked?.alreadyThere) {
+    emit({ action, note: `已经在第 ${clicked.page} 页，没有重复点击`, ...(await evalJs(target, PARSE_RESULTS_JS)) });
+  }
+
+  // 页码变化从 Node 侧轮询，每次都是新的 eval，不受上一次上下文销毁影响
+  let landed = false;
+  for (let i = 0; i < 30; i += 1) {
+    await sleep(500);
+    const mark = await evalJs(target, "document.querySelector('.countPageMark')?.innerText || ''");
+    if (mark && mark !== clicked.from) {
+      landed = true;
+      break;
+    }
+  }
+  if (!landed) {
+    fail("翻页超时", `页码仍停在 ${clicked.from}，CNKI 没有响应。稍后重试，或先在 Chrome 里手动翻一页。`);
+  }
+
+  await guardCaptcha(target);
+  emit({ action, ...(await evalJs(target, PARSE_RESULTS_JS)) });
 }
 
 /** 校验 --sort / --by 的取值，返回空串表示不排序。 */
@@ -668,7 +716,7 @@ async function cmdSort(args) {
   if (!by) fail("缺少 --by", `可选：${Object.keys(SORT_LABELS).join(" ")}（相关度/发表时间/被引/下载/综合）`);
 
   await ensureProxy();
-  const target = await ensureCnkiTab({ anyCnki: true });
+  const target = await ensureSearchTab();
   await guardCaptcha(target);
 
   const js = `(async () => {
@@ -1008,7 +1056,8 @@ async function cmdDownload(args) {
   if (url) await navigate(target, url);
   await guardCaptcha(target);
 
-  const js = `(async () => {
+  // 第一次求值：只等待、只判定，不点击。这些都拿不到用户手势也没关系。
+  const probeJs = `(async () => {
 ${WAIT_HELPER_JS}
     const wDetail = await waitUntil(() => !!document.querySelector('.brief h1'), 30, '详情页未加载');
     if (!wDetail.ok) return { error: 'timeout', label: wDetail.label };
@@ -1020,7 +1069,6 @@ ${WAIT_HELPER_JS}
       || document.querySelector('[class*="notlogged"]');
     if (notLogged) return { error: 'not_logged_in' };
 
-    const format = ${JSON.stringify(format)};
     const rawTitle = document.querySelector('.brief h1')?.innerText?.trim() || '';
     const title = rawTitle.replace(/\\s*题录\\s*$/, '').replace(/\\s*网络首发\\s*$/, '');
 
@@ -1028,17 +1076,37 @@ ${WAIT_HELPER_JS}
     // 和「有按钮但要机构权限」是两码事，分开报，别让人白去登录。
     if (/\\s*题录\\s*$/.test(rawTitle)) return { error: 'record_only', title };
 
-    const pdfLink = document.querySelector('#pdfDown') || document.querySelector('.btn-dlpdf a');
-    const cajLink = document.querySelector('#cajDown') || document.querySelector('.btn-dlcaj a');
+    const format = ${JSON.stringify(format)};
+    const hasPdf = !!document.querySelector('#pdfDown') || !!document.querySelector('.btn-dlpdf a');
+    const hasCaj = !!document.querySelector('#cajDown') || !!document.querySelector('.btn-dlcaj a');
+    if (!hasPdf && !hasCaj) return { error: 'no_download_link', title };
 
-    if (format === 'pdf' && pdfLink) { pdfLink.click(); return { status: 'downloading', format: 'PDF', title }; }
-    if (format === 'caj' && cajLink) { cajLink.click(); return { status: 'downloading', format: 'CAJ', title }; }
-    if (pdfLink) { pdfLink.click(); return { status: 'downloading', format: 'PDF', title }; }
-    if (cajLink) { cajLink.click(); return { status: 'downloading', format: 'CAJ', title }; }
-    return { error: 'no_download_link', title };
+    const chosen = format === 'caj' && hasCaj ? 'caj' : hasPdf ? 'pdf' : 'caj';
+    return { ready: true, chosen, title };
   })()`;
 
-  const result = await evalJs(target, js);
+  const probe = await evalJs(target, probeJs);
+  const result = probe;
+
+  // 第二次求值：**只点击**，前面不许有任何 await。
+  // userGesture 给的用户手势只有约 5 秒（实测：延迟 2s/4s 点得动，6s/8s 就被弹出
+  // 拦截器静默丢掉）。上面那次求值里 waitUntil 等详情页 + guardCaptcha 的往返很容易
+  // 超过 5 秒 —— 尤其是 `download --url` 刚 navigate 完整页加载之后 —— 那样点击
+  // 会什么都不发生，却仍然返回"已触发"。所以点击必须单独起一次求值，冷启动即点。
+  let clicked = null;
+  if (probe?.ready) {
+    const sel = probe.chosen === "caj" ? "#cajDown" : "#pdfDown";
+    const alt = probe.chosen === "caj" ? ".btn-dlcaj a" : ".btn-dlpdf a";
+    clicked = await evalJs(
+      target,
+      `(() => {
+        const el = document.querySelector(${JSON.stringify(sel)}) || document.querySelector(${JSON.stringify(alt)});
+        if (!el) return { error: 'no_download_link' };
+        el.click();
+        return { status: 'downloading', format: ${JSON.stringify(probe.chosen === "caj" ? "CAJ" : "PDF")}, title: ${JSON.stringify(probe.title)} };
+      })()`,
+    );
+  }
   // 任何 error 都必须 fail。曾经只处理了三种，timeout 会带着退出码 0 和
   // downloadDir/hint 原样 emit 出去，看起来像"已触发下载"，实际什么都没发生。
   if (result?.error) {
@@ -1059,10 +1127,17 @@ ${WAIT_HELPER_JS}
     );
   }
 
+  if (clicked?.error) {
+    fail(
+      "点击下载链接失败",
+      `${clicked.error}；页面上原本有下载区，重跑一次通常能成。`,
+    );
+  }
+
   emit({
-    ...result,
+    ...clicked,
     downloadDir: defaultDownloadDir(),
-    hint: "文件会落到 Chrome 的下载目录。下载完成后跑 `cnki.mjs collect --title \"<标题>\" --into <目标目录>` 把它归档进语料库。",
+    hint: "文件会落到 Chrome 的下载目录（实测约 4–5 秒落盘）。下载完成后跑 `cnki.mjs collect --title \"<标题>\" --into <目标目录>` 把它归档进语料库。",
   });
 }
 
@@ -1235,11 +1310,25 @@ async function cmdCollect(args) {
       fail("--meta 解析失败", `${metaPath} 不是合法 JSON：${error.message}`);
     }
   }
+  // 已有的 metadata.json 要垫在最底下。同一篇常常归档不止一次（先下 PDF，
+  // 之后补下 CAJ 再归档一次），不垫的话这一次没带 --meta 就把上次写的作者、
+  // 年份、期刊连同 build_bibliography 回写的 citation_key 一起抹掉，
+  // 论文会静默退回"不可引用"。
+  const metaPath = path.join(path.dirname(dest), "metadata.json");
+  let existing = {};
+  if (existsSync(metaPath)) {
+    try {
+      existing = JSON.parse(readFileSync(metaPath, "utf8"));
+    } catch {
+      existing = {}; // 坏文件不值得为它中断归档，覆盖掉即可
+    }
+  }
   const record = {
+    ...existing,
     ...metaSource,
     source: "cnki",
     merged_sources: ["cnki"],
-    title: metaSource.title || title || path.basename(picked, path.extname(picked)),
+    title: metaSource.title || existing.title || title || path.basename(picked, path.extname(picked)),
     paper_slug: slug,
     local_pdf_path: dest,
     download_source: "cnki",
@@ -1249,7 +1338,7 @@ async function cmdCollect(args) {
     full_text_status: "institution_pdf",
   };
   writeFileSync(
-    path.join(path.dirname(dest), "metadata.json"),
+    metaPath,
     `${JSON.stringify(record, null, 2)}\n`,
   );
 
@@ -1261,7 +1350,7 @@ async function cmdCollect(args) {
 
   emit({
     moved: dest,
-    metadata: path.join(path.dirname(dest), "metadata.json"),
+    metadata: metaPath,
     from: picked,
     candidates: candidates.length,
     ...(alsoMatched.length ? { alsoMatched } : {}),

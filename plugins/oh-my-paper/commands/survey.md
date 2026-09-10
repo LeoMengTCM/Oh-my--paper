@@ -158,6 +158,11 @@ node .claude/skills/cnki-search/scripts/cnki.mjs collect \
 
 `download` 返回 `not_logged_in` / `captcha` / `no_download_link` 时按返回的 `hint` 处理：登录、手动过拼图，或者放弃——放弃就把该篇按元数据保留，`full_text_status` 标 `needs_institution`，**不要伪称拿到了全文**。
 
+`download` 只是**触发**，返回 `status: downloading` 时文件还没落盘（实测 PDF 约数秒，
+CAJ 更久）。先等几秒再跑 `collect`，否则会报"没找到近期下载的文件"。
+`collect` 匹配不到或匹配有歧义时以退出码 2 报错，**不会替你猜**——这时看它列出的
+实际文件名，改用 `--file "<文件名>"` 重跑，不要盲目重试 `--title`。
+
 归档后的 PDF 可以和开放获取的论文一起跑同一套 OCR：
 
 ```bash

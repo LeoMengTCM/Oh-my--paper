@@ -21,6 +21,7 @@
  *   node cnki.mjs toc --journal "计算机学报" --year 2025 --issue 01
  *   node cnki.mjs download --format pdf
  *   node cnki.mjs collect --title "论文标题" --into .pipeline/literature/<corpus>/papers
+ *   node cnki.mjs collect --file "标题_作者.pdf" --into .pipeline/literature/<corpus>/papers
  *
  * 输出：stdout 一律是 JSON。遇到验证码 / 未登录 / Chrome 未就绪时返回
  * `{"error": "...", "hint": "..."}` 并以退出码 2 结束，调用方据此暂停并请用户处理。
@@ -1032,6 +1033,44 @@ function defaultDownloadDir() {
   return candidates.find((p) => existsSync(p)) || candidates[0];
 }
 
+/** 取下载文件名里的标题部分：CNKI 形如「标题_作者.pdf」。 */
+function titlePartOf(file) {
+  return path
+    .basename(file)
+    .replace(/\.[^.]+$/, "")
+    .replace(/\s+/g, "");
+}
+
+/**
+ * 按标题从候选文件里挑。
+ *
+ * 匹配分两档：**精确**（标题部分与给出的标题完全一致，或紧接一个 `_` 后跟作者）
+ * 优先；没有精确命中才退化到子串。这样「深度学习」不会挑中「深度学习综述_李四.pdf」。
+ *
+ * 子串档命中多个时直接报错，不猜。曾经的行为是匹配不上就退回"最近下载的那个"，
+ * 结果是把 B 论文的正文归档成 A 论文的标题，语料库里出现标题与正文对不上的条目，
+ * 而且退出码是 0，看不出出了问题。
+ */
+function matchByTitle(candidates, title) {
+  const slug = title.replace(/\s+/g, "");
+  const exact = candidates.filter((x) => {
+    const t = titlePartOf(x.file);
+    return t === slug || t.startsWith(`${slug}_`);
+  });
+  if (exact.length) return exact;
+
+  const loose = candidates.filter((x) => titlePartOf(x.file).includes(slug));
+  if (loose.length > 1) {
+    fail(
+      `标题「${title}」模糊匹配到 ${loose.length} 个下载文件，无法确定是哪一个`,
+      `以下文件都含该标题，但没有一个与之完全一致：\n  ${loose
+        .map((x) => path.basename(x.file))
+        .join("\n  ")}\n请把标题写全，或用 --file 直接指定文件。`,
+    );
+  }
+  return loose;
+}
+
 /** 把 Chrome 刚下载的 PDF/CAJ 按标题归档进语料库目录。 */
 async function cmdCollect(args) {
   const title = argText(args.title);
@@ -1049,21 +1088,36 @@ async function cmdCollect(args) {
     .map((f) => ({ file: path.join(dir, f), mtime: statSync(path.join(dir, f)).mtimeMs }))
     .filter((x) => x.mtime >= cutoff);
 
-  if (title) {
-    const slug = title.replace(/\s+/g, "");
-    const matched = candidates.filter((x) => path.basename(x.file).replace(/\s+/g, "").includes(slug));
-    if (matched.length) candidates.splice(0, candidates.length, ...matched);
-  }
+  const explicit = argText(args.file);
+  let picked;
 
-  if (!candidates.length) {
-    fail(
-      "没找到近期下载的文件",
-      `${dir} 下 ${withinMinutes} 分钟内没有新的 PDF/CAJ。确认下载已完成，或用 --download-dir 指定别的目录。`,
-    );
+  if (explicit) {
+    picked = path.isAbsolute(explicit) ? explicit : path.join(dir, explicit);
+    if (!existsSync(picked)) fail("--file 指定的文件不存在", `找不到 ${picked}（下载目录 ${dir}）。`);
+  } else {
+    if (!candidates.length) {
+      fail(
+        "没找到近期下载的文件",
+        `${dir} 下 ${withinMinutes} 分钟内没有新的 PDF/CAJ。确认下载已完成，或用 --download-dir / --file 指定。`,
+      );
+    }
+    if (title) {
+      const matched = matchByTitle(candidates, title);
+      if (!matched.length) {
+        fail(
+          `没找到标题匹配「${title}」的下载文件`,
+          `${dir} 下近期有 ${candidates.length} 个文件，没有一个含该标题：\n  ${candidates
+            .map((x) => path.basename(x.file))
+            .join("\n  ")}\nCNKI 的文件名形如「标题_作者.pdf」，确认标题没写错；也可以用 --file 直接指定。`,
+        );
+      }
+      candidates.splice(0, candidates.length, ...matched);
+    }
+    // PDF 优先于 CAJ：CAJ 是 KDH 私有格式，OCR 管线读不了
+    const rank = (f) => (/\.pdf$/i.test(f) ? 0 : 1);
+    candidates.sort((a, b) => rank(a.file) - rank(b.file) || b.mtime - a.mtime);
+    picked = candidates[0].file;
   }
-
-  candidates.sort((a, b) => b.mtime - a.mtime);
-  const picked = candidates[0].file;
   const destDir = path.resolve(into);
   mkdirSync(destDir, { recursive: true });
   const slug = (title || path.basename(picked, path.extname(picked)))
@@ -1081,7 +1135,18 @@ async function cmdCollect(args) {
     unlinkSync(picked);
   }
 
-  emit({ moved: dest, from: picked, candidates: candidates.length });
+  // 同名下载了多次（含 pdf + caj）时，把没选中的列出来，避免又变成"悄悄替你选了"
+  const alsoMatched = candidates
+    .slice(1)
+    .map((x) => path.basename(x.file))
+    .filter((f) => f !== path.basename(picked));
+
+  emit({
+    moved: dest,
+    from: picked,
+    candidates: candidates.length,
+    ...(alsoMatched.length ? { alsoMatched } : {}),
+  });
 }
 
 // ---------------------------------------------------------------- 入口

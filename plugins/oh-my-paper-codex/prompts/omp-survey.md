@@ -93,7 +93,9 @@ node .claude/skills/cnki-search/scripts/cnki.mjs collect \
   --title "<论文标题>" --into .pipeline/literature/<corpus-name>/papers
 ```
 
-返回 `not_logged_in` / `captcha` / `no_download_link` 时按 `hint` 处理：登录、手动过拼图，或放弃。放弃就按元数据保留，`full_text_status` 标 `needs_institution`，**不要伪称拿到了全文**。归档后的 PDF 和开放获取论文跑同一套 OCR 脚本。**CAJ 不是 PDF**，OCR 脚本读不了，只能留档。
+返回 `not_logged_in` / `captcha` / `no_download_link` 时按 `hint` 处理：登录、手动过拼图，或放弃。放弃就按元数据保留，`full_text_status` 标 `needs_institution`，**不要伪称拿到了全文**。归档后的 PDF 和开放获取论文跑同一套 OCR 脚本。**CAJ 不是 PDF**（`KDH` 私有格式），OCR 脚本读不了，只能留档；PDF 与 CAJ 同时存在时 `collect` 优先归档 PDF。
+
+`download` 只触发不等待，返回 `status: downloading` 时文件还没落盘（PDF 约数秒，CAJ 更久），先等几秒再 `collect`。`collect` 匹配不到或有歧义时以退出码 2 报错，**不会替你猜**——按它列出的实际文件名改用 `--file "<文件名>"` 重跑，别盲目重试 `--title`。
 
 ## 第七步：补充搜索（按需）
 

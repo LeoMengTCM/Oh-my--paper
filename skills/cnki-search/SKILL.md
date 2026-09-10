@@ -98,7 +98,15 @@ node cnki.mjs journal --name "计算机学报"
 # 触发全文下载（需要登录），再把文件归档进语料库
 node cnki.mjs download --format pdf
 node cnki.mjs collect --title "<论文标题>" --into .pipeline/literature/<corpus>/papers
+node cnki.mjs collect --file "<下载的文件名>" --into .pipeline/literature/<corpus>/papers
 ```
+
+`download` 只是**触发**——CDP 拿不到下载路径，文件落在 Chrome 的下载目录里；
+随后用 `collect` 把它按标题移进语料库。`collect` 的匹配规则：精确匹配（文件名标题部分
+完全一致，或紧接 `_作者`）优先，退而求其次才是子串；**歧义或匹配不到一律报错退出 2**，
+不会替你猜一个（历史上会静默归档最近下载的那个，导致标题与正文对不上）。
+同名的 PDF 与 CAJ 同时存在时优先归档 PDF（CAJ 是 `KDH` 私有格式，OCR 管线读不了）。
+`--file` 可直接指定文件名跳过匹配。
 
 字段代码：`SU` 主题、`TI` 篇名、`KY` 关键词、`TKA` 篇关摘、`AB` 摘要、`AU` 作者、`FT` 全文。
 来源类别：`SCI` `EI` `北大核心` `CSSCI` `CSCD`（可多选）。

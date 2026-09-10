@@ -9,7 +9,8 @@ verified: 2026-09-10
 > @ `20d65f660456daf53ad0f7c74494ac3b829b925f`。
 >
 > **2026-09-10 在真实浏览器 + 已登录机构账号下逐条复验过**（Chrome 152 /
-> `kns8s/search` + `kns/AdvSearch` + `navi.cnki.net` 三处界面）。本文件里标了
+> `kns8s/search` + `kns/AdvSearch` + `navi.cnki.net` 三处界面），含 `download`
+> 与 `collect` 的完整下载链路（实下 PDF 与 CAJ 各一份并归档）。本文件里标了
 > "实测"的都是那天验证的结论；下方「实测踩到的坑」一节是那次验证的主要产出，
 > 多数是上游文档里没有、但踩了必炸的问题。CNKI 改版后如果取数为空，先怀疑选择器，
 > 用 `CNKI_DEBUG_JS=1` 打出实际发出的脚本比对。
@@ -245,6 +246,41 @@ CNKI 会记住上次的排序。实测一次 `search` 默认落在"发表时间"
   "Uncaught" 三个字，看不出哪行错了。（脚本还会先在本机 `new Function()` 过一遍语法。）
 - 多个 `kns.cnki.net` 标签页会同时存在，`ensureCnkiTab` 取最后一个；调试时别用
   `.pop()` 想当然，先列 `/targets` 确认。
+
+### 8. 下载链接是 `target="_blank"`，会被弹出拦截器静默挡掉
+
+`#pdfDown` / `#cajDown` 都带 `target="_blank"`。CDP 的 `Runtime.evaluate` 默认
+**不带用户手势**，脚本里 `a.click()` 触发的开新窗口会被 Chrome 判定为弹窗并拦截——
+而且拦得悄无声息：没有新标签、没有报错、没有下载，`window.open()` 只是返回 `null`。
+
+`cdp-proxy.mjs` 的 `/eval` 与 `/click` 已补 `userGesture: true`（见该文件头「本地改动 2」）。
+实测对照：未加时 `window.open("about:blank")` 返回 `null`，加上后正常打开，
+`download` 也才开始真的下载。**如果将来下载又变成"点了没反应"，先查这个参数。**
+
+### 9. CAJ 是 `KDH 2.00` 私有格式，不是 PDF
+
+实测下载到的 `.caj` 文件头是 `KDH 2.00 Copyright`，`pdfinfo` 直接报
+"Couldn't find trailer dictionary"。文库的 OCR 管线（`paddleocr_layout_to_markdown.py`）
+只吃 PDF，所以**能下 PDF 就别下 CAJ**。`collect` 在两者同时存在时会优先挑 PDF。
+
+### 10. `collect` 的标题匹配不能"猜"
+
+下载来的文件名形如「标题_作者.pdf」。实测两种会归档错文件的情况：
+
+| 情形 | 曾经的行为 | 现在的行为 |
+|------|-----------|-----------|
+| 标题匹配不到任何文件 | **静默归档最近下载的那个** | 报错并列出目录里实际有什么 |
+| 多个文件都含该标题（如「深度学习」对上「深度学习综述_李四.pdf」） | **静默取最新的** | 精确匹配（标题部分完全一致或紧接 `_`）优先；仍歧义则报错 |
+
+两种旧行为都返回退出码 0，语料库里会出现标题与正文对不上的条目，从输出上看不出来。
+另外 `collect --file "<文件名>"` 可以跳过匹配直接指定。
+
+### 11. CNKI 的 PDF 有文字层，但数字与标点是全角
+
+实测下载的 PDF：CJK 字体未嵌入、编码 `GBK-EUC-H`、无 Unicode 映射，`pdffonts`
+三列全是 `no`；不过**文字层是有的**，`pdftotext` 能取到正文（第 3 页 6649 字符）。
+代价是取出来的数字和标点是**全角**的（页码 `７５７`、句点 `．`）。
+下游若用 `[0-9]`、`\.` 之类的正则做年份/卷期/页码抽取，要先做 NFKC 归一化，否则匹配不上。
 
 ## 已知陷阱
 

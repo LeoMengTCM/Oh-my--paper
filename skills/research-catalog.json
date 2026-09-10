@@ -1,6 +1,6 @@
 {
   "schema": "omp-research-catalog-v1",
-  "generatedAt": "2026-08-23T08:21:45.584Z",
+  "generatedAt": "2026-09-10T13:25:16.276Z",
   "upstream": {
     "repo": "Oh-my--paper",
     "revision": "a33c1022d1e033793f8370eaf8ff05771ae1cb72"
@@ -301,6 +301,63 @@
         "hasTemplates": false,
         "hasAssets": false,
         "referenceCount": 0,
+        "scriptCount": 1,
+        "templateCount": 0,
+        "assetCount": 0,
+        "optionalScripts": true
+      }
+    },
+    {
+      "id": "cnki-search",
+      "name": "cnki-search",
+      "version": "1.0.0",
+      "description": "Search and mine CNKI (中国知网) from a logged-in Chrome via the repo's CDP proxy: keyword and advanced search, screening-table extraction, pagination and sorting, paper detail metadata, GB/T 7714 / RIS / EndNote export, journal lookup and indexing status, PDF/CAJ download triggering.",
+      "summary": "Search and mine CNKI (中国知网) from a logged-in Chrome via the repo's CDP proxy: keyword and advanced search, screening-table extraction, pagination and sorting, paper detail metadata, GB/T 7714 / RIS / EndNote export, journal lookup and indexing status, PDF/CAJ download triggering. Use when a survey or literature review needs Chinese-language literature — 中文文献检索, 知网, CNKI, 核心期刊, 北大核心, CSSCI, CSCD, 中文期刊, 学位论文, 期刊收录查询. Requires Chrome running with remote debugging and a logged-in CNKI session; without it the skill reports the precondition and stops. Do not use for English-language retrieval (use literature-pdf-ocr-library) or for scraping CNKI without a user-owned logged-in session.",
+      "stages": [
+        "survey"
+      ],
+      "tools": [
+        "read_file",
+        "search_project",
+        "write_file",
+        "run_terminal"
+      ],
+      "primaryIntent": "research",
+      "intents": [
+        "research"
+      ],
+      "capabilities": [
+        "search-retrieval"
+      ],
+      "domains": [
+        "general"
+      ],
+      "keywords": [
+        "cnki-search",
+        "cnki",
+        "知网",
+        "中国知网",
+        "中文文献",
+        "中文期刊",
+        "核心期刊",
+        "北大核心",
+        "cssci",
+        "cscd",
+        "学位论文",
+        "期刊收录",
+        "gbt 7714",
+        "paper search",
+        "literature search",
+        "文献检索"
+      ],
+      "source": "builtin",
+      "status": "verified",
+      "resourceFlags": {
+        "hasReferences": true,
+        "hasScripts": true,
+        "hasTemplates": false,
+        "hasAssets": false,
+        "referenceCount": 2,
         "scriptCount": 1,
         "templateCount": 0,
         "assetCount": 0,
@@ -2238,7 +2295,8 @@
         "academic-researcher",
         "dataset-discovery",
         "biorxiv-database",
-        "systematic-review"
+        "systematic-review",
+        "cnki-search"
       ],
       "byTaskType": {
         "analysis": [
@@ -2248,6 +2306,7 @@
           "inno-deep-research",
           "gemini-deep-research",
           "academic-researcher",
+          "cnki-search",
           "inno-figure-gen"
         ],
         "exploration": [
@@ -2258,7 +2317,8 @@
           "gemini-deep-research",
           "dataset-discovery",
           "biorxiv-database",
-          "academic-researcher"
+          "academic-researcher",
+          "cnki-search"
         ]
       }
     },

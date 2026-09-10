@@ -21,7 +21,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/claude--code-plugin-blueviolet?style=flat-square" />
   <img src="https://img.shields.io/badge/agents-5-ff69b4?style=flat-square" />
-  <img src="https://img.shields.io/badge/skills-43-green?style=flat-square" />
+  <img src="https://img.shields.io/badge/skills-44-green?style=flat-square" />
   <img src="https://img.shields.io/badge/commands-9-blue?style=flat-square" />
   <img src="https://img.shields.io/badge/license-MIT-orange?style=flat-square" />
 </p>
@@ -63,7 +63,7 @@ This is a personal maintenance fork of **[LigphiDonk/Oh-my--paper](https://githu
 - [Install](#install)
 - [Claude Code Slash Commands](#claude-code-slash-commands)
 - [The Agent Team](#the-agent-team)
-- [43 Research Skills](#43-research-skills)
+- [44 Research Skills](#44-research-skills)
 - [Hooks](#hooks)
 - [Research Pipeline](#research-pipeline)
 - [Project Scaffold](#project-scaffold)
@@ -85,7 +85,7 @@ Oh My Paper makes Claude Code **research-aware** by adding:
 
 - **A structured 5-stage pipeline** — Survey → Ideation → Experiment → Publication → Promotion
 - **5 specialized agent roles** — each with isolated memory and clear responsibilities
-- **43 built-in research skills** — from paper search to figure generation
+- **44 built-in research skills** — from paper search to figure generation
 - **Background hooks** — auto-inject project context at session start, prompt role selection, track task completion
 - **Codex delegation** — hand off parallel tasks to Codex in a separate terminal
 
@@ -213,7 +213,7 @@ Session opens
 
 ---
 
-## 43 Research Skills
+## 44 Research Skills
 
 Skills are structured instruction sets that Claude loads on demand. Each skill is a markdown file covering a specific research task.
 
@@ -222,7 +222,7 @@ Skills are structured instruction sets that Claude loads on demand. Each skill i
 
 | Category | Skills |
 |----------|--------|
-| **Literature** | `paper-finder` · `paper-analyzer` · `paper-image-extractor` · `research-literature-trace` · `biorxiv-database` · `dataset-discovery` · `literature-pdf-ocr-library` |
+| **Literature** | `paper-finder` · `paper-analyzer` · `paper-image-extractor` · `research-literature-trace` · `biorxiv-database` · `dataset-discovery` · `literature-pdf-ocr-library` · `cnki-search` |
 | **Clinical Research** | `pubmed-search` · `clinicaltrials-gov` · `systematic-review` · `clinical-study-design` |
 | **Survey & Ideation** | `inno-deep-research` · `gemini-deep-research` · `inno-code-survey` · `inno-idea-generation` · `inno-idea-eval` · `research-idea-convergence` |
 | **Experiment** | `inno-experiment-dev` · `inno-experiment-analysis` · `research-experiment-driver` · `remote-experiment` |
@@ -476,7 +476,7 @@ Codex CLI does **not** currently auto-register the files in `plugins/oh-my-paper
 | Agent Roles (5) | `agents/*.md` | `agents/*.toml` |
 | Workflow entrypoints | `/omp:...` slash commands | Natural-language prompts + `prompts/*.md` templates |
 | SessionStart Hook | Native hook | `AGENTS.md` (auto-read) |
-| Skills (43) | ✅ shared | ✅ shared |
+| Skills (44) | ✅ shared | ✅ shared |
 | `.pipeline/` Memory | ✅ | ✅ |
 | Codex Delegation | `/omp:delegate` → new terminal | Native `/agent` subagent |
 

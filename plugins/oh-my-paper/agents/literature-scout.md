@@ -90,6 +90,20 @@ python .claude/skills/literature-pdf-ocr-library/scripts/build_bibliography.py \
 
 使用 `inno-deep-research`、`gemini-deep-research`、`paper-finder` 补充上面没有覆盖的方向。
 
+### 中文文献：CNKI
+
+主题涉及中文期刊、学位论文或国内临床实践时，用 `cnki-search` skill 补中文文献：
+
+```bash
+node .claude/skills/cnki-search/scripts/cnki.mjs status
+node .claude/skills/cnki-search/scripts/cnki.mjs advanced \
+  --query "<检索式>" --source 北大核心 CSSCI --from-year <起始年>
+```
+
+它需要 Chrome 开着远程调试并已登录知网。**退出码 2 表示需要用户处理**（Chrome 没开 / 没登录 / 撞滑块验证码）——停下把返回的 `hint` 告诉用户，等他处理完再继续。不要改用 curl 硬抓，也不要假装查过了。
+
+CNKI 全文多数要机构权限，`full_text_status` 一般填 `needs_institution`。真要下载时用 `cnki.mjs download` + `cnki.mjs collect` 归档，不要塞进 `--arxiv-ids` 那条开放获取链。
+
 ### 第三：记录和分析
 
 逐条追加到 `literature_bank.md`，写 `gap_matrix.md` 分析研究空白。

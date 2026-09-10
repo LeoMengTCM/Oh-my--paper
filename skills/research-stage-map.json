@@ -9,7 +9,8 @@
       "academic-researcher",
       "dataset-discovery",
       "biorxiv-database",
-      "systematic-review"
+      "systematic-review",
+      "cnki-search"
     ],
     "byTaskType": {
       "analysis": [
@@ -19,6 +20,7 @@
         "inno-deep-research",
         "gemini-deep-research",
         "academic-researcher",
+        "cnki-search",
         "inno-figure-gen"
       ],
       "exploration": [
@@ -29,7 +31,8 @@
         "gemini-deep-research",
         "dataset-discovery",
         "biorxiv-database",
-        "academic-researcher"
+        "academic-researcher",
+        "cnki-search"
       ]
     }
   },

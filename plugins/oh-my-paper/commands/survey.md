@@ -1,6 +1,6 @@
 ---
 name: survey
-description: 文献调研（先筛后深）：多源检索出轻量摘要表→用户勾选核心论文→只对选中的下载真实 PDF 并 OCR，再做 gap 分析
+description: 文献调研（先筛后深）：多源检索出轻量摘要表（可加 CNKI 中文文献）→用户勾选核心论文→只对选中的下载真实 PDF 并 OCR，再做 gap 分析
 ---
 
 > **确认或选择类步骤用 AskUserQuestion 工具。构造调用时务必：①每个 question 带齐 question、header(不超过12字)、options(2到4项，每项含 label 与 description)、multiSelect 字段，缺任一个都会报 Invalid tool parameters；②字段全部用纯文本加半角标点，不要放 emoji、特殊符号(如星号、箭头、警告标志)或全角括号；③需要 emoji、表格或长说明时，放在调用前的正文里输出，别塞进工具参数。payload 越精简越不容易出错。**
@@ -33,6 +33,7 @@ cat .pipeline/memory/literature_bank.md   # 已有多少文献
 
 选项：
 - `确认，出摘要表`
+- `要中文文献，加 CNKI`（主题涉及中文期刊 / 学位论文 / 国内临床实践时选这个；需要 Chrome 开着远程调试并已登录知网）
 - `调整检索式`
 - `我有 arXiv ID 列表，直接确认这些`
 
@@ -54,6 +55,32 @@ python .claude/skills/literature-pdf-ocr-library/scripts/search_and_download_pap
 - 临床 / 系统综述 track：数据源加 `pubmed`，并按 PICO 记录检索式（写进 `survey_screening.md` 旁的说明），为 PRISMA 流程图留痕。
 - 可选：若本机 Chrome 开了远程调试，跑 `bash .claude/skills/literature-pdf-ocr-library/scripts/check-deps.sh` 就绪后，用 Google Scholar 补最全引用数 / 捞其他源没收录的论文（见 `references/site-patterns/scholar.google.com.md`）；没有 Chrome 就跳过。
 
+### 3b. 中文文献（用户选了"加 CNKI"才做）
+
+先自检环境：
+
+```bash
+node .claude/skills/cnki-search/scripts/cnki.mjs status
+```
+
+**退出码 2 表示需要用户处理**（Chrome 没开远程调试 / 没开知网标签）。此时停下来把 `hint` 告诉用户，等他弄好再继续；不要跳过这一步假装查过了，也不要改用 curl 硬抓。
+
+环境就绪后按检索式查 CNKI，优先用高级检索限定来源类别与年份：
+
+```bash
+node .claude/skills/cnki-search/scripts/cnki.mjs advanced \
+  --query "<检索式A>" --source 北大核心 CSSCI --from-year <起始年>
+
+# 需要多页时逐页取，页间留间隔
+node .claude/skills/cnki-search/scripts/cnki.mjs pages --action next
+node .claude/skills/cnki-search/scripts/cnki.mjs sort --by citations
+```
+
+把返回的 `papers[]` 并进 `survey_screening.md`，数据源列标 `cnki`，`full_text_status` 按经验填：CNKI 全文要机构权限，**一般填 `needs_institution`**，别默认写成 `open_pdf`。
+
+- 撞到滑块验证码会返回 `{"error": "captcha"}` 且退出码 2——停下让用户在 Chrome 里手动完成拼图，等他回话再继续。
+- 主题涉及期刊级别时，用 `node .claude/skills/cnki-search/scripts/cnki.mjs journal --name "<刊名>"` 查收录情况（北大核心 / CSSCI / CSCD），把结论写进摘要表的 venue 列备注。
+
 把生成的 `survey_screening.md` 摘要表直接展示给用户（标题 / 年 / venue / 引用 / [new] / full_text_status / 代码）。
 
 ## 第四步：用户从摘要表勾选核心论文
@@ -69,6 +96,8 @@ python .claude/skills/literature-pdf-ocr-library/scripts/search_and_download_pap
 - `让我自己给 arXiv ID 列表`
 
 只有 `full_text_status=open_pdf` 的论文能下载到 PDF；其余仅作为元数据保留在 bank 里（标注 full_text_status）。把这点告诉用户，便于他们取舍。
+
+CNKI 来源的行是例外：能不能下全文取决于**用户在 Chrome 里的登录态与机构权限**，选了就会真的去试（见第六步的 CNKI 分支）；试失败就按元数据保留。把这句一并告诉用户，让他们知道选 CNKI 行是在赌权限。
 
 ## 第五步：询问 OCR 方式（仅对选中论文，下载前确认）
 
@@ -112,9 +141,39 @@ python .claude/skills/literature-pdf-ocr-library/scripts/build_library_index.py 
   --library-root .pipeline/literature/<corpus-name>
 ```
 
+### 6b. CNKI 选中论文的下载（与上面并行，各走各的）
+
+CNKI 的全文下载不了走 `--arxiv-ids`（那是开放获取那条链），单独用 cnki-search：
+
+```bash
+# 单篇：在详情页触发下载（需要 Chrome 里已登录且有权限）
+node .claude/skills/cnki-search/scripts/cnki.mjs detail --url "<论文url>"
+node .claude/skills/cnki-search/scripts/cnki.mjs download --format pdf
+
+# 把 Chrome 下载目录里的文件归档进语料库
+node .claude/skills/cnki-search/scripts/cnki.mjs collect \
+  --title "<论文标题>" --into .pipeline/literature/<corpus-name>/papers
+```
+
+`download` 返回 `not_logged_in` / `captcha` / `no_download_link` 时按返回的 `hint` 处理：登录、手动过拼图，或者放弃——放弃就把该篇按元数据保留，`full_text_status` 标 `needs_institution`，**不要伪称拿到了全文**。
+
+归档后的 PDF 可以和开放获取的论文一起跑同一套 OCR：
+
+```bash
+export PADDLEOCR_TOKEN="<用户提供，不要写入文件>"
+python .claude/skills/literature-pdf-ocr-library/scripts/paddleocr_layout_to_markdown.py \
+  .pipeline/literature/<corpus-name>/papers/*/paper.pdf \
+  --output-dir .pipeline/literature/<corpus-name>/papers \
+  --skip-existing
+```
+
+注意 **CAJ 不是 PDF**，OCR 脚本读不了；`download --format pdf` 拿不到 PDF 时才退 CAJ，退到 CAJ 就只能留档不能 OCR。
+
 ## 第七步：补充搜索（按需）
 
 如果摘要表 + gap 分析显示某些方向覆盖不足，调用 `inno-deep-research` skill 针对性补搜那些方向（每个方向至少 5 篇），把新发现并回摘要表 / bank。不要默认对所有方向再来一遍全量。
+
+中文文献不足的方向用 cnki-search 补（`advanced` 限定主题 + 来源类别），别拿英文库的结果硬凑中文覆盖。
 
 ## 第八步：固化参考文献 + 入库 + gap 分析
 
@@ -137,6 +196,8 @@ python .claude/skills/literature-pdf-ocr-library/scripts/build_bibliography.py \
 ```
 
 cite_key 取自 8a 写回 metadata 的 `citation_key`。元数据不足、没进 bib 的（见 bibliography.json 的 `skipped`）cite_key 填 `needs_verification`，不可被引用。OCR 路径填实际路径（如 `.pipeline/literature/<corpus-name>/papers/<slug>/ocr/paper/doc_0.md`），没有 OCR 的填 `none`。
+
+CNKI 来源的行要注意：只有 PDF 归档进 `papers/<slug>/` 并生成了 `metadata.json` 的才会进 `references.bib`。没有全文的中文文献 cite_key 填 `needs_verification`，**在 bank 里保留但不可引用**——GB/T 7714 引用串（`cnki.mjs export --mode gbt`）不能直接当 BibTeX 用，字段映射和 cite_key 都得由脚本生成。
 
 完成后生成 `.pipeline/docs/gap_matrix.md` 分析研究空白，更新 `.pipeline/memory/agent_handoff.md`。临床 / SR track 额外按 PRISMA 记录各阶段计数（检索命中 → 去重 → 标题摘要筛选 → 全文）。
 

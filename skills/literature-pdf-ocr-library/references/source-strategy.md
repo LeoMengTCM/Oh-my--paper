@@ -19,8 +19,14 @@ API-first; the browser (CDP) is a fallback only for sources with no API.
 | **Papers with Code** | ML papers + linked code repos (`code_url`) | ⚠️ official API offline since 2025 — kept as a `pwc` choice, not in the default set |
 | **Hugging Face daily_papers** | fresh ML leads (map back to arXiv) | REST API (no key) |
 | **Google Scholar** | fullest citation counts, papers other sources miss | **CDP only** (no API; optional) — see `site-patterns/scholar.google.com.md` |
+| **CNKI (中国知网)** | Chinese-language journals, theses, 北大核心/CSSCI/CSCD venue checks | **CDP only** (no API; needs a logged-in Chrome) — handled by the separate `cnki-search` skill, not by this script |
 
-CNKI / paywalled publisher scraping are intentionally out of scope here.
+Paywalled publisher scraping is intentionally out of scope here. CNKI is the one
+exception, and it lives in `skills/cnki-search/` instead of here because it needs a
+user-owned logged-in browser session — see that skill's `references/site-patterns/cnki.net.md`.
+
+This script's `--sources` stays API-only. CNKI results are merged into the same
+`screening table` / `literature_bank.md` by the `/omp:survey` flow, tagged `cnki`.
 
 ## Open-access fallback chain (`enrich_open_access`)
 

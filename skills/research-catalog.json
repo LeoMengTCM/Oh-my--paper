@@ -1,9 +1,9 @@
 {
   "schema": "omp-research-catalog-v1",
-  "generatedAt": "2026-06-10T02:39:16.781Z",
+  "generatedAt": "2026-08-23T08:21:45.584Z",
   "upstream": {
     "repo": "Oh-my--paper",
-    "revision": "d6d3d577d7107e4fa22b55133d4b9f71c47ffb7e"
+    "revision": "a33c1022d1e033793f8370eaf8ff05771ae1cb72"
   },
   "skills": [
     {
@@ -894,8 +894,8 @@
       "id": "inno-paper-reviewer",
       "name": "inno-paper-reviewer",
       "version": "1.0.0",
-      "description": "Structured manuscript/grant review with checklist-based evaluation.",
-      "summary": "Structured manuscript/grant review with checklist-based evaluation. Use when writing formal peer reviews with specific criteria methodology assessment, statistical validity, reporting standards compliance (CONSORT/STROBE), and constructive...",
+      "description": "Review clinical, epidemiological, and grant submissions against reporting-standards compliance (CONSORT, STROBE, STARD, PRISMA), statistical validity, and methodology checklists.",
+      "summary": "Structured manuscript/grant review with checklist-based evaluation. Use when writing formal peer reviews with specific criteria methodology assessment, statistical validity, reporting standards compliance (CONSORT/STROBE), and constructive feedback for clinical or grant submissions. Complements paper-reviewer, which owns CS venue scientific review and version comparison.",
       "stages": [
         "publication"
       ],
@@ -913,21 +913,22 @@
         "evaluation-benchmarking"
       ],
       "domains": [
-        "general"
+        "general",
+        "clinical-medicine"
       ],
       "keywords": [
         "inno-paper-reviewer",
-        "paper review",
-        "evaluation-benchmarking",
-        "inno",
-        "paper",
-        "reviewer",
-        "structured",
-        "manuscript",
-        "grant",
-        "review",
-        "checklist",
-        "based"
+        "clinical review",
+        "grant review",
+        "consort",
+        "strobe",
+        "stard",
+        "reporting standards",
+        "statistical validity",
+        "methodology checklist",
+        "临床评审",
+        "基金评审",
+        "报告规范核对"
       ],
       "source": "builtin",
       "status": "verified",
@@ -937,59 +938,6 @@
         "hasTemplates": false,
         "hasAssets": false,
         "referenceCount": 2,
-        "scriptCount": 0,
-        "templateCount": 0,
-        "assetCount": 0,
-        "optionalScripts": false
-      }
-    },
-    {
-      "id": "inno-paper-writing",
-      "name": "inno-paper-writing",
-      "version": "1.0.0",
-      "description": "Creates formal academic research papers following IEEE/ACM formatting standards with proper structure, citations, and scholarly writing style.",
-      "summary": "Creates formal academic research papers following IEEE/ACM formatting standards with proper structure, citations, and scholarly writing style. Use when the user asks to write a research paper, academic paper, or conference paper on any top...",
-      "stages": [
-        "publication"
-      ],
-      "tools": [
-        "read_file",
-        "search_project",
-        "write_file"
-      ],
-      "primaryIntent": "writing",
-      "intents": [
-        "writing",
-        "research"
-      ],
-      "capabilities": [
-        "visualization-reporting"
-      ],
-      "domains": [
-        "general"
-      ],
-      "keywords": [
-        "inno-paper-writing",
-        "paper writing",
-        "visualization-reporting",
-        "inno",
-        "paper",
-        "writing",
-        "creates",
-        "formal",
-        "academic",
-        "research",
-        "papers",
-        "following"
-      ],
-      "source": "builtin",
-      "status": "verified",
-      "resourceFlags": {
-        "hasReferences": true,
-        "hasScripts": false,
-        "hasTemplates": false,
-        "hasAssets": false,
-        "referenceCount": 3,
         "scriptCount": 0,
         "templateCount": 0,
         "assetCount": 0,
@@ -1160,58 +1108,52 @@
       }
     },
     {
-      "id": "inno-reference-audit",
-      "name": "inno-reference-audit",
-      "version": "0.1.0",
-      "description": "This skill provides reference guidance for citation verification in academic writing.",
-      "summary": "This skill provides reference guidance for citation verification in academic writing. Use when the user asks about \"citation verification best practices\", \"how to verify references\", \"preventing fake citations\", or needs guidance on citati...",
+      "id": "integrity-auditor",
+      "name": "integrity-auditor",
+      "version": "1.0.0",
+      "description": "Audit CS conference or journal paper integrity: claim-support alignment, result-to-claim consistency, numeric consistency, terminology consistency, figure/table-to-text consistency, existing citation existence, BibTeX metadata, and citation-context support.",
+      "summary": "Audit CS conference or journal paper integrity: claim-support alignment, result-to-claim consistency, numeric consistency, terminology consistency, figure/table-to-text consistency, existing citation existence, BibTeX metadata, and citation-context support. Use for evidence audit, citation audit, consistency check, 引用核验, claim审计, 数字一致性. Do not perform full scientific review or broad literature search.",
       "stages": [
         "publication"
       ],
       "tools": [
         "read_file",
         "search_project",
-        "write_file",
-        "run_terminal"
+        "write_file"
       ],
-      "primaryIntent": "evaluation",
+      "primaryIntent": "review",
       "intents": [
-        "evaluation",
-        "writing"
+        "review"
       ],
       "capabilities": [
-        "evaluation-benchmarking",
-        "search-retrieval"
+        "research-planning"
       ],
       "domains": [
-        "general"
+        "cs-ai"
       ],
       "keywords": [
-        "research",
-        "academic",
-        "citation",
-        "reference",
-        "inno-reference-audit",
-        "paper review",
-        "evaluation-benchmarking",
-        "search-retrieval",
-        "inno",
-        "audit",
-        "this",
-        "provides"
+        "integrity-auditor",
+        "integrity",
+        "claim check",
+        "citation audit",
+        "number consistency",
+        "terminology",
+        "figure check",
+        "一致性核验",
+        "引用核查"
       ],
       "source": "builtin",
       "status": "verified",
       "resourceFlags": {
-        "hasReferences": true,
-        "hasScripts": true,
+        "hasReferences": false,
+        "hasScripts": false,
         "hasTemplates": false,
         "hasAssets": false,
-        "referenceCount": 4,
-        "scriptCount": 4,
+        "referenceCount": 0,
+        "scriptCount": 0,
         "templateCount": 0,
         "assetCount": 0,
-        "optionalScripts": true
+        "optionalScripts": false
       }
     },
     {
@@ -1309,59 +1251,6 @@
         "templateCount": 0,
         "assetCount": 0,
         "optionalScripts": true
-      }
-    },
-    {
-      "id": "ml-paper-writing",
-      "name": "ml-paper-writing",
-      "version": "1.0.0",
-      "description": "Write publication-ready ML/AI papers for NeurIPS, ICML, ICLR, ACL, AAAI, COLM.",
-      "summary": "Write publication-ready ML/AI papers for NeurIPS, ICML, ICLR, ACL, AAAI, COLM. Use when drafting papers from research repos, structuring arguments, verifying citations, or preparing camera-ready submissions. Includes LaTeX templates, revie...",
-      "stages": [
-        "publication"
-      ],
-      "tools": [
-        "read_file",
-        "search_project",
-        "write_file"
-      ],
-      "primaryIntent": "writing",
-      "intents": [
-        "writing",
-        "research"
-      ],
-      "capabilities": [
-        "visualization-reporting"
-      ],
-      "domains": [
-        "cs-ai"
-      ],
-      "keywords": [
-        "academic writing",
-        "neurips",
-        "icml",
-        "iclr",
-        "acl",
-        "aaai",
-        "colm",
-        "latex",
-        "paper writing",
-        "citations",
-        "research",
-        "ml-paper-writing"
-      ],
-      "source": "builtin",
-      "status": "verified",
-      "resourceFlags": {
-        "hasReferences": true,
-        "hasScripts": false,
-        "hasTemplates": true,
-        "hasAssets": false,
-        "referenceCount": 5,
-        "scriptCount": 0,
-        "templateCount": 46,
-        "assetCount": 0,
-        "optionalScripts": false
       }
     },
     {
@@ -1471,6 +1360,54 @@
       }
     },
     {
+      "id": "paper-humanization",
+      "name": "paper-humanization",
+      "version": "1.0.0",
+      "description": "Humanize and de-defend publication-facing CS/AI prose and artifacts as a sidecar preflight, never as the primary task owner.",
+      "summary": "Humanize and de-defend publication-facing CS/AI prose and artifacts as a sidecar preflight, never as the primary task owner. Use before manuscript drafting/revision and before final manuscript experiment text, tables, captions, or method descriptions when Codex must remove defensive writing, boilerplate disclaimers, repetitive improbable edge cases, unnecessary safeguards, generic SHA-256/checksum requirements, duplicated smoke tests, simplified/toy methods, or AI-like risk narration. Do not auto-load as the sole owner for raw experiment planning, retrieval, review, auditing, routing, visual rendering, or assessment-only tasks without publication prose. Keep necessary concerns in a separate user-review warning instead of silently injecting them into files. Do not conceal material evidence, fabricate results, or override venue-mandated disclosures.",
+      "stages": [
+        "publication"
+      ],
+      "tools": [
+        "read_file",
+        "search_project",
+        "write_file"
+      ],
+      "primaryIntent": "writing",
+      "intents": [
+        "writing"
+      ],
+      "capabilities": [
+        "research-planning"
+      ],
+      "domains": [
+        "cs-ai"
+      ],
+      "keywords": [
+        "paper-humanization",
+        "humanization",
+        "academic prose",
+        "defensive writing",
+        "ai tells",
+        "去除 ai 味",
+        "自然表达",
+        "学术语言"
+      ],
+      "source": "builtin",
+      "status": "verified",
+      "resourceFlags": {
+        "hasReferences": true,
+        "hasScripts": false,
+        "hasTemplates": false,
+        "hasAssets": false,
+        "referenceCount": 2,
+        "scriptCount": 0,
+        "templateCount": 0,
+        "assetCount": 0,
+        "optionalScripts": false
+      }
+    },
+    {
       "id": "paper-image-extractor",
       "name": "paper-image-extractor",
       "version": "1.0.0",
@@ -1525,6 +1462,174 @@
       }
     },
     {
+      "id": "paper-reviewer",
+      "name": "paper-reviewer",
+      "version": "1.0.0",
+      "description": "Own assessment-only manuscript deliverables without rewriting: full scientific review, scoring, reviewer reports, issue diagnosis, AC/meta-review, readiness judgment, writing/format review, and cross-version comparison.",
+      "summary": "Own assessment-only manuscript deliverables without rewriting: full scientific review, scoring, reviewer reports, issue diagnosis, AC/meta-review, readiness judgment, writing/format review, and cross-version comparison. Use for full review, scientific review, do not rewrite, assessment-only, paper review, score drift, moving-target review, 完整审稿, 不要改写, 模拟审稿, 论文评分, 版本对比, 复审一致性, 写作评审, LaTeX检查. Requests for revised or polished prose, including rewrite based on reviews with no new review, belong to paper-writing; rebuttals belong to rebuttal-writer; visual/table styling belongs to inno-figure-gen. Clinical-trial or grant review requiring reporting-standards compliance (CONSORT/STROBE) belongs to inno-paper-reviewer.",
+      "stages": [
+        "publication"
+      ],
+      "tools": [
+        "read_file",
+        "search_project",
+        "write_file",
+        "run_terminal"
+      ],
+      "primaryIntent": "review",
+      "intents": [
+        "review",
+        "research"
+      ],
+      "capabilities": [
+        "research-planning"
+      ],
+      "domains": [
+        "cs-ai"
+      ],
+      "keywords": [
+        "paper-reviewer",
+        "peer review",
+        "scientific review",
+        "scoring",
+        "rebuttal readiness",
+        "version comparison",
+        "desk check",
+        "评审",
+        "审稿",
+        "打分",
+        "版本对比"
+      ],
+      "source": "builtin",
+      "status": "verified",
+      "resourceFlags": {
+        "hasReferences": true,
+        "hasScripts": true,
+        "hasTemplates": false,
+        "hasAssets": false,
+        "referenceCount": 15,
+        "scriptCount": 1,
+        "templateCount": 0,
+        "assetCount": 0,
+        "optionalScripts": true
+      }
+    },
+    {
+      "id": "paper-to-exemplar",
+      "name": "paper-to-exemplar",
+      "version": "1.0.0",
+      "description": "Convert user-provided conference paper PDFs into distilled writing exemplar cards for the paper-writing skill.",
+      "summary": "Convert user-provided conference paper PDFs into distilled writing exemplar cards for the paper-writing skill. Extracts full text, analyzes writing patterns by venue, and produces ready-to-use exemplar cards with story patterns, abstract/introduction/method/evidence moves, and citation-style analysis. Use for PDF to writing exemplar, custom writing exemplars, reusable writing templates, or a personal exemplar library for a target venue. Do not render, beautify, or reconstruct visual figures.",
+      "stages": [
+        "publication"
+      ],
+      "tools": [
+        "read_file",
+        "search_project",
+        "write_file",
+        "run_terminal"
+      ],
+      "primaryIntent": "writing",
+      "intents": [
+        "writing",
+        "research"
+      ],
+      "capabilities": [
+        "search-retrieval",
+        "research-planning"
+      ],
+      "domains": [
+        "cs-ai"
+      ],
+      "keywords": [
+        "paper-to-exemplar",
+        "exemplar",
+        "reference paper",
+        "writing pattern",
+        "narrative structure",
+        "范文",
+        "写作范式"
+      ],
+      "source": "builtin",
+      "status": "verified",
+      "resourceFlags": {
+        "hasReferences": false,
+        "hasScripts": true,
+        "hasTemplates": false,
+        "hasAssets": false,
+        "referenceCount": 0,
+        "scriptCount": 1,
+        "templateCount": 0,
+        "assetCount": 0,
+        "optionalScripts": true
+      }
+    },
+    {
+      "id": "paper-writing",
+      "name": "paper-writing",
+      "version": "1.0.0",
+      "description": "Own text-changing deliverables for CS conference and journal papers: draft, rewrite, revise, polish, or compress manuscript and presentation prose while preserving supplied scope and evidence.",
+      "summary": "Own text-changing deliverables for CS conference and journal papers: draft, rewrite, revise, polish, or compress manuscript and presentation prose while preserving supplied scope and evidence. Use for abstract/introduction/related work/method/experiment writing, paragraph edits, reviewer-motivated rewrites, rewrite based on review with no new review, slides/poster/talk/Q&A, 润色论文, 改写, 写作, 压缩论文. Do not use for assessment-only requests such as full review, scientific review, scoring, issue diagnosis, evidence audit, submission checks, or rebuttal, especially when the user says no rewrite. For clinical, epidemiological, or systematic-review manuscripts that must follow IMRaD and reporting guidelines (CONSORT/PRISMA/STROBE/STARD), use scientific-writing instead.",
+      "stages": [
+        "publication"
+      ],
+      "tools": [
+        "read_file",
+        "search_project",
+        "write_file",
+        "run_terminal"
+      ],
+      "primaryIntent": "writing",
+      "intents": [
+        "writing",
+        "research"
+      ],
+      "capabilities": [
+        "research-planning",
+        "visualization-reporting"
+      ],
+      "domains": [
+        "cs-ai"
+      ],
+      "keywords": [
+        "paper-writing",
+        "paper writing",
+        "manuscript",
+        "draft",
+        "rewrite",
+        "polish",
+        "compress",
+        "abstract",
+        "introduction",
+        "related work",
+        "method",
+        "latex",
+        "venue",
+        "cvpr",
+        "neurips",
+        "icml",
+        "iclr",
+        "acl",
+        "论文写作",
+        "润色",
+        "改写",
+        "压缩"
+      ],
+      "source": "builtin",
+      "status": "verified",
+      "resourceFlags": {
+        "hasReferences": true,
+        "hasScripts": true,
+        "hasTemplates": true,
+        "hasAssets": false,
+        "referenceCount": 191,
+        "scriptCount": 2,
+        "templateCount": 570,
+        "assetCount": 0,
+        "optionalScripts": true
+      }
+    },
+    {
       "id": "pubmed-search",
       "name": "pubmed-search",
       "version": "1.0.0",
@@ -1573,6 +1678,54 @@
         "templateCount": 0,
         "assetCount": 0,
         "optionalScripts": true
+      }
+    },
+    {
+      "id": "rebuttal-writer",
+      "name": "rebuttal-writer",
+      "version": "1.0.0",
+      "description": "Write and organize CS conference rebuttals, author responses, response letters, revision summaries, reviewer-comment ledgers, and conservative resubmission adaptation plans.",
+      "summary": "Write and organize CS conference rebuttals, author responses, response letters, revision summaries, reviewer-comment ledgers, and conservative resubmission adaptation plans. Use for rebuttal, author response, AC/meta-review response, revision ledger, resubmission to a new venue, 审稿意见回复, 重投迁移. Do not trigger for ordinary manuscript writing.",
+      "stages": [
+        "publication"
+      ],
+      "tools": [
+        "read_file",
+        "search_project",
+        "write_file"
+      ],
+      "primaryIntent": "writing",
+      "intents": [
+        "writing",
+        "review"
+      ],
+      "capabilities": [
+        "research-planning"
+      ],
+      "domains": [
+        "cs-ai"
+      ],
+      "keywords": [
+        "rebuttal-writer",
+        "rebuttal",
+        "response letter",
+        "reviewer response",
+        "revision note",
+        "审稿回复",
+        "答辩"
+      ],
+      "source": "builtin",
+      "status": "verified",
+      "resourceFlags": {
+        "hasReferences": true,
+        "hasScripts": false,
+        "hasTemplates": false,
+        "hasAssets": true,
+        "referenceCount": 4,
+        "scriptCount": 0,
+        "templateCount": 0,
+        "assetCount": 4,
+        "optionalScripts": false
       }
     },
     {
@@ -1917,8 +2070,8 @@
       "id": "scientific-writing",
       "name": "scientific-writing",
       "version": "1.0.0",
-      "description": "Core skill for the deep research and writing tool.",
-      "summary": "Core skill for the deep research and writing tool. Write scientific manuscripts in full paragraphs (never bullet points). Use two-stage process: (1) create section outlines with key points using literature search, (2) convert to flowing pros...",
+      "description": "Write clinical, epidemiological, systematic-review, and general-science manuscripts that must follow IMRaD structure and reporting guidelines (CONSORT, PRISMA, STROBE, STARD).",
+      "summary": "Write clinical, epidemiological, systematic-review, and general-science manuscripts in full paragraphs (never bullet points), following IMRaD and the applicable reporting guideline (CONSORT/PRISMA/STROBE/STARD). Use two-stage process: (1) create section outlines with key points using literature search, (2) convert to flowing prose. Complements paper-writing, which owns CS venue-targeted manuscripts.",
       "stages": [
         "publication"
       ],
@@ -1936,21 +2089,23 @@
         "visualization-reporting"
       ],
       "domains": [
-        "general"
+        "general",
+        "clinical-medicine"
       ],
       "keywords": [
         "scientific-writing",
-        "paper writing",
-        "visualization-reporting",
-        "scientific",
-        "writing",
-        "core",
-        "deep",
-        "research",
-        "tool",
-        "write",
-        "manuscripts",
-        "full"
+        "imrad",
+        "consort",
+        "prisma",
+        "strobe",
+        "stard",
+        "reporting guidelines",
+        "clinical manuscript",
+        "observational study",
+        "systematic review writing",
+        "临床论文",
+        "报告规范",
+        "综述写作"
       ],
       "source": "builtin",
       "status": "verified",
@@ -1960,6 +2115,57 @@
         "hasTemplates": false,
         "hasAssets": false,
         "referenceCount": 5,
+        "scriptCount": 0,
+        "templateCount": 0,
+        "assetCount": 0,
+        "optionalScripts": false
+      }
+    },
+    {
+      "id": "submission-checker",
+      "name": "submission-checker",
+      "version": "1.0.0",
+      "description": "Check CS conference submission readiness: venue LaTeX/template/page/anonymity/camera-ready rules, LaTeX/PDF build, metadata, fonts, supplementary files, artifact/reproducibility package, code/data/model release plan, licenses, seeds, and policy freshness.",
+      "summary": "Check CS conference submission readiness: venue LaTeX/template/page/anonymity/camera-ready rules, LaTeX/PDF build, metadata, fonts, supplementary files, artifact/reproducibility package, code/data/model release plan, licenses, seeds, and policy freshness. Use for submission check, venue format, NeurIPS/CVPR/ICML template/page limit, artifact package, 投稿检查, 会议格式. Do not polish manuscript content.",
+      "stages": [
+        "publication"
+      ],
+      "tools": [
+        "read_file",
+        "search_project",
+        "write_file"
+      ],
+      "primaryIntent": "review",
+      "intents": [
+        "review",
+        "delivery"
+      ],
+      "capabilities": [
+        "research-planning"
+      ],
+      "domains": [
+        "cs-ai"
+      ],
+      "keywords": [
+        "submission-checker",
+        "submission",
+        "camera ready",
+        "anonymity",
+        "page limit",
+        "template check",
+        "supplementary",
+        "投稿检查",
+        "匿名",
+        "页数"
+      ],
+      "source": "builtin",
+      "status": "verified",
+      "resourceFlags": {
+        "hasReferences": false,
+        "hasScripts": false,
+        "hasTemplates": false,
+        "hasAssets": false,
+        "referenceCount": 0,
         "scriptCount": 0,
         "templateCount": 0,
         "assetCount": 0,
@@ -2125,32 +2331,40 @@
     },
     "publication": {
       "base": [
-        "inno-paper-writing",
+        "paper-writing",
+        "paper-reviewer",
+        "integrity-auditor",
+        "paper-humanization",
+        "submission-checker",
+        "rebuttal-writer",
+        "paper-to-exemplar",
         "inno-figure-gen",
         "inno-paper-reviewer",
-        "inno-reference-audit",
         "inno-rclone-to-overleaf",
         "scientific-writing",
-        "ml-paper-writing",
         "inno-grant-proposal",
         "systematic-review"
       ],
       "byTaskType": {
         "writing": [
-          "inno-paper-writing",
+          "paper-writing",
+          "paper-humanization",
+          "paper-to-exemplar",
+          "rebuttal-writer",
           "inno-figure-gen",
           "scientific-writing",
-          "ml-paper-writing",
           "inno-grant-proposal",
           "systematic-review"
         ],
         "analysis": [
+          "paper-reviewer",
+          "integrity-auditor",
           "inno-paper-reviewer",
-          "inno-reference-audit",
           "inno-deep-research",
           "systematic-review"
         ],
         "delivery": [
+          "submission-checker",
           "inno-rclone-to-overleaf"
         ]
       }

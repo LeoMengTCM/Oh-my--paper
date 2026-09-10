@@ -21,7 +21,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/claude--code-plugin-blueviolet?style=flat-square" />
   <img src="https://img.shields.io/badge/agents-5-ff69b4?style=flat-square" />
-  <img src="https://img.shields.io/badge/skills-39-green?style=flat-square" />
+  <img src="https://img.shields.io/badge/skills-43-green?style=flat-square" />
   <img src="https://img.shields.io/badge/commands-9-blue?style=flat-square" />
   <img src="https://img.shields.io/badge/license-MIT-orange?style=flat-square" />
 </p>
@@ -63,7 +63,7 @@
 - [安装](#安装)
 - [Claude Code 命令列表](#claude-code-命令列表)
 - [Agent 团队](#agent-团队)
-- [39 个研究技能](#39-个研究技能)
+- [43 个研究技能](#43-个研究技能)
 - [Hooks](#hooks)
 - [科研流水线](#科研流水线)
 - [项目结构](#项目结构)
@@ -85,7 +85,7 @@ Oh My Paper 让 Claude Code **理解科研**，提供：
 
 - **结构化 5 阶段流水线** — 调研 → 创意 → 实验 → 发表 → 推广
 - **5 个专职 agent 角色** — 各自有独立记忆和明确职责
-- **39 个内置研究技能** — 从论文搜索到图表生成
+- **43 个内置研究技能** — 从论文搜索到图表生成
 - **后台 hooks** — 每次开会话自动注入项目上下文、触发角色选择
 - **Codex 任务委派** — 把并行任务交给另一个终端里的 Codex 跑
 
@@ -213,7 +213,7 @@ Codex 插件目前**不会**在 Codex CLI 里自动注册 `/omp-*` 命令。
 
 ---
 
-## 39 个研究技能
+## 43 个研究技能
 
 技能是 Claude 按需加载的结构化指令集，每个技能是一个 markdown 文件，覆盖特定的科研任务。
 
@@ -226,8 +226,9 @@ Codex 插件目前**不会**在 Codex CLI 里自动注册 `/omp-*` 命令。
 | **临床研究** | `pubmed-search` · `clinicaltrials-gov` · `systematic-review` · `clinical-study-design` |
 | **调研与创意** | `inno-deep-research` · `gemini-deep-research` · `inno-code-survey` · `inno-idea-generation` · `inno-idea-eval` · `research-idea-convergence` |
 | **实验** | `inno-experiment-dev` · `inno-experiment-analysis` · `research-experiment-driver` · `remote-experiment` |
-| **写作** | `inno-paper-writing` · `ml-paper-writing` · `scientific-writing` · `inno-figure-gen` · `inno-reference-audit` · `research-paper-handoff` |
-| **规划与评审** | `inno-pipeline-planner` · `research-pipeline-planner` · `inno-paper-reviewer` · `inno-prepare-resources` · `inno-rclone-to-overleaf` |
+| **写作** | `paper-writing` · `scientific-writing` · `paper-humanization` · `paper-to-exemplar` · `inno-figure-gen` · `research-paper-handoff` |
+| **评审与投稿** | `paper-reviewer` · `inno-paper-reviewer` · `integrity-auditor` · `rebuttal-writer` · `submission-checker` · `inno-rclone-to-overleaf` |
+| **规划** | `inno-pipeline-planner` · `research-pipeline-planner` · `inno-prepare-resources` |
 | **演示** | `making-academic-presentations` · `inno-grant-proposal` |
 | **Agent 派发** | `claude-code-dispatch` · `codex-dispatch` |
 | **领域专项** | `academic-researcher` · `bioinformatics-init-analysis` · `research-news` |
@@ -476,7 +477,7 @@ Codex CLI 目前**不会**把 `plugins/oh-my-paper-codex/prompts/` 下的文件�
 | Agent 角色（5 个） | `agents/*.md` | `agents/*.toml` |
 | 工作流入口 | `/omp:...` 斜杠命令 | 自然语言 + `prompts/*.md` 模板 |
 | SessionStart Hook | 原生 hook | `AGENTS.md`（自动读取） |
-| 技能（39 个） | ✅ 共享 | ✅ 共享 |
+| 技能（43 个） | ✅ 共享 | ✅ 共享 |
 | `.pipeline/` 记忆 | ✅ | ✅ |
 | Codex 任务委派 | `/omp:delegate` → 新终端 | 原生 `/agent` 子代理 |
 
@@ -519,6 +520,7 @@ MIT。详见 [LICENSE](./LICENSE)。
 ## 致谢
 
 特别感谢 **[Linux.do](https://linux.do)** 社区的支持与反馈。
+论文写作、评审、语言、rebuttal、投稿检查、范文学习六块能力，以及 139 个会议的 LaTeX 模板，并入自 **[CCFA-Skills](https://github.com/mikubaka88/CCFA-Skills)**（MIT，作者 mikubaka88）。并入的是 `fd5c7e3` 这个 commit，之后按本仓库的 frontmatter 规范和 `.pipeline/` 模型改写过；每个 skill 的 `SKILL.md` frontmatter 里记着 `upstream` 来源。要重新并入或跟上游 diff，跑 `node scripts/vendor-ccfa.mjs --src <CCFA-Skills 路径>`。
 
 ---
 

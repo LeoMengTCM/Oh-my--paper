@@ -21,7 +21,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/claude--code-plugin-blueviolet?style=flat-square" />
   <img src="https://img.shields.io/badge/agents-5-ff69b4?style=flat-square" />
-  <img src="https://img.shields.io/badge/skills-39-green?style=flat-square" />
+  <img src="https://img.shields.io/badge/skills-43-green?style=flat-square" />
   <img src="https://img.shields.io/badge/commands-9-blue?style=flat-square" />
   <img src="https://img.shields.io/badge/license-MIT-orange?style=flat-square" />
 </p>
@@ -63,7 +63,7 @@ This is a personal maintenance fork of **[LigphiDonk/Oh-my--paper](https://githu
 - [Install](#install)
 - [Claude Code Slash Commands](#claude-code-slash-commands)
 - [The Agent Team](#the-agent-team)
-- [39 Research Skills](#39-research-skills)
+- [43 Research Skills](#43-research-skills)
 - [Hooks](#hooks)
 - [Research Pipeline](#research-pipeline)
 - [Project Scaffold](#project-scaffold)
@@ -85,7 +85,7 @@ Oh My Paper makes Claude Code **research-aware** by adding:
 
 - **A structured 5-stage pipeline** — Survey → Ideation → Experiment → Publication → Promotion
 - **5 specialized agent roles** — each with isolated memory and clear responsibilities
-- **39 built-in research skills** — from paper search to figure generation
+- **43 built-in research skills** — from paper search to figure generation
 - **Background hooks** — auto-inject project context at session start, prompt role selection, track task completion
 - **Codex delegation** — hand off parallel tasks to Codex in a separate terminal
 
@@ -213,7 +213,7 @@ Session opens
 
 ---
 
-## 39 Research Skills
+## 43 Research Skills
 
 Skills are structured instruction sets that Claude loads on demand. Each skill is a markdown file covering a specific research task.
 
@@ -226,8 +226,9 @@ Skills are structured instruction sets that Claude loads on demand. Each skill i
 | **Clinical Research** | `pubmed-search` · `clinicaltrials-gov` · `systematic-review` · `clinical-study-design` |
 | **Survey & Ideation** | `inno-deep-research` · `gemini-deep-research` · `inno-code-survey` · `inno-idea-generation` · `inno-idea-eval` · `research-idea-convergence` |
 | **Experiment** | `inno-experiment-dev` · `inno-experiment-analysis` · `research-experiment-driver` · `remote-experiment` |
-| **Writing** | `inno-paper-writing` · `ml-paper-writing` · `scientific-writing` · `inno-figure-gen` · `inno-reference-audit` · `research-paper-handoff` |
-| **Planning & Review** | `inno-pipeline-planner` · `research-pipeline-planner` · `inno-paper-reviewer` · `inno-prepare-resources` · `inno-rclone-to-overleaf` |
+| **Writing** | `paper-writing` · `scientific-writing` · `paper-humanization` · `paper-to-exemplar` · `inno-figure-gen` · `research-paper-handoff` |
+| **Review & Submission** | `paper-reviewer` · `inno-paper-reviewer` · `integrity-auditor` · `rebuttal-writer` · `submission-checker` · `inno-rclone-to-overleaf` |
+| **Planning** | `inno-pipeline-planner` · `research-pipeline-planner` · `inno-prepare-resources` |
 | **Presentation** | `making-academic-presentations` · `inno-grant-proposal` |
 | **Agent Dispatch** | `claude-code-dispatch` · `codex-dispatch` |
 | **Domain-Specific** | `academic-researcher` · `bioinformatics-init-analysis` · `research-news` |
@@ -475,7 +476,7 @@ Codex CLI does **not** currently auto-register the files in `plugins/oh-my-paper
 | Agent Roles (5) | `agents/*.md` | `agents/*.toml` |
 | Workflow entrypoints | `/omp:...` slash commands | Natural-language prompts + `prompts/*.md` templates |
 | SessionStart Hook | Native hook | `AGENTS.md` (auto-read) |
-| Skills (39) | ✅ shared | ✅ shared |
+| Skills (43) | ✅ shared | ✅ shared |
 | `.pipeline/` Memory | ✅ | ✅ |
 | Codex Delegation | `/omp:delegate` → new terminal | Native `/agent` subagent |
 
@@ -518,6 +519,7 @@ MIT. See [LICENSE](./LICENSE).
 ## Acknowledgments
 
 Special thanks to the **[Linux.do](https://linux.do)** community for your support and feedback.
+The paper writing, review, humanization, rebuttal, submission-check and exemplar-learning skills, along with LaTeX templates for 139 venues, are vendored from **[CCFA-Skills](https://github.com/mikubaka88/CCFA-Skills)** (MIT, by mikubaka88) at commit `fd5c7e3`, then rewritten to this repo's frontmatter conventions and `.pipeline/` model. Each skill records its origin in the `upstream` field of its `SKILL.md`. To re-vendor or diff against upstream, run `node scripts/vendor-ccfa.mjs --src <path to CCFA-Skills>`.
 
 ---
 

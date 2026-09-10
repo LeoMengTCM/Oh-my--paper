@@ -1,6 +1,6 @@
 {
   "schema": "omp-research-scope-v1",
-  "generatedAt": "2026-06-10T02:39:16.781Z",
+  "generatedAt": "2026-08-23T08:21:45.584Z",
   "skills": [
     "academic-researcher",
     "bioinformatics-init-analysis",
@@ -20,18 +20,21 @@
     "inno-idea-eval",
     "inno-idea-generation",
     "inno-paper-reviewer",
-    "inno-paper-writing",
     "inno-pipeline-planner",
     "inno-prepare-resources",
     "inno-rclone-to-overleaf",
-    "inno-reference-audit",
+    "integrity-auditor",
     "literature-pdf-ocr-library",
     "making-academic-presentations",
-    "ml-paper-writing",
     "paper-analyzer",
     "paper-finder",
+    "paper-humanization",
     "paper-image-extractor",
+    "paper-reviewer",
+    "paper-to-exemplar",
+    "paper-writing",
     "pubmed-search",
+    "rebuttal-writer",
     "remote-experiment",
     "research-experiment-driver",
     "research-idea-convergence",
@@ -40,6 +43,7 @@
     "research-paper-handoff",
     "research-pipeline-planner",
     "scientific-writing",
+    "submission-checker",
     "systematic-review"
   ]
 }

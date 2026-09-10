@@ -52,16 +52,16 @@ LLM 写论文的默认毛病是写得太短，把大量工作量压缩成几句�
 > 现在写 **[节名]**，基于：[依赖的来源文件]
 
 **摘要 + 引言：**
-调用 `inno-paper-writing` skill，根据 `.pipeline/memory/project_truth.md` 和 `.pipeline/memory/result_summary.md`，写 `sections/abstract.tex` 和 `sections/introduction.tex`，不捏造数据。
+调用 `paper-writing` skill，根据 `.pipeline/memory/project_truth.md` 和 `.pipeline/memory/result_summary.md`，写 `sections/abstract.tex` 和 `sections/introduction.tex`，不捏造数据。
 
 **相关工作：**
-调用 `inno-paper-writing` skill，基于 `.pipeline/memory/literature_bank.md`（accepted 的）写 `sections/related_work.tex`。引用遵守上面的引用铁律：只用 bank 的 cite_key，不手写 bib。
+调用 `paper-writing` skill，基于 `.pipeline/memory/literature_bank.md`（accepted 的）写 `sections/related_work.tex`。引用遵守上面的引用铁律：只用 bank 的 cite_key，不手写 bib。
 
 **方法论：**
-调用 `inno-paper-writing` skill，基于 `project_truth.md` 中的方法描述，写 `sections/methodology.tex`，包含必要数学公式。
+调用 `paper-writing` skill，基于 `project_truth.md` 中的方法描述，写 `sections/methodology.tex`，包含必要数学公式。
 
 **实验与结果：**
-调用 `inno-paper-writing` skill，基于 `.pipeline/memory/experiment_ledger.md` 和 `result_summary.md`，写 `sections/experiments.tex`，使用真实数据。写之前先把 experiment_ledger 逐条列成清单，每条对应正文一个小节或段落；写完逐条打勾核对，一条都不许漏。
+调用 `paper-writing` skill，基于 `.pipeline/memory/experiment_ledger.md` 和 `result_summary.md`，写 `sections/experiments.tex`，使用真实数据。写之前先把 experiment_ledger 逐条列成清单，每条对应正文一个小节或段落；写完逐条打勾核对，一条都不许漏。
 
 每节完成后，先报字数（对照篇幅铁律下限），再询问用户：
 
@@ -82,14 +82,15 @@ LLM 写论文的默认毛病是写得太短，把大量工作量压缩成几句�
 
 **图表（组装，不是从零画）：** 读 `figure_ledger.md`，按"拟用章节/面板"把子图分组成多面板大图方案（如图2 = (a) 训练曲线 (b) 消融 (c) 敏感性 (d) 样例），先展示方案；用绘图脚本拼面板（matplotlib subplots 或 LaTeX subfigure）输出到 `assets/figures/`，统一字号配色。概念图/架构图才用 `inno-figure-gen`；**带数据的图一律来自实验期的绘图脚本，禁止用图像生成模型画**。核对：每个主要结果至少一图、每图被 `\ref` 且 caption 逐面板说明。缺图就列清单回 /omp-experiment 用现成的 csv + plot 脚本补画，不要现编数据。
 
-**引用审查：** 先跑 `audit_citations.py --sections-dir sections --tex main.tex --bib refs/references.bib` 机制化校验（dangling=编造/笔误，unsourced=手写 bib），退出非零先别进 review；再用 `inno-reference-audit` skill 人工核实存疑项。
+**引用审查：** 先跑 `audit_citations.py --sections-dir sections --tex main.tex --bib refs/references.bib` 机制化校验（dangling=编造/笔误，unsourced=手写 bib），退出非零先别进 review；再用 `integrity-auditor` skill 人工核实存疑项。
 
 ## 第四步：完整性核对（进入 review 前的门）
 
-逐项检查并展示给用户：experiment_ledger 每条都有对应小节（列对照表）；figure_ledger 非 unused 的图都被 `\ref`；各节字数 vs 下限；abstract/introduction/conclusion 贡献点一致；关键数字与 result_summary.md 一致。有不过的先补齐再继续。
+逐项检查并展示给用户：experiment_ledger 每条都有对应小节（列对照表）；figure_ledger 非 unused 的图都被 `\ref`；各节字数 vs 下限；abstract/introduction/conclusion 贡献点一致；关键数字与 result_summary.md 一致；跑 `integrity-auditor` skill 核验 claim 与证据、数值/术语/图表一致性；跑 `paper-humanization` skill 清掉防御性铺垫、重复 caveat、三项并列、破折号堆砌、内部工程状态叙述。有不过的先补齐再继续。
 
 ## 完成后
 
 询问用户：
 - 进入 `/omp-review` 做同行评审
+- 跑 `submission-checker` 做投稿前检查（模板、页数、匿名、PDF、补充材料）
 - 我自己先看看再说

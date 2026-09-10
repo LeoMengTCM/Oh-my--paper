@@ -3,16 +3,16 @@ id: inno-paper-reviewer
 name: inno-paper-reviewer
 version: 1.0.0
 description: |-
-  Structured manuscript/grant review with checklist-based evaluation.
+  Review clinical, epidemiological, and grant submissions against reporting-standards compliance (CONSORT, STROBE, STARD, PRISMA), statistical validity, and methodology checklists. Use for clinical manuscript review, grant proposal review, reporting-guideline compliance checks, 临床评审, 基金评审, 报告规范核对. Do not use for CS conference peer review, scoring, or cross-version comparison — those belong to paper-reviewer.
 stages: ["publication"]
 tools: ["read_file", "search_project", "write_file"]
 summary: |-
-  Structured manuscript/grant review with checklist-based evaluation. Use when writing formal peer reviews with specific criteria methodology assessment, statistical validity, reporting standards compliance (CONSORT/STROBE), and constructive...
+  Structured manuscript/grant review with checklist-based evaluation. Use when writing formal peer reviews with specific criteria methodology assessment, statistical validity, reporting standards compliance (CONSORT/STROBE), and constructive feedback for clinical or grant submissions. Complements paper-reviewer, which owns CS venue scientific review and version comparison.
 primaryIntent: evaluation
 intents: ["evaluation", "writing"]
 capabilities: ["evaluation-benchmarking"]
-domains: ["general"]
-keywords: ["inno-paper-reviewer", "paper review", "evaluation-benchmarking", "inno", "paper", "reviewer", "structured", "manuscript", "grant", "review", "checklist", "based"]
+domains: ["general", "clinical-medicine"]
+keywords: ["inno-paper-reviewer", "clinical review", "grant review", "consort", "strobe", "stard", "reporting standards", "statistical validity", "methodology checklist", "临床评审", "基金评审", "报告规范核对"]
 source: builtin
 status: verified
 upstream:

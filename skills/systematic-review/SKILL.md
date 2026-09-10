@@ -82,7 +82,7 @@ confounding working against the effect). Summarize in a GRADE Summary-of-Finding
 Report against the **PRISMA 2020 checklist** and include the **flow diagram**
 (`templates/prisma-flow.md`). Hand the manuscript to the `scientific-writing` skill,
 which already knows the PRISMA reporting guideline, and verify every citation with
-`inno-reference-audit`.
+`integrity-auditor`.
 
 ## Guardrails
 

@@ -251,16 +251,16 @@ See `references/common-pitfalls.md` for the complete error patterns and fixes.
 
 ## Integration with Paper Writing
 
-### Collaboration with ml-paper-writing Skill
+### Collaboration with paper-writing Skill
 
-This skill focuses on experimental results analysis and works in tandem with the `ml-paper-writing` skill:
+This skill focuses on experimental results analysis and works in tandem with the `paper-writing` skill:
 
 **inno-experiment-analysis handles:**
 - Data analysis and statistical tests
 - Visualization generation
 - Results interpretation
 
-**ml-paper-writing handles:**
+**paper-writing handles:**
 - Complete paper structure
 - Citation management
 - Conference format requirements
@@ -271,7 +271,7 @@ Experiments complete → inno-experiment-analysis analyzes
     ↓
 Generate analysis report and visualizations
     ↓
-ml-paper-writing integrates into paper
+paper-writing integrates into paper
     ↓
 Complete Results section
 ```

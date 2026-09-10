@@ -219,8 +219,11 @@ function corpusOf(patterns) {
 // ---------- 9. README 徽章数字与实际一致 ----------
 {
   checks++;
+  // 与 sync-research-skills.mjs 口径一致：只数含 SKILL.md 的目录。
+  // `skills/_shared/` 是被多个 skill 引用的共享参考，不是 skill。
   const skillCount = readdirSync(path.join(repoRoot, "skills"), { withFileTypes: true })
-    .filter((d) => d.isDirectory()).length;
+    .filter((d) => d.isDirectory() && existsSync(path.join(repoRoot, "skills", d.name, "SKILL.md")))
+    .length;
   const commandCount = trackedFiles("plugins/oh-my-paper/commands/*.md").length;
   const agentCount = trackedFiles("plugins/oh-my-paper/agents/*.md").length;
   const actual = { skills: skillCount, commands: commandCount, agents: agentCount };

@@ -46,7 +46,9 @@ cat .pipeline/memory/result_summary.md | head -20
 把下面的任务交给 Codex（用 `codex-dispatch` 技能或 `/omp:delegate` 流程，建议后台运行；Codex 不可用就自己执行）：
 
 ```
-使用 .claude/skills/inno-paper-reviewer/SKILL.md 对项目 LaTeX 论文进行同行评审（[含用户额外要求]），并按第零步确定的 track 报告规范清单逐条核对（缺项列入"必须修改"）。额外核对：①图表充分性——对照 .pipeline/memory/figure_ledger.md 和 experiment_ledger.md，每个主要结果是否有图、图是否多面板组织、caption 是否自含；②篇幅完整性——experiment_ledger 每条是否都在正文有对应小节，有没有被一句话带过的工作量。将报告追加写入 .pipeline/memory/review_log.md，格式：评分表格 + 必须修改列表 + 建议修改列表 + 推荐结论。完成后更新 agent_handoff.md。
+使用评审 skill 对项目 LaTeX 论文进行同行评审（[含用户额外要求]）——ml / bioinformatics track 用 .claude/skills/paper-reviewer/SKILL.md（venue 导向的科学评审、评分、录用准备度、跨版本对比）；clinical / systematic-review track 用 .claude/skills/inno-paper-reviewer/SKILL.md（CONSORT/STROBE/STARD/PRISMA 合规评审）。并按第零步确定的 track 报告规范清单逐条核对（缺项列入"必须修改"）。额外核对：①图表充分性——对照 .pipeline/memory/figure_ledger.md 和 experiment_ledger.md，每个主要结果是否有图、图是否多面板组织、caption 是否自含；②篇幅完整性——experiment_ledger 每条是否都在正文有对应小节，有没有被一句话带过的工作量。将报告追加写入 .pipeline/memory/review_log.md，格式：评分表格 + 必须修改列表 + 建议修改列表 + 推荐结论。完成后更新 agent_handoff.md。
+
+评审只做判断，不改正文——需要改写时交给 paper-writing；需要写审稿回复时交给 rebuttal-writer。若 review_log.md 已有上一版记录，用 paper-reviewer 的版本对比能力同时回答两个问题：当前稿件距目标 venue 还有多远，以及这次修订相对上一版是否真的进步。
 ```
 
 ## 第三步：逐条讨论审查结果

@@ -102,32 +102,40 @@
   },
   "publication": {
     "base": [
-      "inno-paper-writing",
+      "paper-writing",
+      "paper-reviewer",
+      "integrity-auditor",
+      "paper-humanization",
+      "submission-checker",
+      "rebuttal-writer",
+      "paper-to-exemplar",
       "inno-figure-gen",
       "inno-paper-reviewer",
-      "inno-reference-audit",
       "inno-rclone-to-overleaf",
       "scientific-writing",
-      "ml-paper-writing",
       "inno-grant-proposal",
       "systematic-review"
     ],
     "byTaskType": {
       "writing": [
-        "inno-paper-writing",
+        "paper-writing",
+        "paper-humanization",
+        "paper-to-exemplar",
+        "rebuttal-writer",
         "inno-figure-gen",
         "scientific-writing",
-        "ml-paper-writing",
         "inno-grant-proposal",
         "systematic-review"
       ],
       "analysis": [
+        "paper-reviewer",
+        "integrity-auditor",
         "inno-paper-reviewer",
-        "inno-reference-audit",
         "inno-deep-research",
         "systematic-review"
       ],
       "delivery": [
+        "submission-checker",
         "inno-rclone-to-overleaf"
       ]
     }

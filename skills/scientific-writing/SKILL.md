@@ -3,16 +3,16 @@ id: scientific-writing
 name: scientific-writing
 version: 1.0.0
 description: |-
-  Core skill for the deep research and writing tool.
+  Write clinical, epidemiological, systematic-review, and general-science manuscripts that must follow IMRaD structure and reporting guidelines (CONSORT, PRISMA, STROBE, STARD). Use for clinical trial reports, observational studies, diagnostic accuracy studies, systematic reviews, registration-linked writing, 临床论文, 综述写作, 报告规范. Do not use for CS conference or journal submissions — venue-targeted drafting, polishing, and compression belong to paper-writing.
 stages: ["publication"]
 tools: ["read_file", "search_project", "write_file"]
 summary: |-
-  Core skill for the deep research and writing tool. Write scientific manuscripts in full paragraphs (never bullet points). Use two-stage process: (1) create section outlines with key points using literature search, (2) convert to flowing pros...
+  Write clinical, epidemiological, systematic-review, and general-science manuscripts in full paragraphs (never bullet points), following IMRaD and the applicable reporting guideline (CONSORT/PRISMA/STROBE/STARD). Use two-stage process: (1) create section outlines with key points using literature search, (2) convert to flowing prose. Complements paper-writing, which owns CS venue-targeted manuscripts.
 primaryIntent: writing
 intents: ["writing", "research"]
 capabilities: ["visualization-reporting"]
-domains: ["general"]
-keywords: ["scientific-writing", "paper writing", "visualization-reporting", "scientific", "writing", "core", "deep", "research", "tool", "write", "manuscripts", "full"]
+domains: ["general", "clinical-medicine"]
+keywords: ["scientific-writing", "imrad", "consort", "prisma", "strobe", "stard", "reporting guidelines", "clinical manuscript", "observational study", "systematic review writing", "临床论文", "报告规范", "综述写作"]
 source: builtin
 status: verified
 upstream:
@@ -58,7 +58,7 @@ Use this skill when the user request matches its research workflow scope. Prefer
 
 ## Overview
 
-**This is the core skill for the deep research and writing tool**—combining AI-driven deep research with well-formatted written outputs. Every document produced is backed by comprehensive literature search and verified citations: gather sources with the **paper-finder** / **inno-deep-research** / **pubmed-search** skills and verify every reference with the **inno-reference-audit** skill.
+**This is the core skill for the deep research and writing tool**—combining AI-driven deep research with well-formatted written outputs. Every document produced is backed by comprehensive literature search and verified citations: gather sources with the **paper-finder** / **inno-deep-research** / **pubmed-search** skills and verify every reference with the **integrity-auditor** skill.
 
 Scientific writing is a process for communicating research with precision and clarity. Write manuscripts using IMRAD structure, citations (APA/AMA/Vancouver), figures/tables, and reporting guidelines (CONSORT/STROBE/PRISMA). Apply this skill for research papers and journal submissions.
 

@@ -19,3 +19,13 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+Portions of this repository are vendored from third-party MIT-licensed projects:
+
+- skills/{paper-writing, paper-reviewer, paper-humanization, rebuttal-writer,
+  submission-checker, paper-to-exemplar, integrity-auditor} and skills/_shared/
+  are derived from CCFA-Skills (https://github.com/mikubaka88/CCFA-Skills)
+  at commit fd5c7e3afcc097d874d296a0e1e8118ae597f847.
+  Copyright (c) mikubaka88. Licensed under the MIT License.

@@ -38,7 +38,8 @@ refs/references.bib   # 参考文献库
 
 ## 写作规范
 
-- 使用 skills 目录下的 `inno-paper-writing/SKILL.md` 和 `scientific-writing/SKILL.md`
+- **按 track 选写作 skill**：ml / bioinformatics 用 skills 目录下的 `paper-writing/SKILL.md`（venue 导向：页数预算、压缩、prose guardrails）；clinical / systematic-review 用 `scientific-writing/SKILL.md`（IMRaD + CONSORT/PRISMA/STROBE/STARD 报告规范）。拿不准看 `research_brief.json` 的 `pipeline.track`。
+- **每次改动正文后跑 `paper-humanization`**：删掉防御性铺垫、重复 caveat、生硬三项并列、破折号堆砌、为避免重复而换术语、内部工程状态叙述。这是写作质量控制，不是规避检测器；真正影响结论、复现、伦理的事实要保留。
 - 学术语气，避免 AI 腔（不要用"首先/其次/最后"开头每段）
 - 引用：`\\cite{cite_key}` 的 key 只能来自 `literature_bank.md` 的 cite_key 列（对应 `refs/references.bib` 真实条目）；survey 没有的新文献先确认真实再用 `build_bibliography.py` 入库，绝不凭记忆写 `\\cite` 或手写 bib
 - 绝不捏造数据、引用、实验结果

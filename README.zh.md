@@ -60,6 +60,11 @@
 - **并入 [CCFA-Skills](https://github.com/mikubaka88/CCFA-Skills)（MIT）的 7 个技能**，并去掉 `ccf-` 前缀（那个前缀指中国计算机学会分级，对本仓库的临床/生信 track 是误导）：`paper-writing`、`paper-reviewer`、`integrity-auditor`、`paper-humanization`、`rebuttal-writer`、`submission-checker`、`paper-to-exemplar`。**⚠️ 破坏性变更**：`inno-paper-writing`、`ml-paper-writing`、`inno-reference-audit` 三个旧技能已被取代并删除，如果你的项目或文档里引用了这几个名字，需要改到新技能上。并入过程记在 `scripts/vendor-ccfa.mjs` 里，上游 commit 写在每个 SKILL.md 的 `upstream` 字段，日后可以按这个基准跟上游 diff。同时并入 CCFA 的 LaTeX 模板（约 31 MB，落在 `skills/paper-writing/templates/`）。
 - **新增 CNKI（中国知网）检索**：`skills/cnki-search/` 把 [cookjohn/cnki-skills](https://github.com/cookjohn/cnki-skills) 的 10 个 chrome-devtools MCP 技能并成一个，DOM 选择器和取数逻辑照搬，只把传输层换成本仓库已有的 CDP proxy——不新增 MCP 依赖，Chrome 没开远程调试时优雅跳过。支持关键词/高级检索、翻页排序、论文详情、GB/T 7714 引用导出、期刊收录查询（北大核心/CSSCI/CSCD）、PDF 下载与归档。`/omp:survey` 新增第 3b 步（可选的中文文献检索，结果并入摘要表并标 `cnki`）与第 6b 步（下载归档后走同一套 OCR）。**上游 cnki-skills 没有 LICENSE 文件**（默认保留所有权利），介意的话请自行评估。
 
+**2.0.1 修复：**
+
+- **CNKI 在真实浏览器里逐条验证过一轮**（Chrome 152 + 已登录机构账号，覆盖新版/旧版/期刊导航三套界面），修掉一批上游选择器和逻辑的问题：排序的等待信号、新旧界面的排序项匹配（旧界面没有 id 且后两项顺序不同）、`navi.cnki.net` 的检索框 id（原来会填到登录框上）、点击检索触发跳转导致命令整体超时、以及多标签页时命令操作到别的页面。排序状态会跨检索保留，所以现在结果里带 `activeSort`，`search` / `advanced` 也支持 `--sort` 一次指定。
+- **修掉 CDP proxy 的一个静默失败**：`/eval` 在页面脚本的 promise 被 reject 时返回 `HTTP 200 + {"value":{}}`（因为 `returnByValue` 下抛出的 Error 序列化成 `{}`，抢先命中了 value 分支），页面里的报错被吞成"空结果"。判断顺序调整后正常返回 400 与真实错误信息。这个 bug 对 `cnki.mjs` 的影响最大（排序超时曾静默返回空结果），已一并修掉。改动在 vendored 文件里有标注。
+
 ---
 
 ## 目录

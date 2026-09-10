@@ -96,17 +96,34 @@ node cnki.mjs export --indices 1,3,5 --mode gbt --out .pipeline/literature/<corp
 node cnki.mjs journal --name "计算机学报"
 
 # 触发全文下载（需要登录），再把文件归档进语料库
-node cnki.mjs download --format pdf
-node cnki.mjs collect --title "<论文标题>" --into .pipeline/literature/<corpus>/papers
+node cnki.mjs detail --url "<论文url>" > meta.json   # 下载前先取元数据，喂给 collect
+node cnki.mjs download --format pdf                  # 复用 detail 用过的标签页
+node cnki.mjs collect --title "<论文标题>" --into .pipeline/literature/<corpus>/papers --meta meta.json
 node cnki.mjs collect --file "<下载的文件名>" --into .pipeline/literature/<corpus>/papers
 ```
 
-`download` 只是**触发**——CDP 拿不到下载路径，文件落在 Chrome 的下载目录里；
-随后用 `collect` 把它按标题移进语料库。`collect` 的匹配规则：精确匹配（文件名标题部分
-完全一致，或紧接 `_作者`）优先，退而求其次才是子串；**歧义或匹配不到一律报错退出 2**，
-不会替你猜一个（历史上会静默归档最近下载的那个，导致标题与正文对不上）。
-同名的 PDF 与 CAJ 同时存在时优先归档 PDF（CAJ 是 `KDH` 私有格式，OCR 管线读不了）。
-`--file` 可直接指定文件名跳过匹配。
+`download` 只是**触发**——CDP 拿不到下载路径，文件落在 Chrome 的下载目录里（实测
+PDF 约 4–5 秒落盘）。随后用 `collect` 把它按标题移进语料库，并**写出 `metadata.json`**。
+`--meta` 可以喂一份 `detail` 的输出（会自动归一化 `authors`/`journal`/`年份`/`doi`/
+`landing_page`），也可以直接喂 `parse` 里的一行。没有 `--meta` 也能跑，但缺 `year` /
+`authors` 的记录会被 `build_bibliography.py` 判为不可引用（至少是显式 skip，不是静默消失）。
+
+**`collect` 一定会写 `metadata.json`**，这一份不能省：库里 `build_library_index.py` 和
+`build_bibliography.py` 都是按 `papers/*/metadata.json` 遍历的，缺了就安静地报 0 篇
+（退出码 0），CNKI 下的全文永远进不了索引和引用链。`full_text_status` 写
+`institution_pdf`（机构订阅取得），**不要写成 `open_pdf`**——那是"合法开放获取"的意思。
+
+`collect` 的匹配规则：精确匹配（文件名标题部分完全一致，或紧接 `_作者`）优先，退而求其次
+才是子串；**歧义或匹配不到一律报错退出 2**，不会替你猜一个（历史上会静默归档最近下载的
+那个，导致标题与正文对不上）。同名的 PDF 与 CAJ 同时存在时优先归档 PDF（CAJ 是 `KDH`
+私有格式，OCR 管线读不了）。`--file` 可直接指定文件名跳过匹配。
+
+`download` 的失败都会以退出码 2 返回，不会伪装成成功（曾经 `timeout` 会带着退出码 0
+和看起来像成功的 hint 一起 emit）。错误码：
+`not_logged_in` / `captcha` / `record_only` / `no_download_link`。
+其中 **`record_only`（题录）**要单独认：知网对这类文献只有题录、没有全文，页面上连下载区
+都不存在（实测 `#pdfDown` / `#cajDown` / `.btn-dlpdf` 全部缺席），登录或换权限都拿不到，
+直接按元数据保留即可。
 
 字段代码：`SU` 主题、`TI` 篇名、`KY` 关键词、`TKA` 篇关摘、`AB` 摘要、`AU` 作者、`FT` 全文。
 来源类别：`SCI` `EI` `北大核心` `CSSCI` `CSCD`（可多选）。
@@ -128,11 +145,12 @@ CNKI 是**中文文献的补充源**，不是 arxiv/openalex 那类 API 源的�
 2. 用 `parse` 的 `papers` 数组给 `survey_screening.md` 补上中文候选行（标注来源 `cnki`）；
 3. 用户勾选核心论文后，`detail` 补全元数据，`export` 出 GB/T 7714 引用串；
 4. 要全文的，`download` 触发下载，`collect` 把 PDF 归档到
-   `.pipeline/literature/<corpus>/papers/<slug>/paper.pdf`，再交给
-   `literature-pdf-ocr-library` 的 OCR 脚本。
+   `.pipeline/literature/<corpus>/papers/<slug>/paper.pdf` 并写出同目录的 `metadata.json`，
+   再交给 `literature-pdf-ocr-library` 的 OCR 脚本（它的 glob 正是 `papers/*/paper.pdf`）。
 
 **全文中断点**：CNKI 的 PDF/CAJ 多数要机构权限，且 CAJ 不是标准 PDF、OCR 脚本读不了。
-拿不到就按元数据保留在 bank 里，`full_text_status` 标 `needs_institution`，不要伪造来源。
+拿不到就按元数据保留在 bank 里，`full_text_status` 标 `needs_institution`，不要伪造来源；
+拿到了则标 `institution_pdf`（那是"机构订阅取得"，不是 `open_pdf`）。
 
 ## 与 `literature-pdf-ocr-library` 的分工
 

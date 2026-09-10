@@ -133,16 +133,23 @@ node cnki.mjs collect --title "<论文标题>" --into .pipeline/literature/<corp
 ```
 
 `download` 只在详情页触发浏览器下载，**文件落在 Chrome 的下载目录**（CDP 拿不到路径，
-页面 JS 也无从得知）。所以紧接着用 `collect` 按标题在下载目录里找最近 N 分钟内的
-PDF/CAJ，移动到 `--into/<标题slug>/paper.pdf`。
+页面 JS 也无从得知）。实测 PDF 约 4–5 秒落盘，CAJ 更久。所以紧接着用 `collect` 按标题在
+下载目录里找最近 N 分钟内的 PDF/CAJ，移动到 `--into/<标题slug>/paper.pdf`，
+**并在同一目录写出 `metadata.json`**。
 
-常见中断：
+`metadata.json` 这一份不能省：`build_library_index.py` 与 `build_bibliography.py` 都是按
+`papers/*/metadata.json` 遍历的，缺了就安静地报 0 篇、退出码 0，CNKI 下的全文永远进不了
+索引和引用链。`collect --meta <detail输出的json>` 把年份/作者/期刊一并写进去；没有 `--meta`
+也能跑，但缺 `year`/`authors` 的记录会被 `build_bibliography.py` 判为不可引用（显式 skip）。
+
+常见中断（都以退出码 2 返回）：
 
 | 返回 | 含义 | 处理 |
 |------|------|------|
 | `not_logged_in` | 没登录知网 | 让用户在 Chrome 里登录后重试 |
 | `captcha` | 滑块拦住了 | 让用户手动完成拼图 |
-| `no_download_link` | 该文献不给 PDF/CAJ | 机构无权限或本就不提供；保留元数据，`full_text_status` 标 `needs_institution` |
+| `record_only` | **只有题录、没有全文** | 页面上连下载区都没有（`#pdfDown` / `#cajDown` / `.btn-dlpdf` 全缺席）。登录或换权限都没用；保留元数据，`full_text_status` 标 `needs_institution` |
+| `no_download_link` | 页面上没有下载区 | 通常是该文献确实未提供全文，与该文献需要权限不是一回事 |
 
 CAJ 不是 PDF，OCR 脚本读不了；能下 PDF 就下 PDF。
 

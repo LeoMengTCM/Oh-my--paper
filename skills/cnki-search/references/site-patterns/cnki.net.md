@@ -275,7 +275,60 @@ CNKI 会记住上次的排序。实测一次 `search` 默认落在"发表时间"
 两种旧行为都返回退出码 0，语料库里会出现标题与正文对不上的条目，从输出上看不出来。
 另外 `collect --file "<文件名>"` 可以跳过匹配直接指定。
 
-### 11. CNKI 的 PDF 有文字层，但数字与标点是全角
+### 11. 「题录」记录下载区整块不存在
+
+知网有一部分文献**只有题录、没有全文**。这类页面的 `<h1>` 会带一个「题录」后缀
+（tab 标题里没有，只有页面内 `h1` 有），而且**页面上完全没有下载区**——实测
+`#pdfDown`、`#cajDown`、`.btn-dlpdf`、`#DownLoadParts` 全部缺席。
+
+这必须和「有按钮但要机构权限」分开报：前者登录、换权限都没用，后者登录就能解决。
+把它们混成一句"可能不提供或需要权限"，会让用户白跑一趟登录。
+
+`h1` 里的「题录」后缀要剥掉再返回，否则 `detail` 的标题和 `search`/`parse` 的对不上，
+拿它去 `collect --title` 会匹配失败。
+
+### 12. 详情页的出版年份在 `.doc-top`，不在 `.head-time`
+
+`DETAIL_JS` 原来从 `.head-time` 取 `pubInfo`，实测这个节点**经常是空的**。真正的出版信息
+在 `.doc-top` 里，形如：
+
+```
+计算机应用 . 2021 ,41 (S1) : 332-335 查看该刊数据库收录来源
+```
+
+年份、卷、期、页码都在这一行。所以 `detail` 另外返回一个 `citation` 字段（不混进
+`pubInfo` 改变它的语义），`collect --meta` 归一化时按 `date` → `citation` → `pubInfo`
+的顺序找年份。
+
+### 13. `detail` 不记标签页会导致 `download` 跑错页面
+
+survey 的流程是 `detail --url` 紧跟 `download`（不带 `--url`），而 `download` 靠
+`rememberedTarget()` 找标签页、`rememberTarget()` 原来只有 `search`/`advanced` 会调——
+于是 `download` 回到检索结果页，等 15 秒 `.brief h1` 超时。`detail` 现在也会记住。
+
+同类的还有标签页堆积：`download --url <新论文>` 原来每篇开一个新标签，跑一轮调研能堆
+几十个。现在 `download` 带上 `anyCnki`，变成「该论文开着就复用 → 否则复用上次用过的标签
+并导航过去 → 都没有才开新的」。实测连下 10 篇标签数不增长。
+
+### 14. `timeout` 曾经带着退出码 0 出去
+
+`cmdDownload` 原来只处理 `not_logged_in` / `captcha` / `no_download_link` 三种错误，
+其余（包括 `timeout`）会掉进最后的 `emit({...result, downloadDir, hint})`——
+**退出码 0，还贴上了看起来像"已触发下载"的 hint**。现在任何 `error` 都走 `fail()`。
+
+### 15. 中文作者名会让引用键退化成 `anon`
+
+`build_bibliography.py` 的 `derive_lastname` 只认拉丁字母（`[A-Za-zÀ-ɏ]`），
+`first_title_word` 同样只认 `[A-Za-z]+`。所以纯中文的论文会得到
+`anon<年份>paper` 这样的键——实测一篇「龚欢欢」等作者的论文拿到 `anon2023mimic`
+（mimic 来自标题里的 `MIMIC-Ⅳ`），纯中文标题则会是 `anon<年>paper`。
+
+键不会真的冲突（重复时按 `a`/`b`/… 加后缀并写回 `metadata.json`），但键没有信息量，
+而且 CNKI 语料全是中文作者时，同年同模式的论文会集中落进同一个前缀。要改得动
+`build_bibliography.py` 的键生成策略，属于另一个技能的取舍（CJK 字符进 BibTeX 键
+有兼容性代价），这里只记现象。
+
+### 16. CNKI 的 PDF 有文字层，但数字与标点是全角
 
 实测下载的 PDF：CJK 字体未嵌入、编码 `GBK-EUC-H`、无 Unicode 映射，`pdffonts`
 三列全是 `no`；不过**文字层是有的**，`pdftotext` 能取到正文（第 3 页 6649 字符）。

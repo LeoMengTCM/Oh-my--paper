@@ -81,6 +81,7 @@ For clinical / systematic-review work, agents may add: `pubmed_id`, `pmcid`,
 | Status | Meaning |
 |------|------|
 | `open_pdf` | A legally open PDF was found (`pdf_url` set). |
+| `institution_pdf` | Full text was retrieved through the user's own institutional subscription (e.g. CNKI), so `local_pdf_path` is set even though the paper is not open access. Not `open_pdf` — do not relabel it as such. |
 | `needs_institution` | Landing page reachable, but full text needs institutional access. |
 | `no_open_pdf` | No legal open full text (`is_oa=false` confirmed). |
 | `anti_bot_blocked` | Blocked by Cloudflare / CAPTCHA / anti-scraping. |

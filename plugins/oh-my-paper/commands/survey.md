@@ -77,7 +77,7 @@ node .claude/skills/cnki-search/scripts/cnki.mjs pages --action next
 
 **排序一定要显式指定**：CNKI 会跨检索保留上次的排序，不传 `--sort` 可能拿到按发表时间排的结果（全是当天网络首发），对调研没用。取回后核对 `activeSort` 字段是不是你要的。
 
-把返回的 `papers[]` 并进 `survey_screening.md`，数据源列标 `cnki`，`full_text_status` 按经验填：CNKI 全文要机构权限，**一般填 `needs_institution`**，别默认写成 `open_pdf`。
+把返回的 `papers[]` 并进 `survey_screening.md`，数据源列标 `cnki`，`full_text_status` 按实际状态填：还没下的填 `needs_institution`（CNKI 全文多数要机构权限），**真下载归档成功后填 `institution_pdf`**（机构订阅取得），两种情况都**别默认写成 `open_pdf`**——那表示合法开放获取。
 
 - 撞到滑块验证码会返回 `{"error": "captcha"}` 且退出码 2——停下让用户在 Chrome 里手动完成拼图，等他回话再继续。
 - 主题涉及期刊级别时，用 `node .claude/skills/cnki-search/scripts/cnki.mjs journal --name "<刊名>"` 查收录情况（北大核心 / CSSCI / CSCD），把结论写进摘要表的 venue 列备注。
@@ -147,21 +147,34 @@ python .claude/skills/literature-pdf-ocr-library/scripts/build_library_index.py 
 CNKI 的全文下载不了走 `--arxiv-ids`（那是开放获取那条链），单独用 cnki-search：
 
 ```bash
-# 单篇：在详情页触发下载（需要 Chrome 里已登录且有权限）
-node .claude/skills/cnki-search/scripts/cnki.mjs detail --url "<论文url>"
+# 单篇：先取详情元数据（顺手存下来喂给 collect），再触发下载
+node .claude/skills/cnki-search/scripts/cnki.mjs detail --url "<论文url>" > /tmp/omp-meta.json
 node .claude/skills/cnki-search/scripts/cnki.mjs download --format pdf
 
-# 把 Chrome 下载目录里的文件归档进语料库
+# 把 Chrome 下载目录里的文件归档进语料库（--meta 让年份/作者/期刊一起写进去）
 node .claude/skills/cnki-search/scripts/cnki.mjs collect \
-  --title "<论文标题>" --into .pipeline/literature/<corpus-name>/papers
+  --title "<论文标题>" --into .pipeline/literature/<corpus-name>/papers \
+  --meta /tmp/omp-meta.json
 ```
 
-`download` 返回 `not_logged_in` / `captcha` / `no_download_link` 时按返回的 `hint` 处理：登录、手动过拼图，或者放弃——放弃就把该篇按元数据保留，`full_text_status` 标 `needs_institution`，**不要伪称拿到了全文**。
+`download` 不带 `--url` 时会回到 `detail` 刚用过的那个标签页，所以这两条要连着跑；中途去操作别的论文会打乱它（那时就给 `download` 显式传 `--url`）。
 
-`download` 只是**触发**，返回 `status: downloading` 时文件还没落盘（实测 PDF 约数秒，
+`download` 的失败一律以退出码 2 返回，按 `error` 分四种处理：
+- `not_logged_in` / `captcha`：让用户登录、手动过拼图，然后重跑。
+- `record_only`：**知网对这篇只有题录、没有全文**，页面上连下载区都不存在。登录或换权限都没用，直接按元数据保留，`full_text_status` 标 `needs_institution`。
+- `no_download_link`：页面上没有下载区，通常是该文献确实未提供全文。
+
+任何放弃的情况都按元数据保留，`full_text_status` 标 `needs_institution`，**不要伪称拿到了全文**。
+
+`download` 只是**触发**，返回 `status: downloading` 时文件还没落盘（实测 PDF 约 4–5 秒，
 CAJ 更久）。先等几秒再跑 `collect`，否则会报"没找到近期下载的文件"。
 `collect` 匹配不到或匹配有歧义时以退出码 2 报错，**不会替你猜**——这时看它列出的
 实际文件名，改用 `--file "<文件名>"` 重跑，不要盲目重试 `--title`。
+
+`collect` 会在论文目录里写出 `metadata.json`，这一步不能省：`build_library_index.py`
+和 `build_bibliography.py` 都是按 `papers/*/metadata.json` 遍历的，缺了就报 0 篇且
+退出码为 0。带上 `--meta` 才有年份/作者/期刊，缺年份的记录会被判为不可引用。
+`full_text_status` 写 `institution_pdf`，**不要写成 `open_pdf`**。
 
 归档后的 PDF 可以和开放获取的论文一起跑同一套 OCR：
 

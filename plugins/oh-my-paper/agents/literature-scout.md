@@ -102,7 +102,7 @@ node .claude/skills/cnki-search/scripts/cnki.mjs advanced \
 
 它需要 Chrome 开着远程调试并已登录知网。**退出码 2 表示需要用户处理**（Chrome 没开 / 没登录 / 撞滑块验证码）——停下把返回的 `hint` 告诉用户，等他处理完再继续。不要改用 curl 硬抓，也不要假装查过了。
 
-CNKI 全文多数要机构权限，`full_text_status` 一般填 `needs_institution`。真要下载时用 `cnki.mjs download` + `cnki.mjs collect` 归档，不要塞进 `--arxiv-ids` 那条开放获取链。
+CNKI 全文多数要机构权限，没下的填 `needs_institution`；真下载归档成功后填 `institution_pdf`（机构订阅取得），两者都不要写成 `open_pdf`。下载用 `cnki.mjs download` + `cnki.mjs collect --meta`（后者会写出 `metadata.json`，缺了它索引和参考文献都读不到这篇），不要塞进 `--arxiv-ids` 那条开放获取链。注意 `record_only` 表示该文献在知网上只有题录、没有全文，页面上连下载区都没有，登录或换权限都没用。
 
 ### 第三：记录和分析
 

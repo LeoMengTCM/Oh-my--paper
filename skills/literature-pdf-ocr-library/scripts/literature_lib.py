@@ -40,7 +40,9 @@ PDF_EXTENSIONS = {".pdf"}
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff", ".webp"}
 
 # full_text_status enum (see references/metadata-schema.md):
-#   open_pdf | needs_institution | no_open_pdf | anti_bot_blocked | html_not_pdf | unknown
+#   open_pdf | institution_pdf | needs_institution | no_open_pdf | anti_bot_blocked
+#   | html_not_pdf | unknown
+#   (institution_pdf = full text obtained via the user's own subscription, e.g. CNKI)
 # download_status enum:
 #   not_requested | eligible | downloaded | skipped | failed | not_pdf
 

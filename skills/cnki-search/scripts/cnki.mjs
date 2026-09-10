@@ -709,9 +709,16 @@ const DETAIL_JS = `(() => {
   const brief = document.querySelector('.brief');
   if (!brief) return { error: 'not_a_detail_page' };
 
-  const title = brief.querySelector('h1')?.innerText?.trim()
-    ?.replace(/\\s*附视频\\s*$/, '')
-    ?.replace(/\\s*网络首发\\s*$/, '');
+  const rawTitle = brief.querySelector('h1')?.innerText?.trim() || '';
+  // 「题录」= 知网上只有题录、没有全文的记录。这种页面根本没有下载区
+  // （实测 #pdfDown / #cajDown / .btn-dlpdf 全部缺席），点了也白点。
+  // 标题里的这个后缀必须剥掉，否则 detail 返回的标题和 search/parse 的
+  // 对不上，拿它去 collect --title 会匹配失败。
+  const recordOnly = /\\s*题录\\s*$/.test(rawTitle);
+  const title = rawTitle
+    .replace(/\\s*题录\\s*$/, '')
+    .replace(/\\s*附视频\\s*$/, '')
+    .replace(/\\s*网络首发\\s*$/, '');
 
   const authorH3s = brief.querySelectorAll('h3.author');
   const authors = [];
@@ -735,6 +742,7 @@ const DETAIL_JS = `(() => {
 
   return {
     title,
+    recordOnly,
     authors,
     affiliations,
     abstract: document.querySelector('.abstract-text')?.innerText?.trim() || '',
@@ -743,6 +751,9 @@ const DETAIL_JS = `(() => {
     classification: document.querySelector('.clc-code')?.innerText?.trim() || '',
     journal: (document.querySelector('.doc-top a')?.innerText || '').trim().replace(/[\\s.·]+$/, ''),
     pubInfo: document.querySelector('.head-time')?.innerText?.trim() || '',
+    // .head-time 常常是空的（实测），但 .doc-top 里那行「刊名 . 2021 ,41 (S1) : 332-335」
+    // 一直有，年份/卷/期/页码都在里面。单独给一个字段，不要混进 pubInfo 改变它的语义。
+    citation: document.querySelector('.doc-top')?.innerText?.replace(/\\s+/g, ' ').trim() || '',
     onlineFirst: !!brief.querySelector('.icon-shoufa'),
     toc: document.querySelector('.catalog-list, .catalog-listDiv')?.innerText?.trim() || '',
     exportId: document.querySelector('#export-id')?.value || '',
@@ -773,6 +784,17 @@ ${WAIT_HELPER_JS}
   if (result?.error === "not_a_detail_page") {
     fail("当前不是论文详情页", "请给 --url 参数，或在 Chrome 里打开一篇论文的详情页。");
   }
+  if (result?.error) {
+    fail(
+      `详情页读取失败：${result.error}`,
+      result.label
+        ? `${result.label}；当前标签页可能不是目标论文，给 --url 重试。`
+        : "给 --url 重试，或确认 Chrome 里打开的是论文详情页。",
+    );
+  }
+  // 记住这个标签页。survey 的流程是 detail 之后直接 download（不带 --url），
+  // download 靠 rememberedTarget 找回这里；不记就会跑到检索结果页上超时。
+  rememberTarget(target);
   emit(result);
 }
 
@@ -976,8 +998,12 @@ async function cmdDownload(args) {
   if (!["pdf", "caj"].includes(format)) fail(`不支持的 --format：${format}`, "可选：pdf / caj");
 
   await ensureProxy();
+  // anyCnki 是有意加的：只给 reusePrefix 时，换一篇没开过的论文就会开新标签，
+  // 调研跑一轮下来堆几十个。带上 anyCnki 后变成「该论文已开着就复用 → 否则复用
+  // 上次用过的标签并导航过去 → 都没有才开新的」。detail 现在也会 rememberTarget，
+  // 所以 survey 的 detail → download 连招能落到同一个标签上。
   const target = url
-    ? await ensureCnkiTab({ reusePrefix: url })
+    ? await ensureCnkiTab({ reusePrefix: url, anyCnki: true, openUrl: url })
     : await ensureCnkiTab({ anyCnki: true });
   if (url) await navigate(target, url);
   await guardCaptcha(target);
@@ -995,26 +1021,42 @@ ${WAIT_HELPER_JS}
     if (notLogged) return { error: 'not_logged_in' };
 
     const format = ${JSON.stringify(format)};
+    const rawTitle = document.querySelector('.brief h1')?.innerText?.trim() || '';
+    const title = rawTitle.replace(/\\s*题录\\s*$/, '').replace(/\\s*网络首发\\s*$/, '');
+
+    // 题录 = 知网上只有题录、没有全文的记录。这种页面连下载区都没有，
+    // 和「有按钮但要机构权限」是两码事，分开报，别让人白去登录。
+    if (/\\s*题录\\s*$/.test(rawTitle)) return { error: 'record_only', title };
+
     const pdfLink = document.querySelector('#pdfDown') || document.querySelector('.btn-dlpdf a');
     const cajLink = document.querySelector('#cajDown') || document.querySelector('.btn-dlcaj a');
-    const title = document.querySelector('.brief h1')?.innerText?.trim()?.replace(/\\s*网络首发\\s*$/, '') || '';
 
     if (format === 'pdf' && pdfLink) { pdfLink.click(); return { status: 'downloading', format: 'PDF', title }; }
     if (format === 'caj' && cajLink) { cajLink.click(); return { status: 'downloading', format: 'CAJ', title }; }
     if (pdfLink) { pdfLink.click(); return { status: 'downloading', format: 'PDF', title }; }
     if (cajLink) { cajLink.click(); return { status: 'downloading', format: 'CAJ', title }; }
-    return { error: 'no_download_link' };
+    return { error: 'no_download_link', title };
   })()`;
 
   const result = await evalJs(target, js);
-  if (result?.error === "not_logged_in") {
-    fail("not_logged_in", "下载需要登录。请先在 Chrome 里登录知网账号，再重跑本命令。");
-  }
-  if (result?.error === "captcha") {
-    fail("captcha", "CNKI 正在显示滑块验证码。请在 Chrome 里手动完成拼图验证，完成后告诉我继续。");
-  }
-  if (result?.error === "no_download_link") {
-    fail("没找到下载链接", "该文献可能不提供 PDF/CAJ 下载（或需要机构权限）。");
+  // 任何 error 都必须 fail。曾经只处理了三种，timeout 会带着退出码 0 和
+  // downloadDir/hint 原样 emit 出去，看起来像"已触发下载"，实际什么都没发生。
+  if (result?.error) {
+    const messages = {
+      not_logged_in: "下载需要登录。请先在 Chrome 里登录知网账号，再重跑本命令。",
+      captcha: "CNKI 正在显示滑块验证码。请在 Chrome 里手动完成拼图验证，完成后告诉我继续。",
+      record_only:
+        "这篇在知网上只有题录，没有全文——页面上没有任何下载区（实测 #pdfDown / #cajDown / .btn-dlpdf 全都不存在），登录或换权限都拿不到。按元数据保留即可，full_text_status 不要写成已获得全文。",
+      no_download_link:
+        "页面上没有 PDF/CAJ 下载区。常见原因是该文献只有题录、或确实未提供全文；与「需要机构权限」不同——权限不足时按钮通常仍在，点下去才要求登录。",
+    };
+    if (messages[result.error]) fail(result.error, messages[result.error]);
+    fail(
+      `下载失败：${result.error}`,
+      result.label
+        ? `${result.label}；当前标签页可能不是该论文的详情页，给 --url 重试。`
+        : "给 --url 重试，或确认 Chrome 里打开的是该论文的详情页。",
+    );
   }
 
   emit({
@@ -1069,6 +1111,50 @@ function matchByTitle(candidates, title) {
     );
   }
   return loose;
+}
+
+/**
+ * 把 `detail` 的输出（或一份 schema 记录）归一化成 metadata.json 能用的字段。
+ *
+ * 要写成两套都认，是因为调用方手上通常正好有一份 `cnki.mjs detail` 的输出：
+ * 那个形状是 {authors:[{name,affiliationNum}], journal, pubInfo, pageUrl}，
+ * 而库里的 schema 要的是 {authors:["名"], venue, year, landing_page}。
+ */
+function normalizeMeta(raw) {
+  const rec = {};
+  if (Array.isArray(raw.authors)) {
+    rec.authors = raw.authors.map((a) => (typeof a === "string" ? a : a?.name)).filter(Boolean);
+  } else if (typeof raw.authors === "string" && raw.authors.trim()) {
+    rec.authors = raw.authors.split(/[;；,，]/).map((s) => s.trim()).filter(Boolean);
+  }
+  const venue = raw.venue || raw.journal;
+  if (venue) rec.venue = venue;
+  if (raw.year) rec.year = Number(raw.year);
+  else {
+    // 年份可能藏在好几个地方，按可靠性排：
+    //   parse 的 date（"2024-12-11"）→ detail 的 citation（"计算机应用 . 2021 ,41 (S1) : 332-335"）
+    //   → detail 的 pubInfo（.head-time，实测经常是空的）→ 其他日期字段
+    const sources = [
+      raw.date,
+      raw.citation,
+      raw.pubInfo,
+      raw.published,
+      raw.publication_date,
+    ];
+    for (const s of sources) {
+      const m = String(s || "").match(/(?:19|20)\d{2}/);
+      if (m) {
+        rec.year = Number(m[0]);
+        break;
+      }
+    }
+  }
+  if (raw.doi) rec.doi = raw.doi;
+  const landing = raw.landing_page || raw.pageUrl;
+  if (landing) rec.landing_page = landing;
+  if (raw.abstract) rec.abstract = raw.abstract;
+  if (raw.publication_type) rec.publication_type = raw.publication_type;
+  return rec;
 }
 
 /** 把 Chrome 刚下载的 PDF/CAJ 按标题归档进语料库目录。 */
@@ -1135,6 +1221,38 @@ async function cmdCollect(args) {
     unlinkSync(picked);
   }
 
+  // 写 metadata.json。缺了它，这个目录对库里其他脚本等于不存在：
+  // build_library_index.py 与 build_bibliography.py 都是按 papers/*/metadata.json
+  // 遍历的，没有这一份就安静地报 0 篇、退出码 0，CNKI 下的全文永远进不了引用链。
+  let metaSource = {};
+  const metaArg = argText(args.meta);
+  if (metaArg) {
+    const metaPath = path.resolve(metaArg);
+    if (!existsSync(metaPath)) fail("--meta 指定的文件不存在", `找不到 ${metaPath}。`);
+    try {
+      metaSource = normalizeMeta(JSON.parse(readFileSync(metaPath, "utf8")));
+    } catch (error) {
+      fail("--meta 解析失败", `${metaPath} 不是合法 JSON：${error.message}`);
+    }
+  }
+  const record = {
+    ...metaSource,
+    source: "cnki",
+    merged_sources: ["cnki"],
+    title: metaSource.title || title || path.basename(picked, path.extname(picked)),
+    paper_slug: slug,
+    local_pdf_path: dest,
+    download_source: "cnki",
+    download_status: "downloaded",
+    pdf_status: "downloaded",
+    // 有全文≠开放获取。这是通过用户自己的机构订阅拿到的，如实标，别写成 open_pdf。
+    full_text_status: "institution_pdf",
+  };
+  writeFileSync(
+    path.join(path.dirname(dest), "metadata.json"),
+    `${JSON.stringify(record, null, 2)}\n`,
+  );
+
   // 同名下载了多次（含 pdf + caj）时，把没选中的列出来，避免又变成"悄悄替你选了"
   const alsoMatched = candidates
     .slice(1)
@@ -1143,6 +1261,7 @@ async function cmdCollect(args) {
 
   emit({
     moved: dest,
+    metadata: path.join(path.dirname(dest), "metadata.json"),
     from: picked,
     candidates: candidates.length,
     ...(alsoMatched.length ? { alsoMatched } : {}),

@@ -47,7 +47,7 @@ node .claude/skills/cnki-search/scripts/cnki.mjs journal --name "<刊名>"  # �
 
 **排序一定要显式指定**：CNKI 跨检索保留上次排序，不传 `--sort` 可能拿到按发表时间排的结果（全是当天网络首发），对调研没用。取回后核对 `activeSort` 是不是你要的。
 
-把 `papers[]` 并进 `survey_screening.md`，数据源列标 `cnki`；全文要机构权限，`full_text_status` 一般填 `needs_institution`，别默认写 `open_pdf`。撞到滑块验证码会返回 `{"error": "captcha"}` 且退出码 2——停下让用户在 Chrome 里手动完成拼图，等他回话再继续。
+把 `papers[]` 并进 `survey_screening.md`，数据源列标 `cnki`；`full_text_status` 按实际状态填：没下的填 `needs_institution`（全文多数要机构权限），**下载归档成功后填 `institution_pdf`**，两种情况都别默认写 `open_pdf`。撞到滑块验证码会返回 `{"error": "captcha"}` 且退出码 2——停下让用户在 Chrome 里手动完成拼图，等他回话再继续。
 
 把生成的 `survey_screening.md` 展示给用户（标题/年/venue/引用/[new]/full_text_status/代码）。
 
@@ -87,15 +87,20 @@ python .claude/skills/literature-pdf-ocr-library/scripts/build_library_index.py 
 CNKI 全文下不了走 `--arxiv-ids`（那是开放获取那条链），单独用 cnki-search：
 
 ```bash
-node .claude/skills/cnki-search/scripts/cnki.mjs detail --url "<论文url>"
+node .claude/skills/cnki-search/scripts/cnki.mjs detail --url "<论文url>" > /tmp/omp-meta.json
 node .claude/skills/cnki-search/scripts/cnki.mjs download --format pdf
 node .claude/skills/cnki-search/scripts/cnki.mjs collect \
-  --title "<论文标题>" --into .pipeline/literature/<corpus-name>/papers
+  --title "<论文标题>" --into .pipeline/literature/<corpus-name>/papers \
+  --meta /tmp/omp-meta.json
 ```
 
-返回 `not_logged_in` / `captcha` / `no_download_link` 时按 `hint` 处理：登录、手动过拼图，或放弃。放弃就按元数据保留，`full_text_status` 标 `needs_institution`，**不要伪称拿到了全文**。归档后的 PDF 和开放获取论文跑同一套 OCR 脚本。**CAJ 不是 PDF**（`KDH` 私有格式），OCR 脚本读不了，只能留档；PDF 与 CAJ 同时存在时 `collect` 优先归档 PDF。
+`download` 不带 `--url` 时会回到 `detail` 刚用过的标签页，两条要连着跑。
 
-`download` 只触发不等待，返回 `status: downloading` 时文件还没落盘（PDF 约数秒，CAJ 更久），先等几秒再 `collect`。`collect` 匹配不到或有歧义时以退出码 2 报错，**不会替你猜**——按它列出的实际文件名改用 `--file "<文件名>"` 重跑，别盲目重试 `--title`。
+失败一律退出码 2，按 `error` 分四种：`not_logged_in` / `captcha`（登录、手动过拼图后重跑）、`record_only`（**只有题录、没有全文**，页面上连下载区都没有，登录或换权限都没用）、`no_download_link`（该文献确实未提供全文）。放弃就按元数据保留，`full_text_status` 标 `needs_institution`，**不要伪称拿到了全文**。归档后的 PDF 和开放获取论文跑同一套 OCR 脚本。**CAJ 不是 PDF**（`KDH` 私有格式），OCR 脚本读不了，只能留档；PDF 与 CAJ 同时存在时 `collect` 优先归档 PDF。
+
+`collect` 会写出 `metadata.json`，这一步不能省：`build_library_index.py` / `build_bibliography.py` 都按 `papers/*/metadata.json` 遍历，缺了就报 0 篇且退出码 0。`--meta` 才有年份/作者/期刊；`full_text_status` 写 `institution_pdf`，**不要写成 `open_pdf`**。
+
+`download` 只触发不等待，返回 `status: downloading` 时文件还没落盘（PDF 约 4–5 秒，CAJ 更久），先等几秒再 `collect`。`collect` 匹配不到或有歧义时以退出码 2 报错，**不会替你猜**——按它列出的实际文件名改用 `--file "<文件名>"` 重跑，别盲目重试 `--title`。
 
 ## 第七步：补充搜索（按需）
 

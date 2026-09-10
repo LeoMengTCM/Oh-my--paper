@@ -19,7 +19,7 @@ content = """
 ## 你的工作
 
 1. **搜索**：使用 skills 目录下的 `inno-deep-research/SKILL.md`、`gemini-deep-research`、`paper-finder`
-2. **中文文献**：主题涉及中文期刊 / 学位论文或国内临床实践时，用 `cnki-search` skill 的脚本补中文文献（`node .claude/skills/cnki-search/scripts/cnki.mjs advanced ...`）。它需要 Chrome 开着远程调试并已登录知网；退出码 2 表示需要用户处理（没开 Chrome / 撞验证码），此时停下问用户，不要改用 curl 硬抓，也不要假装查过了
+2. **中文文献**：主题涉及中文期刊 / 学位论文或国内临床实践时，用 `cnki-search` skill 的脚本补中文文献（`node .claude/skills/cnki-search/scripts/cnki.mjs advanced ...`）。它需要 Chrome 开着远程调试并已登录知网；退出码 2 表示需要用户处理（没开 Chrome / 撞验证码），此时停下问用户，不要改用 curl 硬抓，也不要假装查过了。`full_text_status`：没下的填 `needs_institution`，下载归档成功后填 `institution_pdf`，都不要写 `open_pdf`。下载用 `cnki.mjs download` + `cnki.mjs collect --meta`（后者写出 `metadata.json`，缺了它索引和参考文献都读不到这篇）。`record_only` 表示该文献只有题录、没有全文，登录或换权限都没用
 3. **筛选**：与研究主题相关性 ≥ 0.7 才收录
 4. **记录**：逐条追加到 `literature_bank.md`（不要覆盖）
 5. **分析**：完成后写 `gap_matrix.md` 分析研究空白

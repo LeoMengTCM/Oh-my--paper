@@ -6,7 +6,9 @@
 // Vendored from the academic-search skill (MIT, Copyright (c) 2026 Chengmingyue)
 // https://github.com/ustc-ai4science/academic-search
 //
-// 本地改动（1 处，2026-09-10）：/eval 的返回值判断顺序。
+// 本地改动（2 处，2026-09-10）。
+//
+// 改动 1：/eval 的返回值判断顺序。
 // 原实现先判 `result.value !== undefined` 再判 `exceptionDetails`。但当 awaitPromise 的
 // promise 被 reject 时，Chrome 会同时返回 exceptionDetails 和一个 result（被抛出的 Error
 // 对象）；Error 在 returnByValue 下序列化为 `{}`，是 defined，于是第一个分支抢先命中，
@@ -14,6 +16,14 @@
 // 把 exceptionDetails 提到前面后，reject 会正常返回 400 + 真实错误信息。
 // 实测：reject → 400 "Uncaught (in promise) Error: ..."；同步抛错、resolve 对象、
 // resolve undefined 三种情况行为不变。
+//
+// 改动 2：/eval 与 /click 补上 userGesture: true。
+// 缺少它时 Runtime.evaluate 不带用户手势，脚本里任何打开新窗口的动作都会被
+// 弹出拦截器挡掉 —— 且是静默挡掉：window.open 返回 null，`<a target="_blank">.click()`
+// 直接什么都不发生，页面无报错、无新标签、无下载。CNKI 详情页的 #pdfDown / #cajDown
+// 都是 target="_blank"，所以下载曾经完全点不动。
+// 实测（2026-09-10，Chrome 152）：未加该参数时 window.open("about:blank") 返回 null；
+// 加上后正常打开，a.click() 也能触发下载。
 
 import http from 'node:http';
 import { URL } from 'node:url';
@@ -401,6 +411,7 @@ const server = http.createServer(async (req, res) => {
         expression: expr,
         returnByValue: true,
         awaitPromise: true,
+        userGesture: true,
       }, sid);
       if (resp.result?.exceptionDetails) {
         res.statusCode = 400;
@@ -434,6 +445,7 @@ const server = http.createServer(async (req, res) => {
         expression: js,
         returnByValue: true,
         awaitPromise: true,
+        userGesture: true,
       }, sid);
       if (resp.result?.result?.value) {
         const val = resp.result.result.value;

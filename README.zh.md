@@ -55,6 +55,11 @@
 - 实验/写作流程加固：实验期强制"宁多勿缺"出图并登记 `figure_ledger.md`（数据图禁用图像生成模型）、写作期按字数下限逐条覆盖 `experiment_ledger` 并在进 review 前做完整性核对；修复死命令 `/codex:rescue`、死块 `omp_memory_sync`、`result_summary.md` 路径不一致。
 - 阶段推进 hook 的 matcher 从 `Write` 放宽为 `Write|Edit`（含 filesystem MCP 的写/改工具）——用 Edit 更新 `tasks.json` 不再漏掉"阶段完成"提示。新增 `scripts/check-plugin-consistency.mjs` 并接入 CI（`npm run check:consistency`）：五处版本号一致、JSON/`.mjs` 有效性、frontmatter 字段、hook 脚本引用、skills 符号链接、README 徽章数字，以及 Claude↔Codex 双插件关键概念平价检查，防止两套文本静默漂移。清理了约 2 MB 桌面应用残留图标。
 
+**2.0.0 的两处改动：**
+
+- **并入 [CCFA-Skills](https://github.com/mikubaka88/CCFA-Skills)（MIT）的 7 个技能**，并去掉 `ccf-` 前缀（那个前缀指中国计算机学会分级，对本仓库的临床/生信 track 是误导）：`paper-writing`、`paper-reviewer`、`integrity-auditor`、`paper-humanization`、`rebuttal-writer`、`submission-checker`、`paper-to-exemplar`。**⚠️ 破坏性变更**：`inno-paper-writing`、`ml-paper-writing`、`inno-reference-audit` 三个旧技能已被取代并删除，如果你的项目或文档里引用了这几个名字，需要改到新技能上。并入过程记在 `scripts/vendor-ccfa.mjs` 里，上游 commit 写在每个 SKILL.md 的 `upstream` 字段，日后可以按这个基准跟上游 diff。同时并入 CCFA 的 LaTeX 模板（约 31 MB，落在 `skills/paper-writing/templates/`）。
+- **新增 CNKI（中国知网）检索**：`skills/cnki-search/` 把 [cookjohn/cnki-skills](https://github.com/cookjohn/cnki-skills) 的 10 个 chrome-devtools MCP 技能并成一个，DOM 选择器和取数逻辑照搬，只把传输层换成本仓库已有的 CDP proxy——不新增 MCP 依赖，Chrome 没开远程调试时优雅跳过。支持关键词/高级检索、翻页排序、论文详情、GB/T 7714 引用导出、期刊收录查询（北大核心/CSSCI/CSCD）、PDF 下载与归档。`/omp:survey` 新增第 3b 步（可选的中文文献检索，结果并入摘要表并标 `cnki`）与第 6b 步（下载归档后走同一套 OCR）。**上游 cnki-skills 没有 LICENSE 文件**（默认保留所有权利），介意的话请自行评估。
+
 ---
 
 ## 目录

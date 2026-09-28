@@ -67,7 +67,7 @@ following this schema.
 | `download_status` | string | OA PDF download outcome — see enum below. |
 | `download_error` | string | Reason for `skipped` / `failed` / `not_pdf`. |
 | `pdf_status` | string | **Legacy** field mapped from `download_status`, kept for `build_library_index.py` compatibility. |
-| `citation_key` | string | Stable BibTeX key (lastname+year+title-word), written back by `build_bibliography.py`; survey and write share the same key. |
+| `citation_key` | string | Stable BibTeX key (lastname+year+title-word), written back by `build_bibliography.py`; survey and write share the same key. Chinese names/titles are romanized to pinyin, so keys stay ASCII. |
 | `rank` / `paper_slug` | — | Position in the ranked set; folder slug under `papers/`. |
 
 ### Discipline extension fields (filled by the prompt layer on demand)

@@ -144,9 +144,9 @@ Sci-Hub / LibGen / WebVPN / CARSI / paywall bypass. Details:
 - [metadata-schema.md](./references/metadata-schema.md) — unified record schema, `full_text_status` / `download_status` enums, dedup + field-merge rules, BibTeX assembly.
 - [site-patterns/scholar.google.com.md](./references/site-patterns/scholar.google.com.md) — Google Scholar CDP selectors, pacing, pitfalls.
 - `scripts/search_and_download_papers.py` — multi-source search + OA judgement + ranking + download (`--query` / `--queries` / `--arxiv-ids`, `--summary-only`).
-- `scripts/paddleocr_layout_to_markdown.py` — single-file or batch OCR (`--fallback-pdfminer`).
+- `scripts/paddleocr_layout_to_markdown.py` — single-file or batch OCR (`--fallback-pdfminer`). Output Markdown has full-width digits/letters converted to ASCII (CNKI PDFs carry `７５７`, `３．５`); Chinese punctuation is kept. CNKI CAJ files are skipped with a reason — OCR only reads PDF.
 - `scripts/build_library_index.py` — generate `library_index.json` / `.jsonl`.
 - `scripts/ingest_literature_library.py` — one-shot search → download → OCR → index (full-download shortcut).
-- `scripts/build_bibliography.py` — turn verified `metadata.json` into `references.bib` + stable cite keys (written back to metadata) + `bibliography.json` provenance map. The survey→write bridge: never hand-write bib entries.
+- `scripts/build_bibliography.py` — turn verified `metadata.json` into `references.bib` + stable cite keys (written back to metadata) + `bibliography.json` provenance map. The survey→write bridge: never hand-write bib entries. Chinese papers get pinyin keys (`zhang2023shendu`); install the optional `pypinyin` (`pip install pypinyin`) for the title part, otherwise it falls back to `paper`.
 - `scripts/audit_citations.py` — check every `\cite` in `sections/*.tex` resolves to a real, sourced bib entry (flags dangling / unsourced / unused).
 - `scripts/check-deps.sh` + `scripts/cdp-proxy.mjs` — optional Google Scholar via CDP (Chrome remote debugging; zero npm deps).

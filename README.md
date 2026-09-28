@@ -1,10 +1,4 @@
 <p align="center">
-  <img src="./assets/qrcode.jpg" alt="交流群二维码" width="180" />
-  <br/>
-  <em>扫码加入交流群</em>
-</p>
-
-<p align="center">
   <img src="./icons/icon.png" alt="Oh My Paper" width="120" height="120" />
 </p>
 
@@ -71,7 +65,16 @@ This is a personal maintenance fork of **[LigphiDonk/Oh-my--paper](https://githu
 - **`collect` no longer guesses which downloaded file you meant.** Two paths silently filed the wrong paper, both exiting 0: a title matching nothing archived *the most recently downloaded file*, and a title matching several picked the newest — so asking for "深度学习" filed "深度学习综述_李四.pdf". Matching is now exact-first (filename title part identical, or followed by `_author`), falling back to substring; ambiguity or no match exits 2 and lists the filenames actually present. Added a `--file` bypass, and PDF is now preferred over CAJ when both are downloaded.
 - **The documented CNKI flow didn't actually work, and its output reached nothing downstream.** Found by testing the commands exactly as the docs spell them, on a real 6-paper corpus, rather than the `--url`-always form used in the first pass. Four separate problems: `detail` never remembered its tab, so the documented `download` (no `--url`) went back to the search-results tab and timed out — and reported that timeout at **exit code 0**, dressed up with a download-looking hint; `collect` wrote only `paper.pdf` while `build_library_index.py` and `build_bibliography.py` both iterate `papers/*/metadata.json`, so both silently reported zero entries (`indexed_papers 0 → 1`, `bib_entries 0 → 1` after the fix); "record-only" entries (no full text on CNKI at all — no download area on the page) were reported with the same message as "you may need institutional access", sending users to log in for nothing; and `download` leaked a browser tab per paper. `collect` now always writes `metadata.json` (`--meta` merges in a `detail`/`parse` record, normalising authors/journal/year), and `institution_pdf` was added to the `full_text_status` enum — "obtained via your own subscription" had no honest value before, and `open_pdf` would misstate a paywalled paper as open access.
 - **The user-gesture fix was necessary but not sufficient: the gesture only lives ~5 seconds.** Measured on a fixed page and link, delaying before the click: 2s and 4s download; 6s and 8s do nothing. So the obvious shape — "await the page to be ready, then click" — is unreliable, and `download --url` navigates before it waits, which is exactly when it broke (same paper: downloads when its page is cached, fails when it loads for real), while still reporting `status: downloading`. `download` now runs two evaluations, the second of which only clicks, with no `await` ahead of it. Also found in the same sweep: `detail` remembering its tab (a fix from the previous commit) made `parse`/`pages`/`sort` land on the detail page and stop working until the next search — they now select a search-workbench tab explicitly; and `pages` could hang for the full CDP timeout, both from clicking a link that navigates (destroying the evaluation context mid-`await`, the same trap as the journal search button) and from clicking the page you are already on.
-- Verified end-to-end on that corpus, including a 77-page thesis: every archived PDF's first page was opened and compared against the title it was filed under — all matched. Two findings worth knowing: CAJ is the `KDH 2.00` container, not a PDF (`pdfinfo` fails on it), so the OCR pipeline can't read it; and while CNKI PDFs do carry a text layer, its digits and punctuation extract **full-width** (`７５７`), so downstream regexes need NFKC normalization first. One thing left alone but worth knowing: `build_bibliography.py` derives citation keys from Latin letters only, so all-Chinese papers get keys like `anon2023paper` (kept unique by a suffix, but low-information).
+- Verified end-to-end on that corpus, including a 77-page thesis: every archived PDF's first page was opened and compared against the title it was filed under — all matched. Two findings worth knowing: CAJ is the `KDH 2.00` container, not a PDF (`pdfinfo` fails on it), so the OCR pipeline can't read it; and while CNKI PDFs do carry a text layer, its digits and punctuation extract **full-width** (`７５７`), so downstream regexes need NFKC normalization first. One thing left alone but worth knowing: `build_bibliography.py` derives citation keys from Latin letters only, so all-Chinese papers get keys like `anon2023paper` (kept unique by a suffix, but low-information). (All three get follow-ups in 2.0.3, below.)
+
+**Fixed in 2.0.3:**
+
+- **Citation keys for Chinese papers.** All-Chinese papers used to get `anon<year>paper`. The author's surname is now romanized from a built-in surname table (polyphonic surnames use their surname reading — 曾 zeng, 单 shan, 仇 qiu; compound surnames like 欧阳 and 司马 are recognized whole), and a mostly-Chinese title contributes the pinyin of its first two characters after filler openers like 基于 / 关于 — e.g. `zhang2023shendu`. Keys stay pure ASCII. The title part needs the optional `pypinyin` (`pip install pypinyin`) and falls back to `paper` without it. Keys already written into `metadata.json` are never recomputed, so existing `\cite{}`s keep working.
+- **Chinese filenames overwrote each other.** `slugify` stripped every Chinese character, so OCR-ing a folder of Chinese PDFs sent every one of them to `paper/`, each overwriting the last; and same-year Chinese papers from Crossref / OpenAlex in `search_and_download_papers.py` all landed in a folder named after the year. Chinese characters are now kept.
+- **Full-width digits.** Markdown written by the OCR script (both the API and pdfminer paths) now converts full-width digits, letters and `．％＋－／＝＜＞` to ASCII (`７５７` → `757`, `３．５` → `3.5`). Not a blanket NFKC — that would also flatten `，：（）`, which are correct punctuation in Chinese prose.
+- **CAJ fails with a reason.** Handing a CAJ file to the OCR script (including one misnamed `.pdf`) now skips it and says what to do (re-download as PDF from CNKI, or print to PDF from CAJViewer) instead of failing obscurely.
+- **`remote-experiment` is no longer ML-only.** Adds clinical statistics (R / Stata / SAS) and meta-analysis use; a "patient data stays on the approved server" rule (`run` rsyncs the whole project directory, `sync down` pulls aggregate results only); under confirmatory analysis the self-repair loop fixes execution errors only and never alters the analysis to change a result — a forced change to the plan goes to the user and into `protocol_deviations.md`; and documents that `sync up` runs with `--delete`, which removes remote result files not excluded by `.gitignore`.
+- Removed the chat-group QR code from the top of the README: it belonged to the original author's group and has expired (upstream issue #5).
 
 ---
 
@@ -375,15 +378,16 @@ The flow:
 
 ## Remote Experiments
 
-The `remote-experiment` skill + `/omp:experiment` support a full auto-experiment loop:
+The `remote-experiment` skill + `/omp:experiment` run your analysis on a remote machine:
 
 ```
-Design plan → Implement code → rsync to server → Run on GPU / HPC → Parse metrics → Repeat
+Write analysis code → rsync to server → Run remotely → Read output → Fix errors and re-run
 ```
 
-- For any compute-heavy remote work — ML training, **bioinformatics pipelines** (alignment, variant calling, single-cell, GWAS), large-scale data processing
+- For any analysis that has to run remotely — clinical / epidemiological statistics (R / Stata / SAS; essential when patient data may only live on a hospital server), meta-analysis, **bioinformatics pipelines** (alignment, variant calling, single-cell, GWAS), ML training
 - SSH/rsync-based remote compute via `compute-helper` CLI
-- Configurable success thresholds, max iterations, and failure limits
+- Iteration follows `analysisMode`: exploratory projects (ML / bioinformatics) can iterate against success thresholds and iteration limits; confirmatory projects (clinical / systematic review) only fix execution errors — the pre-specified analysis, once it runs, is the result
+- With patient-level data, the data stays on the approved server and only aggregate results come back
 - Results flow back into `experiment_ledger.md` for the Paper Writer
 
 ---

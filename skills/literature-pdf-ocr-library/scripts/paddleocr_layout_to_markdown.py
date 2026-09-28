@@ -23,7 +23,7 @@ from typing import Dict, List
 
 import requests
 
-from literature_lib import discover_input_files, ensure_dir, slugify, write_json
+from literature_lib import discover_input_files, ensure_dir, normalize_fullwidth, slugify, write_json
 
 # Official async PaddleOCR-VL endpoint (job-based). Override with --api-url / PADDLEOCR_API_URL.
 DEFAULT_API_URL = "https://paddleocr.aistudio-app.com/api/v2/ocr/jobs"
@@ -56,9 +56,9 @@ def convert_pdf_pdfminer(path: Path, output_dir: Path) -> Dict:
     except ImportError as exc:
         raise RuntimeError("pdfminer not installed; run: pip install pdfminer.six") from exc
 
-    text = extract_text(str(path))
+    text = normalize_fullwidth(extract_text(str(path)))
     md_path = output_dir / "doc_0.md"
-    md_path.write_text(text or "", encoding="utf-8")
+    md_path.write_text(text, encoding="utf-8")
     manifest = {
         "input_path": str(path),
         "output_dir": str(output_dir),
@@ -138,7 +138,7 @@ def convert_one(path: Path, output_dir: Path, api_url: str, token: str, model: s
         result = json.loads(line)["result"]
         for parsed in result.get("layoutParsingResults", []):
             md_path = output_dir / f"doc_{page_num}.md"
-            md_path.write_text(parsed["markdown"]["text"], encoding="utf-8")
+            md_path.write_text(normalize_fullwidth(parsed["markdown"]["text"]), encoding="utf-8")
 
             downloaded_images = []
             for image_rel_path, image_url in (parsed["markdown"].get("images") or {}).items():
@@ -177,6 +177,16 @@ def convert_one(path: Path, output_dir: Path, api_url: str, token: str, model: s
     return manifest
 
 
+def is_caj(path: Path) -> bool:
+    """CNKI's CAJ (header "KDH 2.00" / "CAJ" / "HN") is a proprietary container, not a PDF."""
+    if path.suffix.lower() == ".caj":
+        return True
+    if path.suffix.lower() != ".pdf":
+        return False
+    with path.open("rb") as handle:
+        return not handle.read(5).startswith(b"%PDF")
+
+
 def main() -> int:
     args = parse_args()
     use_api = bool(args.token)
@@ -193,6 +203,12 @@ def main() -> int:
 
     manifests = []
     for path in files:
+        if is_caj(path):
+            # Neither the OCR API nor pdfminer can read CAJ, so say so instead of failing obscurely.
+            print(json.dumps({"warning": f"Skipping {path.name}: CNKI CAJ format, not a PDF. "
+                              "Re-download it from CNKI as PDF (cnki.mjs download --format pdf), "
+                              "or open it in CAJViewer and print to PDF, then OCR that PDF."}, ensure_ascii=False))
+            continue
         file_output_dir = output_root / slugify(path.stem)
         manifest_path = file_output_dir / "manifest.json"
         if args.skip_existing and manifest_path.exists():

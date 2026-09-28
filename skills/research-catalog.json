@@ -1,9 +1,9 @@
 {
   "schema": "omp-research-catalog-v1",
-  "generatedAt": "2026-09-10T13:25:16.276Z",
+  "generatedAt": "2026-09-28T06:05:47.105Z",
   "upstream": {
     "repo": "Oh-my--paper",
-    "revision": "a33c1022d1e033793f8370eaf8ff05771ae1cb72"
+    "revision": "48bee56c12e8be1b90df4b6f36ca5162916f3088"
   },
   "skills": [
     {
@@ -1813,7 +1813,8 @@
         "general",
         "machine_learning",
         "data_processing",
-        "bioinformatics"
+        "bioinformatics",
+        "clinical-medicine"
       ],
       "keywords": [
         "experiment",
@@ -1822,7 +1823,9 @@
         "ssh",
         "sync",
         "compute-helper",
-        "iterate"
+        "iterate",
+        "hpc",
+        "statistics"
       ],
       "source": "builtin",
       "status": "verified",

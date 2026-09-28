@@ -53,9 +53,27 @@ class NotPdfError(Exception):
 
 def slugify(text: str, limit: int = 80) -> str:
     text = text.lower().strip()
-    text = re.sub(r"[^a-z0-9]+", "-", text)
+    # Keep Chinese characters: dropping them collapsed every Chinese title to
+    # "paper" (or just its year), so papers overwrote each other's folders.
+    text = re.sub(r"[^a-z0-9㐀-䶿一-鿿]+", "-", text)
     text = re.sub(r"-{2,}", "-", text).strip("-")
     return text[:limit] or "paper"
+
+
+# Full-width digits, Latin letters and numeric symbols -> ASCII. CNKI PDFs
+# carry them in their text layer ("７５７", "３．５", "９５％"), which breaks
+# [0-9] / \. regexes downstream. Chinese punctuation (，：（）) is left alone —
+# it is correct typography in Chinese prose, unlike full-width digits.
+_FULLWIDTH_TO_ASCII = {
+    **{code: code - 0xFEE0 for code in range(0xFF10, 0xFF1A)},  # ０-９
+    **{code: code - 0xFEE0 for code in range(0xFF21, 0xFF3B)},  # Ａ-Ｚ
+    **{code: code - 0xFEE0 for code in range(0xFF41, 0xFF5B)},  # ａ-ｚ
+    **{ord(char): ord(char) - 0xFEE0 for char in "．％＋－／＝＜＞"},
+}
+
+
+def normalize_fullwidth(text: str) -> str:
+    return (text or "").translate(_FULLWIDTH_TO_ASCII)
 
 
 def normalize_title(text: str) -> str:

@@ -1,0 +1,2 @@
+{"schema_version": 1, "search_run_id": "search-1", "source": "合成数据库A", "source_type": "database", "query": "synthetic fixture", "searched_at": "2026-01-01T10:00:00Z", "status": "complete", "identified_count": 2, "retrieved_count": 2}
+{"schema_version": 1, "search_run_id": "search-2", "source": "合成数据库B", "source_type": "database", "query": "synthetic fixture", "searched_at": "2026-01-01T10:00:00Z", "status": "complete", "identified_count": 1, "retrieved_count": 1}

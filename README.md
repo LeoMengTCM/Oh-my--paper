@@ -5,7 +5,7 @@
 <h1 align="center">Oh My Paper</h1>
 
 <p align="center">
-  <strong>A research harness for Claude Code — turn your terminal into an autonomous research lab.</strong>
+  <strong>A research workflow for Codex and Claude Code — from literature to experiments and publication.</strong>
 </p>
 
 <p align="center">
@@ -15,24 +15,32 @@
 <p align="center">
   <img src="https://img.shields.io/badge/claude--code-plugin-blueviolet?style=flat-square" />
   <img src="https://img.shields.io/badge/agents-5-ff69b4?style=flat-square" />
-  <img src="https://img.shields.io/badge/skills-44-green?style=flat-square" />
+  <img src="https://img.shields.io/badge/skills-45-green?style=flat-square" />
   <img src="https://img.shields.io/badge/commands-9-blue?style=flat-square" />
   <img src="https://img.shields.io/badge/license-MIT-orange?style=flat-square" />
 </p>
 
 ---
 
-## TL;DR
+## TL;DR — Codex
+
+From this checkout:
 
 ```bash
-# In Claude Code:
-/plugin marketplace add LeoMengTCM/Oh-my--paper
-/plugin install omp@oh-my-paper
+./scripts/install-codex-plugin.sh
+# Windows: powershell -ExecutionPolicy Bypass -File .\scripts\install-codex-plugin.ps1
 ```
 
-Restart Claude Code. Run `/omp:setup` inside your research project, then drive the full pipeline with `/omp:survey`, `/omp:experiment`, and `/omp:write`. No GUI, no window-switching — everything in the terminal.
+Start a new Codex session in your research project and ask: **“Use omp to initialize this research project. The topic is …”** Then ask for literature surveys, plans, experiments, writing, review, or progress sync. See [Codex Support](#codex-support) and the [complete workflow guide](docs/codex-workflow.md). Claude Code installation remains below.
 
 ---
+
+## 2.1.0: continuous Codex workflows
+
+- Adds the `omp` entrypoint, nine workflows, five project roles, preserved project setup, and session-bound continuation through trusted native hooks.
+- Connects survey, the five-direction idea/evaluation workflow, evidence integration or experiments, drafting, review, revision and delivery. Narrative reviews keep their own structure; shared Claude Code workflows remain available.
+- Adds resumable PubMed retrieval, structured systematic-review records, RR/MD/SMD analysis and writing handoffs with offline and real-R regression checks.
+- Includes end-to-end Codex replay tools and an installed-content/hook-readiness check. See [the workflow guide](docs/codex-workflow.md) and [continuous execution validation](docs/codex-continuous-validation.md).
 
 ## This Fork
 
@@ -84,7 +92,7 @@ This is a personal maintenance fork of **[LigphiDonk/Oh-my--paper](https://githu
 - [Install](#install)
 - [Claude Code Slash Commands](#claude-code-slash-commands)
 - [The Agent Team](#the-agent-team)
-- [44 Research Skills](#44-research-skills)
+- [45 Research Skills](#45-research-skills)
 - [Hooks](#hooks)
 - [Research Pipeline](#research-pipeline)
 - [Project Scaffold](#project-scaffold)
@@ -102,11 +110,11 @@ This is a personal maintenance fork of **[LigphiDonk/Oh-my--paper](https://githu
 
 Claude Code is already a great coding agent. But **research isn't just coding** — it's literature survey, idea evaluation, experiment design, paper writing, reference checking, and a dozen other things that require domain-specific workflows.
 
-Oh My Paper makes Claude Code **research-aware** by adding:
+Oh My Paper makes Codex and Claude Code **research-aware** by adding:
 
 - **A structured 5-stage pipeline** — Survey → Ideation → Experiment → Publication → Promotion
 - **5 specialized agent roles** — each with isolated memory and clear responsibilities
-- **44 built-in research skills** — from paper search to figure generation
+- **45 built-in research skills** — from paper search to figure generation
 - **Background hooks** — auto-inject project context at session start, prompt role selection, track task completion
 - **Codex delegation** — hand off parallel tasks to Codex in a separate terminal
 
@@ -115,6 +123,8 @@ Install it and forget about it. Your sessions get smarter. Your research gets or
 ---
 
 ## Install
+
+The following steps install the Claude Code plugin. For Codex, use the quickstart above or [Codex Support](#codex-support).
 
 ### Step 1: Add the marketplace
 
@@ -234,7 +244,7 @@ Session opens
 
 ---
 
-## 44 Research Skills
+## 45 Research Skills
 
 Skills are structured instruction sets that Claude loads on demand. Each skill is a markdown file covering a specific research task.
 
@@ -440,76 +450,46 @@ Any change to cached content requires version bumps in **both**:
 
 ## Codex Support
 
-Oh My Paper also ships a **Codex plugin** (`oh-my-paper-codex`) that shares the same research harness concepts, agents, and skills as the Claude Code plugin.
+The Codex plugin includes an invocable **omp skill**, nine workflows, five project roles, and native lifecycle hooks. It shares the research tools and `.pipeline` records with the Claude Code plugin.
 
-### Install on Codex
+### Install
 
-**macOS / Linux**
-
-```bash
-# 1. Clone the repo
-git clone https://github.com/LeoMengTCM/Oh-my--paper.git /tmp/oh-my-paper
-cd /tmp/oh-my-paper
-
-# 2. One-command install
-./scripts/install-codex-plugin.sh
-```
-
-**Windows (PowerShell)**
-
-```powershell
-# 1. Clone the repo
-git clone https://github.com/LeoMengTCM/Oh-my--paper.git $env:TEMP\oh-my-paper
-Set-Location $env:TEMP\oh-my-paper
-
-# 2. One-command install
-powershell -ExecutionPolicy Bypass -File .\scripts\install-codex-plugin.ps1
-```
-
-What the installer does:
-
-- Copies the plugin to `~/plugins/oh-my-paper-codex`
-- Creates or updates `~/.agents/plugins/marketplace.json`
-- Tries to call Codex directly so the plugin becomes installed and enabled immediately
-- Uses `node` under the hood, so make sure `node` is available on your `PATH`
-
-If `codex` is not available on your `PATH`, the script still registers the plugin and then tells you to finish the last step in Codex's Plugins page. If you search there, search for `Oh My Paper` or `oh-my-paper-codex`, not `omp`.
-
-### Use in Codex CLI
-
-After installation, start Codex in your research project directory:
+Run `./scripts/install-codex-plugin.sh` from this checkout. On Windows use `scripts/install-codex-plugin.ps1`. The cross-platform equivalents are:
 
 ```bash
-cd /path/to/your/research-project
-codex
+node scripts/manage-codex-plugin.mjs install
+node scripts/manage-codex-plugin.mjs status
 ```
 
-Then use one of these two patterns:
+The installer copies a standalone bundle to `~/plugins/oh-my-paper-codex`, preserves other personal marketplace entries, and attempts installation through Codex app-server. If unavailable, open `/plugins`, install **Oh My Paper**, and start a new session.
 
-- Ask naturally, for example: `Use Oh My Paper to initialize this research project and scaffold .pipeline/`
-- Reuse the workflow prompt templates under `plugins/oh-my-paper-codex/prompts/` by copying or adapting them inside the Codex session
+### Use
 
-Codex CLI does **not** currently auto-register the files in `plugins/oh-my-paper-codex/prompts/` as slash commands, so `/omp-setup` and similar commands will **not** appear in the CLI command palette.
+Ask Codex to use **omp** to initialize, plan/resume, survey, ideate, experiment, write, review, delegate, or sync. Promotion materials use the write workflow. You do not need to copy prompt templates; `/omp-*` commands are not registered.
 
-### What's Included
+Initialization preserves existing research files and external AGENTS.md instructions, creates the missing project scaffold, and installs roles in `.codex/agents/omp-*.toml`. Roles inherit the session model. Restart the session to load new project roles. Re-running setup preserves tasks and custom roles.
 
-| Feature | Claude Code | Codex CLI |
-|:---|:---|:---|
-| Agent Roles (5) | `agents/*.md` | `agents/*.toml` |
-| Workflow entrypoints | `/omp:...` slash commands | Natural-language prompts + `prompts/*.md` templates |
-| SessionStart Hook | Native hook | `AGENTS.md` (auto-read) |
-| Skills (44) | ✅ shared | ✅ shared |
-| `.pipeline/` Memory | ✅ | ✅ |
-| Codex Delegation | `/omp:delegate` → new terminal | Native `/agent` subagent |
+### Hooks and research tracks
 
-### Key Differences
+Codex supports SessionStart, PostToolUse, Stop and SubagentStop hooks. Review and trust the plugin definitions in `/hooks` to enable them. For an authorized full workflow, omp registers the current session and checks for unfinished work before stopping. Trusted Stop hooks continue a prematurely ended turn; real user decisions, external blockers and explicit pauses remain valid stopping points. Hooks never approve research or mark tasks complete. See [continuous execution](docs/codex-continuous-workflow.md) and the [end-to-end validation](docs/codex-continuous-validation.md).
 
-- **Hooks**: Codex doesn't have native hooks. The `SessionStart` equivalent is handled by `AGENTS.md` which Codex reads automatically. Stage transition detection is embedded in the agent instructions.
-- **CLI command model**: Claude Code exposes `/omp:...` slash commands. Codex CLI currently does not auto-register the plugin's `prompts/*.md` files as `/omp-*` slash commands, so you use natural-language prompts or copy/adapt the templates manually.
-- **Both can coexist**: The Codex plugin (`plugins/oh-my-paper-codex/`) is completely separate from the Claude Code plugin (`plugins/oh-my-paper/`). Installing one does not affect the other.
-- **Installer scripts**: Use `scripts/install-codex-plugin.sh` on macOS/Linux or `scripts/install-codex-plugin.ps1` on Windows. They merge the marketplace entry instead of overwriting your existing local plugins.
-- **Codex discovery**: Codex expects a valid `~/.agents/plugins/marketplace.json` entry plus a plugin directory under `~/plugins/<plugin-name>/`. Copying files only into `~/.codex/plugins/` is not enough for the plugin UI to discover it.
-- **Codex install state**: A marketplace entry only makes the plugin appear in the Plugins page. You must still install it there before it becomes enabled and usable.
+All five stages support ML, clinical research, systematic review and bioinformatics. The systematic-review branch reuses retrieval/recovery, screening records, RR/MD/SMD analysis and writing-handoff tools. Human screening, extraction verification, RoB 2, GRADE and real clinical end-to-end validation still require research evidence and judgment. Software examples do not establish clinical completion.
+
+See the [complete workflow guide](docs/codex-workflow.md) for the stage mapping, artifact contracts and commands.
+
+### Maintain and verify
+
+After editing Codex prompts or roles, run `npm run codex:sync`, then `npm run check`. Tests cover standalone installation, project preservation, all four track initializers, TOML roles and native hook envelopes. For full statistical checks, install the R dependencies and run `OMP_REQUIRE_R=1 npm run check`.
+
+Verify the installed content **and** native Stop-hook readiness for your project:
+
+```bash
+node scripts/check-codex-runtime.mjs --installed --project /path/to/research --require-hooks
+```
+
+The check exits with status 2 if automatic continuation is not active. The opt-in real-model pipeline replay is `python3 scripts/eval-codex-pipeline.py`; it uses model calls and is separate from offline CI.
+
+Interface references: [official plugin documentation](https://developers.openai.com/plugins/build/plugins), [subagents](https://developers.openai.com/codex/subagents), and [hooks](https://learn.chatgpt.com/docs/hooks).
 
 ---
 

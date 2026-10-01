@@ -1,8 +1,11 @@
 # PRISMA 2020 Flow Diagram — counts to fill in
 
-Record the number at each step as you screen. These numbers must be internally
-consistent (identified − duplicates = screened; screened − excluded = retrieved; etc.)
-and they are reported verbatim in the manuscript flow diagram.
+优先从 `scripts/review_state.py prisma <综述记录目录>` 获取计数，字段规范见
+`references/review-records.md`。该命令生成计数表，不是官方流程图。
+
+区分 records、reports 与 studies，以及未完成筛选和未取得全文。
+不能把“已筛选 − 排除”直接当作“已取得全文”；中间还包括尚未请求、获取中和未取得的报告。
+只有完整的实际记录才能填最终流程图；partial 计数不得写成最终结果。
 
 ## Identification
 - Records identified from databases:
@@ -31,8 +34,10 @@ and they are reported verbatim in the manuscript flow diagram.
   - Wrong intervention/comparator: ____
   - Wrong outcome: ____
   - Wrong study design: ____
-  - Duplicate / companion report: ____
+  - Other pre-specified eligibility reason: ____
   - Other (____): ____
+
+同一研究的伴随报告不自动作为全文排除理由；关联到同一 study_id，避免重复计算研究。完全相同报告的重复题录在去重阶段处理。
 
 ## Included
 - Studies included in the review: ____

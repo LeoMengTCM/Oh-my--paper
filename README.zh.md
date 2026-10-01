@@ -5,7 +5,7 @@
 <h1 align="center">Oh My Paper</h1>
 
 <p align="center">
-  <strong>Claude Code 科研 harness — 把你的终端变成自主科研实验室。</strong>
+  <strong>Codex 与 Claude Code 科研工作流 — 从文献、实验到论文与汇报。</strong>
 </p>
 
 <p align="center">
@@ -15,24 +15,34 @@
 <p align="center">
   <img src="https://img.shields.io/badge/claude--code-plugin-blueviolet?style=flat-square" />
   <img src="https://img.shields.io/badge/agents-5-ff69b4?style=flat-square" />
-  <img src="https://img.shields.io/badge/skills-44-green?style=flat-square" />
+  <img src="https://img.shields.io/badge/skills-45-green?style=flat-square" />
   <img src="https://img.shields.io/badge/commands-9-blue?style=flat-square" />
   <img src="https://img.shields.io/badge/license-MIT-orange?style=flat-square" />
 </p>
 
 ---
 
-## 快速开始
+## 快速开始：Codex
+
+在本仓库目录运行：
 
 ```bash
-# 在 Claude Code 里：
-/plugin marketplace add LeoMengTCM/Oh-my--paper
-/plugin install omp@oh-my-paper
+./scripts/install-codex-plugin.sh
+# Windows: powershell -ExecutionPolicy Bypass -File .\scripts\install-codex-plugin.ps1
 ```
 
-重启 Claude Code，在你的科研项目里运行 `/omp:setup`，然后用 `/omp:survey`、`/omp:experiment`、`/omp:write` 驱动整个科研流程。不需要 GUI，不需要切窗口，所有事情都在终端里完成。
+在研究项目中新开 Codex 会话，输入：**“用 omp 初始化这个科研项目，主题是……”**。
+之后可直接要求调研、制定方案、执行实验、写作、评审和同步进度。
+完整步骤见 [Codex 工作流](docs/codex-workflow.md)；Claude Code 的安装方式保留在下文。
 
 ---
+
+## 2.1.0：Codex 连续科研流程
+
+- 新增 `omp` 总入口、九个工作流、五个项目角色、保留现有资料的初始化，以及受信任原生 hooks 支持的会话级自动续行。
+- 贯通调研、五方向生成与评估、证据整合／实验、写作、审稿、返修和交付；叙述性综述按研究实质处理，保留 Claude Code 原有工作流。
+- 补齐 PubMed 分批检索与恢复、结构化系统综述记录、RR/MD/SMD 分析及写作交接，加入离线与真实 R 回归检查。
+- 提供 Codex 整链回放、实际安装内容和 hook 就绪检查。见[使用说明](docs/codex-workflow.md)与[连续执行验收](docs/codex-continuous-validation.md)。
 
 ## 关于这个分支
 
@@ -84,7 +94,7 @@
 - [安装](#安装)
 - [Claude Code 命令列表](#claude-code-命令列表)
 - [Agent 团队](#agent-团队)
-- [44 个研究技能](#44-个研究技能)
+- [45 个研究技能](#45-个研究技能)
 - [Hooks](#hooks)
 - [科研流水线](#科研流水线)
 - [项目结构](#项目结构)
@@ -102,11 +112,11 @@
 
 Claude Code 是很强的编程 agent，但**科研不只是写代码** —— 还有文献调研、创新点评估、实验设计、论文撰写、引用核查，这些都需要特定领域的工作流。
 
-Oh My Paper 让 Claude Code **理解科研**，提供：
+Oh My Paper 让 Codex 与 Claude Code **理解科研**，提供：
 
 - **结构化 5 阶段流水线** — 调研 → 创意 → 实验 → 发表 → 推广
 - **5 个专职 agent 角色** — 各自有独立记忆和明确职责
-- **44 个内置研究技能** — 从论文搜索到图表生成
+- **45 个内置研究技能** — 从论文搜索到图表生成
 - **后台 hooks** — 每次开会话自动注入项目上下文、触发角色选择
 - **Codex 任务委派** — 把并行任务交给另一个终端里的 Codex 跑
 
@@ -115,6 +125,8 @@ Oh My Paper 让 Claude Code **理解科研**，提供：
 ---
 
 ## 安装
+
+以下为 Claude Code 安装步骤；Codex 请使用上方快速开始或 [Codex 支持](#codex-支持)。
 
 ### 第一步：添加 marketplace
 
@@ -234,7 +246,7 @@ Codex 插件目前**不会**在 Codex CLI 里自动注册 `/omp-*` 命令。
 
 ---
 
-## 44 个研究技能
+## 45 个研究技能
 
 技能是 Claude 按需加载的结构化指令集，每个技能是一个 markdown 文件，覆盖特定的科研任务。
 
@@ -441,76 +453,70 @@ Conductor 可以把代码和实验任务交给 Codex 执行：
 
 ## Codex 支持
 
-Oh My Paper 同时提供 **Codex 插件**（`oh-my-paper-codex`），共享同一套科研 harness 思路、agent 和 skills，但交互方式与 Claude Code 不完全相同。
+Codex 插件提供可直接加载的 **omp skill**、九个工作流、五个项目角色和原生 hooks。
+完整说明见 [Codex 工作流](docs/codex-workflow.md)。
 
-### 在 Codex 上安装
+### 安装
 
-**macOS / Linux**
-
-```bash
-# 1. 克隆仓库
-git clone https://github.com/LeoMengTCM/Oh-my--paper.git /tmp/oh-my-paper
-cd /tmp/oh-my-paper
-
-# 2. 一键安装
-./scripts/install-codex-plugin.sh
-```
-
-**Windows（PowerShell）**
-
-```powershell
-# 1. 克隆仓库
-git clone https://github.com/LeoMengTCM/Oh-my--paper.git $env:TEMP\oh-my-paper
-Set-Location $env:TEMP\oh-my-paper
-
-# 2. 一键安装
-powershell -ExecutionPolicy Bypass -File .\scripts\install-codex-plugin.ps1
-```
-
-安装脚本会自动完成：
-
-- 复制插件到 `~/plugins/oh-my-paper-codex`
-- 创建或更新 `~/.agents/plugins/marketplace.json`
-- 尝试直接调用 Codex，把插件安装并启用
-- 底层使用 `node` 执行，所以请先确保 `node` 在你的 `PATH` 上
-
-如果你的环境里 `codex` 不在 `PATH` 上，脚本仍会先把插件注册进去，然后提示你去 Codex 的 Plugins 页面完成最后一步。若需要搜索，优先搜 `Oh My Paper` 或 `oh-my-paper-codex`，不要只搜 `omp`。
-
-### 在 Codex CLI 里怎么用
-
-安装完成后，在你的科研项目目录里启动 Codex：
+在当前仓库运行 `./scripts/install-codex-plugin.sh`；Windows 使用
+`scripts/install-codex-plugin.ps1`。跨平台也可运行：
 
 ```bash
-cd /path/to/your/research-project
-codex
+node scripts/manage-codex-plugin.mjs install
+node scripts/manage-codex-plugin.mjs status
 ```
 
-然后用下面两种方式之一：
+安装器复制插件到 `~/plugins/oh-my-paper-codex`，保留并合并个人 marketplace，
+尝试通过 Codex app-server 安装并核对状态。若自动安装不可用，在 `/plugins`
+找到 **Oh My Paper** 完成安装，然后开新会话。
 
-- 直接自然语言描述，例如：`Use Oh My Paper to initialize this research project and scaffold .pipeline/`
-- 打开 `plugins/oh-my-paper-codex/prompts/` 里的工作流模板，在 Codex 会话里复制或改写后使用
+### 使用
 
-Codex CLI 目前**不会**把 `plugins/oh-my-paper-codex/prompts/` 下的文件自动注册成斜杠命令，所以你在 CLI 里看不到 `/omp-setup` 这类命令。
+| 目标 | 对 Codex 说 |
+|---|---|
+| 初始化 | 用 omp 初始化项目，主题是……，类型为 systematic-review |
+| 规划／恢复 | 用 omp 继续当前科研项目，检查任务与产物 |
+| 调研 | 用 omp 检索这个主题的文献 |
+| 构思／方案 | 用 omp 确定研究方向，或制定综述 PICO 与 SAP |
+| 实验／综述 | 用 omp 执行当前实验，或正式检索、筛选与合成 |
+| 写作／汇报 | 用 omp 写论文，或从现有结果制作汇报材料 |
+| 评审 | 用 omp 评审当前稿件 |
+| 委派 | 用 omp 将这个任务交给 Codex 子代理 |
+| 同步 | 用 omp 更新任务和项目记忆 |
 
-### 包含内容
+`omp` 自动读取对应参考文件，用户不需要手动复制 prompts，也不使用不存在的 `/omp-*` 命令。
+初始化器保留现有研究文件和 AGENTS.md 指令，将角色装入 `.codex/agents/omp-*.toml`；
+角色继承会话模型。重跑初始化可补齐缺失文件，不重置任务。
 
-| 功能 | Claude Code | Codex CLI |
-|:---|:---|:---|
-| Agent 角色（5 个） | `agents/*.md` | `agents/*.toml` |
-| 工作流入口 | `/omp:...` 斜杠命令 | 自然语言 + `prompts/*.md` 模板 |
-| SessionStart Hook | 原生 hook | `AGENTS.md`（自动读取） |
-| 技能（44 个） | ✅ 共享 | ✅ 共享 |
-| `.pipeline/` 记忆 | ✅ | ✅ |
-| Codex 任务委派 | `/omp:delegate` → 新终端 | 原生 `/agent` 子代理 |
+### Hooks 与研究记录
 
-### 关键差异
+Codex 支持原生 SessionStart、PostToolUse、Stop、SubagentStop hooks。
+在 `/hooks` 审查信任后启用。完整流程获授权后，omp 会登记当前会话，并在结束前检查剩余工作；
+受信任的 Stop hook 会自动接回提前收尾的任务。真实用户决定、外部缺口和明确暂停仍可停下。
+hooks 不代替研究批准，也不自动把任务标为完成。见 [连续执行说明](docs/codex-continuous-workflow.md)
+和 [整链验收记录](docs/codex-continuous-validation.md)。
 
-- **Hooks**：Codex 没有原生 hook 系统。SessionStart 等价功能通过 `AGENTS.md` 实现（Codex 启动时自动读取）。阶段转换检测嵌入在 agent 指令中。
-- **CLI 命令模型**：Claude Code 提供 `/omp:...` 斜杠命令；Codex CLI 目前不会把插件里的 `prompts/*.md` 自动注册成 `/omp-*` 命令，因此需要用自然语言或手动复用模板。
-- **可以共存**：Codex 插件（`plugins/oh-my-paper-codex/`）与 Claude Code 插件（`plugins/oh-my-paper/`）完全独立，互不影响。
-- **安装脚本**：macOS/Linux 用 `scripts/install-codex-plugin.sh`，Windows 用 `scripts/install-codex-plugin.ps1`。脚本会合并 marketplace 条目，不会直接覆盖你已有的本地插件列表。
-- **Codex 的发现机制**：Codex 需要 `~/.agents/plugins/marketplace.json` 里有合法条目，同时插件目录位于 `~/plugins/<plugin-name>/`。只把文件复制到 `~/.codex/plugins/`，UI 不会收录。
-- **Codex 的安装状态**：marketplace 里有条目，只代表插件会出现在 Plugins 页面；你仍然需要在页面里点一次 Install，它才会变成已安装、已启用。
+ML、临床、系统综述、生信都沿用五阶段。系统综述复用 SR-01 至 SR-05 的
+检索恢复、结构化筛选、RR/MD/SMD 分析和写作交接工具。真实筛选、提取核对、RoB 2、
+GRADE 和临床端到端验收仍需相应材料与人类判断，软件测试不能替代研究证据。
+
+### 维护
+
+修改 Codex prompts 或角色后运行 `npm run codex:sync`；执行 `npm run check`。
+角色 TOML、独立安装包、四类研究初始化、任务保留与 hooks 均有行为测试。
+完整统计验证要求 R 依赖就绪，并运行 `OMP_REQUIRE_R=1 npm run check`。
+
+核对实际安装内容与当前项目的自动续行状态：
+
+```bash
+node scripts/check-codex-runtime.mjs --installed --project /path/to/research --require-hooks
+```
+
+自动续行未启用时退出码为 2，不能把安装成功当作 hooks 已运行。
+`python3 scripts/eval-codex-pipeline.py` 可执行真实模型整链回放，会产生模型调用，不属于离线 CI。
+
+接口依据：[官方插件文档](https://developers.openai.com/plugins/build/plugins)、
+[子代理](https://developers.openai.com/codex/subagents)、[hooks](https://learn.chatgpt.com/docs/hooks)。
 
 ---
 

@@ -40,7 +40,8 @@ description: Orchestrates the research pipeline by routing between modes and rev
 - 通过 `/omp:delegate` 派遣 Codex 执行代码任务
 - 维护项目记忆（project_truth, orchestrator_state, agent_handoff）
 - 识别风险，拆解卡住的任务
-- 按 `pipeline.track` 把关闸门：clinical / systematic-review 在进入采集/分析前确认已锁定 + 注册 + 伦理；进入发表前核对报告规范清单（CONSORT/STROBE/STARD/PRISMA + 注册号 + 伦理与数据可得性声明）
+- 按 `pipeline.track` 把关闸门：clinical 核验适用的方案、注册与伦理要求；进入发表前核对相应报告规范和声明。
+- systematic-review 读取实际 skills 目录下 `systematic-review/references/rct-pairwise-profile.md`。五阶段不变：survey 探索 → ideation 批准 PICO/方案/SAP → experiment 正式检索、筛选、提取与合成 → publication → promotion。默认 `confirmatory`；批准记录写入 `.pipeline/memory/decision_log.md`，关联批准的方案版本，任务 `done` 本身不是审批证据。注册状态如实记录为 `planned` / `submitted` / `registered` / `not_registered` / `not_applicable`；未注册须用户说明并确认，但不绝对阻断。公开汇总数据不默认要求 IRB；涉及个体数据或其他伦理要求时另行核实。允许错误修复后重跑并记录原因与偏离，不允许为显著性改方案。
 
 ## 子任务完成后强制更新（关键）
 
@@ -48,14 +49,9 @@ description: Orchestrates the research pipeline by routing between modes and rev
 
 ### 1. 更新 tasks.json 任务状态
 
-将刚完成的任务从 `in-progress` → `done`（或 `review`），更新 `updatedAt`：
+读取或更新任务前，运行 `node "<实际skills目录>/inno-pipeline-planner/scripts/task-contract.mjs" .pipeline/tasks/tasks.json`。从插件实际安装的 skills 目录定位脚本，不依赖仓库根 `scripts/`。成功 stdout 输出规范化文档，CLI 不写文件；错误 stderr、退出 1，此时停止更新和阶段判断。新建统一写顶层 `tasks` 和任务内 `dependencies`；读兼容 `master.tasks` / `dependsOn`，不得把旧嵌套任务当作零条。双列表或依赖冲突必须停止。保留数字或字符串旧 ID、状态和元数据，尤其不重编号 gate ID；旧文件更新保留原格式，迁移需用户同意，不把规范化输出直接覆盖回原文件。
 
-```bash
-# 读取当前 tasks.json，定位对应 task id，更新 status 和 updatedAt，写回
-cat .pipeline/tasks/tasks.json
-```
-
-然后直接写回更新后的内容到 `.pipeline/tasks/tasks.json`。
+仅将有完成证据的对应任务从 `in-progress` 改为 `done`（或 `review`），更新 `updatedAt`；按上述兼容规则保留旧格式和其他内容。
 
 ### 2. 更新 project_truth.md
 
@@ -140,7 +136,7 @@ cat .pipeline/tasks/tasks.json
 - ❌ 不要自己写论文正文
 - ❌ 不要自己跑实验代码
 - ❌ 不要在没有评审的情况下推进阶段
-- ❌ clinical / systematic-review：锁定/注册门未 done，不得推进到数据采集/分析
+- clinical / systematic-review：未核验适用门的批准证据，不得推进正式采集/分析；不能仅凭门任务 `done` 放行。
 - ❌ confirmatory 研究不要把"未达标→再跑一轮"当作选项（p-hacking）
 - ✅ dispatch 后等待结果，评审，再决定下一步
 

@@ -46,7 +46,12 @@ async function main() {
 function extractExecutorReport(text) {
   const matches = [...text.matchAll(/```omp_executor_report\s*([\s\S]*?)```/g)];
   if (!matches.length) return null;
-  try { return JSON.parse(matches[matches.length - 1][1].trim()); } catch { return null; }
+  const report = JSON.parse(matches[matches.length - 1][1].trim());
+  if (!report || typeof report !== "object" || typeof report.taskId !== "string" || typeof report.summary !== "string"
+      || [report.artifacts, report.issues].some(value => value !== undefined && (!Array.isArray(value) || value.some(item => typeof item !== "string")))) {
+    throw new Error("Executor report requires taskId, summary and optional string arrays artifacts/issues");
+  }
+  return report;
 }
 
 async function readStdin() {
@@ -56,4 +61,4 @@ async function readStdin() {
   return Buffer.concat(chunks).toString("utf8");
 }
 
-main().catch(() => process.exit(0));
+main().catch((error) => { console.error(error.message); process.exitCode = 1; });

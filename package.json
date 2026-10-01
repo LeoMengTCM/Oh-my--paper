@@ -1,13 +1,19 @@
 {
   "name": "oh-my-paper",
   "private": true,
-  "version": "2.0.3",
+  "version": "2.1.0",
   "type": "module",
   "scripts": {
-    "check": "npm run skills:research:check && npm run check:consistency",
+    "check": "npm run skills:research:check && npm run codex:check && npm run check:consistency && npm test",
+    "test": "node --test tests/*.test.mjs && npm run test:sr",
+    "test:sr": "node scripts/test-systematic-review.mjs",
+    "test:sr:stats": "node scripts/test-systematic-review.mjs --require-r",
     "check:consistency": "node scripts/check-plugin-consistency.mjs",
     "skills:research:sync": "node scripts/sync-research-skills.mjs sync",
     "skills:research:check": "node scripts/sync-research-skills.mjs check",
-    "skills:research:report": "node scripts/sync-research-skills.mjs report"
+    "skills:research:report": "node scripts/sync-research-skills.mjs report",
+    "codex:sync": "node scripts/sync-codex-workflows.mjs sync",
+    "codex:check": "node scripts/sync-codex-workflows.mjs check",
+    "codex:runtime:check": "node scripts/check-codex-runtime.mjs"
   }
 }

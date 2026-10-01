@@ -1,0 +1,2 @@
+{"schema_version": 1, "report_id": "report-1", "title": "合成报告，不是真实论文", "retrieval_status": "retrieved", "study_link": {"study_id": "study-1", "protocol_version": "v1", "confirmed_by": "alice", "confirmed_at": "2026-01-02T10:00:00Z", "reason": "核对注册号后的合成归并"}}
+{"schema_version": 1, "report_id": "report-2", "title": "同一合成试验的随访报告", "retrieval_status": "retrieved", "study_link": {"study_id": "study-1", "protocol_version": "v1", "confirmed_by": "alice", "confirmed_at": "2026-01-02T10:00:00Z", "reason": "核对注册号后的合成归并"}}

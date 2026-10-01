@@ -1,0 +1,1 @@
+{"schema_version": 1, "approval_id": "approval-1", "protocol_version": "v1", "reviewer_id": "alice", "approved_at": "2026-01-01T10:00:00Z", "screening_mode": "dual", "registration_status": "not_registered", "acknowledged_limitations": true, "protocol_document": "protocol-v1.md", "sap_document": "sap-v1.md"}

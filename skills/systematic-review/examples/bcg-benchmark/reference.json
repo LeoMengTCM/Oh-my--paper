@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "purpose": "public_benchmark",
+  "title": "Conducting Meta-Analyses in R with the metafor Package",
+  "author": "Wolfgang Viechtbauer",
+  "year": 2010,
+  "doi": "10.18637/jss.v036.i03",
+  "source_url": "https://doi.org/10.18637/jss.v036.i03",
+  "locator": "Journal of Statistical Software 36(3), PDF page 14, Random-Effects Model and Model Results",
+  "dataset": "metadat::dat.bcg",
+  "allocation_counts": {"random": 7, "alternate": 2, "systematic": 4},
+  "expected": {
+    "k_analyzed": {"value": 13, "absolute_tolerance": 0},
+    "estimate_analysis": {"value": -0.7145, "absolute_tolerance": 0.00005},
+    "se_analysis": {"value": 0.1798, "absolute_tolerance": 0.00005},
+    "ci_lower_analysis": {"value": -1.0669, "absolute_tolerance": 0.00005},
+    "ci_upper_analysis": {"value": -0.3622, "absolute_tolerance": 0.00005},
+    "tau2": {"value": 0.3132, "absolute_tolerance": 0.00005},
+    "I2": {"value": 92.2214, "absolute_tolerance": 0.00005},
+    "Q": {"value": 152.2330, "absolute_tolerance": 0.00005}
+  }
+}

@@ -1,0 +1,3 @@
+{"schema_version": 1, "record_id": "record-1", "search_run_id": "search-1", "source_record_id": "1", "report_id": "report-1"}
+{"schema_version": 1, "record_id": "record-2", "search_run_id": "search-1", "source_record_id": "2", "report_id": "report-2"}
+{"schema_version": 1, "record_id": "record-3", "search_run_id": "search-2", "source_record_id": "B1", "report_id": "report-1"}

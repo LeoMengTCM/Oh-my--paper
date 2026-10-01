@@ -52,10 +52,14 @@ which codex 2>/dev/null && codex --version 2>/dev/null || echo "Codex not found"
 选项：
 - `ml — 机器学习 / 计算实验`
 - `clinical — 临床研究（RCT / 队列 / 病例对照 / 诊断等；需注册与伦理审查）`
-- `systematic-review — 系统综述 / Meta 分析（需 PROSPERO 注册）`
+- `systematic-review — 系统综述 / Meta 分析（确认注册适用性与实际状态）`
 - `bioinformatics — 生物信息学（组学流程，常用 HPC）`
 
 记下选择写入 `pipeline.track`。clinical / systematic-review 自动设 `analysisMode = confirmatory`，其余为 `exploratory`。
+
+systematic-review 读取实际 skills 目录下 `systematic-review/references/rct-pairwise-profile.md`。五阶段不变：survey 探索 → ideation 批准 PICO/方案/SAP → experiment 正式检索、筛选、提取与合成 → publication → promotion。默认 `confirmatory`；批准记录写入 `.pipeline/memory/decision_log.md`，关联批准的方案版本，任务 `done` 本身不是审批证据。注册状态如实记录为 `planned` / `submitted` / `registered` / `not_registered` / `not_applicable`；未注册须用户说明并确认，但不绝对阻断。公开汇总数据不默认要求 IRB；涉及个体数据或其他伦理要求时另行核实。允许错误修复后重跑并记录原因与偏离，不允许为显著性改方案。
+
+若从 experiment 或更晚阶段开始，也须核验既有批准记录；不能用起始阶段跳过适用审批。
 
 ## 第三步：创建目录结构
 
@@ -71,6 +75,10 @@ cp -rn "${CLAUDE_PLUGIN_ROOT}/skills/." .claude/skills/
 ## 第四步：写入初始文件
 
 创建以下文件（已存在则跳过）：
+
+已有 `research_brief.json`、`tasks.json`、方案和记忆文件不得覆盖或重置。先检查原有状态；确需迁移时展示变更并征得用户同意。任务文件存在时先按下面的只读契约检查，不得替换为空任务表。
+
+读取或更新任务前，运行 `node "<实际skills目录>/inno-pipeline-planner/scripts/task-contract.mjs" .pipeline/tasks/tasks.json`。从插件实际安装的 skills 目录定位脚本，不依赖仓库根 `scripts/`。成功 stdout 输出规范化文档，CLI 不写文件；错误 stderr、退出 1，此时停止更新和阶段判断。新建统一写顶层 `tasks` 和任务内 `dependencies`；读兼容 `master.tasks` / `dependsOn`，不得把旧嵌套任务当作零条。双列表或依赖冲突必须停止。保留数字或字符串旧 ID、状态和元数据，尤其不重编号 gate ID；旧文件更新保留原格式，迁移需用户同意，不把规范化输出直接覆盖回原文件。
 
 **`.pipeline/docs/research_brief.json`**：
 ```json

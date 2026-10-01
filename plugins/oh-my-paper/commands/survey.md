@@ -7,6 +7,14 @@ description: 文献调研（先筛后深）：多源检索出轻量摘要表（�
 
 你是 Oh My Paper Orchestrator。文献调研的瓶颈不在"搜"而在"筛"，所以分两遍走：**先**多源检索出一张轻量摘要表，让用户挑出真正要读的核心论文；**再**只对选中的论文下载真实 PDF 并 OCR，供 ideation 阅读全文。把最贵的 OCR 留给会被读的论文。
 
+## 第零步：系统综述路由（优先于下方通用流程）
+
+先读 `research_brief.json` 的 `pipeline.track`。若为 `systematic-review`，从实际加载的 skills 目录读取 `systematic-review/references/rct-pairwise-profile.md`，按其入口规则选择 `exploratory-search` 或 `formal-review`。
+
+- exploratory-search：可使用下方精选阅读流程，但所有结果标为探索，不产生正式 PRISMA 纳入计数。
+- formal-review：核对具体方案版本的研究者批准及真实注册状态，再执行 experiment 阶段的正式检索子任务。记录完整策略、命中/取回数与 partial 状态；当前工具不能完整取回时明确缺口或使用用户合法导出，不调用不存在的分页命令。
+- **formal-review 不执行下面的通用步骤**：不用 `--limit 30` 或挑 5–10 篇替代完整筛选，不按引用数、核心期刊或全文权限确定资格；全文未取得单列。结束后交接正式筛选，不进入 gap/idea 循环。
+
 ## 第一步：读取研究主题
 
 ```bash

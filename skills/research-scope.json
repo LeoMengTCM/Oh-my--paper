@@ -1,6 +1,6 @@
 {
   "schema": "omp-research-scope-v1",
-  "generatedAt": "2026-09-28T06:05:47.105Z",
+  "generatedAt": "2026-10-01T01:28:02.633Z",
   "skills": [
     "academic-researcher",
     "bioinformatics-init-analysis",
@@ -27,6 +27,7 @@
     "integrity-auditor",
     "literature-pdf-ocr-library",
     "making-academic-presentations",
+    "omp",
     "paper-analyzer",
     "paper-finder",
     "paper-humanization",

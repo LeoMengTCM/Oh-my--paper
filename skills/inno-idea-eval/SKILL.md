@@ -291,11 +291,12 @@ Proactively search the literature to verify whether the idea (or key components)
 - Output: 4 search queries (core_method, problem_domain, key_component, broad_approach) + idea_summary + key_terms
 - If query extraction fails, fall back to extracting queries from the idea title and key sentences
 
-**0.5b — Execute searches** (4 invocations of `search_ai_papers.py`):
+**0.5b — Execute searches** (one pass per query using the bundled literature tool):
+Resolve `OMP_SKILLS` from the parent of this skill directory; use a distinct query directory for each pass.
 ```bash
-python3 ~/.claude/skills/searching-ai-papers/scripts/search_ai_papers.py \
-  --query "<query>" --sources arxiv,semantic_scholar,openalex \
-  --max-results 10 --year-from <current_year-3> --format json
+python3 "$OMP_SKILLS/literature-pdf-ocr-library/scripts/search_and_download_papers.py" \
+  --queries "<query>" --sources arxiv semanticscholar openalex \
+  --limit 10 --summary-only --out-dir .pipeline/literature/novelty-query-1
 ```
 - Run once per query (4 total)
 - Collect all results and cross-deduplicate by title similarity

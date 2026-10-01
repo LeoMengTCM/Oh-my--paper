@@ -25,5 +25,40 @@ jobs:
       - name: Validate research skills catalog
         run: npm run skills:research:check
 
+      - name: Validate bundled Codex workflows
+        run: npm run codex:check
+
       - name: Check plugin consistency (versions, JSON, syntax, frontmatter, parity)
         run: npm run check:consistency
+
+      - name: 设置 Python 测试环境
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run offline regression tests
+        run: npm test
+
+  sr-statistics:
+    runs-on: ubuntu-latest
+    env:
+      OMP_REQUIRE_R: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.6.0'
+      - name: 安装统计依赖并确认已测试版本
+        shell: Rscript {0}
+        run: |
+          install.packages(c("metafor", "jsonlite"), repos="https://cloud.r-project.org")
+          stopifnot(as.character(packageVersion("metafor")) == "5.2.1")
+          stopifnot(as.character(packageVersion("jsonlite")) == "2.0.0")
+      - name: 运行包含真实统计计算的全部检查
+        run: npm run check

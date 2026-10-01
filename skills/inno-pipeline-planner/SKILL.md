@@ -21,11 +21,11 @@ upstream:
   revision: 8322dc4ef575affaa374aa7922c0a0971c6db7d7
 resourceFlags:
   hasReferences: true
-  hasScripts: false
+  hasScripts: true
   hasTemplates: false
   hasAssets: false
   referenceCount: 4
-  scriptCount: 0
+  scriptCount: 1
   templateCount: 0
   assetCount: 0
   optionalScripts: false
@@ -79,6 +79,8 @@ Read only what you need:
 ## Workflow
 
 ## 1) Inspect existing pipeline state
+
+先按 `references/tasks-schema.md` 运行 `node "<实际skills目录>/inno-pipeline-planner/scripts/task-contract.mjs" .pipeline/tasks/tasks.json`（仅在任务文件存在时）。本技能内脚本相对路径是 `scripts/task-contract.mjs`，不依赖仓库根脚本。成功 stdout 为规范化文档且不写文件；错误 stderr、退出 1，此时停止任务更新与阶段判断。新建写顶层 `tasks` / `dependencies`；读兼容 `master.tasks` / `dependsOn`，不得当作零条。双列表或依赖冲突停止；保留数字或字符串旧 ID、状态和元数据，不自动迁移用户文件。
 
 Check:
 - `.pipeline/docs/research_brief.json`
@@ -150,6 +152,6 @@ After writing files, present:
 
 If user asks for updates:
 - Update brief content directly when only text/content changes.
-- Regenerate `tasks.json` when pipeline structure/blueprints/stages change.
-- **If user asks to change the starting stage**: update `pipeline.startStage` in the brief, then regenerate `tasks.json` to include only the active stages.
-- If asked to add one task only, append a single task with next numeric `id` instead of full regeneration.
+- 用户同意后才按结构/蓝图/阶段变化重新生成任务；保留旧任务 ID（含 gate ID）、状态和元数据，不自动迁移旧格式。
+- 修改起始阶段不等于已经通过前置审批；systematic-review 按实际 skills 目录下 `systematic-review/references/rct-pairwise-profile.md` 核验批准记录，再规划活跃阶段。
+- 只添加一个任务时追加未占用的 ID，兼容旧数字或字符串 ID，不重编号已有任务。

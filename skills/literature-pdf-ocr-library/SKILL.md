@@ -16,6 +16,9 @@ triggers:
 
 # Literature PDF OCR Library
 
+Resolve `OMP_SKILLS` from the parent of this loaded skill directory before running command examples; it is the actual shared skills directory in either Codex or Claude Code. Quote paths containing spaces.
+
+
 ## Overview
 
 Build a real, traceable literature corpus instead of fabricating references or
@@ -77,7 +80,7 @@ Never dump papers into the root or a flat directory without a corpus name.
 ```bash
 # --- Pass 1: screen (search + open-access judgement + ranking, NO download) ---
 # The prompt layer expands the topic into a few complementary queries.
-python .claude/skills/literature-pdf-ocr-library/scripts/search_and_download_papers.py \
+python "$OMP_SKILLS/literature-pdf-ocr-library/scripts/search_and_download_papers.py" \
   --queries "humanoid locomotion reinforcement learning" "legged robot RL control" "bipedal locomotion policy" \
   --summary-only --limit 30 \
   --sources arxiv semanticscholar openalex crossref \
@@ -87,10 +90,10 @@ python .claude/skills/literature-pdf-ocr-library/scripts/search_and_download_pap
 
 # (optional) Google Scholar for the fullest citation counts / papers other sources miss.
 # Needs Chrome remote debugging; degrades gracefully if absent.
-bash .claude/skills/literature-pdf-ocr-library/scripts/check-deps.sh
+bash "$OMP_SKILLS/literature-pdf-ocr-library/scripts/check-deps.sh"
 
 # --- Pass 2: deep pull (download only the picked papers; open-access PDFs only) ---
-python .claude/skills/literature-pdf-ocr-library/scripts/search_and_download_papers.py \
+python "$OMP_SKILLS/literature-pdf-ocr-library/scripts/search_and_download_papers.py" \
   --arxiv-ids 2502.13817 2501.14459 \
   --download-pdfs \
   --out-dir .pipeline/literature/<corpus-name>
@@ -99,19 +102,19 @@ python .claude/skills/literature-pdf-ocr-library/scripts/search_and_download_pap
 # OCR: PaddleOCR-VL async API (best quality). Submits a job, polls, downloads Markdown.
 # Default endpoint: https://paddleocr.aistudio-app.com/api/v2/ocr/jobs  (override with PADDLEOCR_API_URL)
 export PADDLEOCR_TOKEN="<token>"  # ask user, never hardcode
-python .claude/skills/literature-pdf-ocr-library/scripts/paddleocr_layout_to_markdown.py \
+python "$OMP_SKILLS/literature-pdf-ocr-library/scripts/paddleocr_layout_to_markdown.py" \
   .pipeline/literature/<corpus-name>/papers/*/paper.pdf \
   --output-dir .pipeline/literature/<corpus-name>/papers \
   --skip-existing
 
 # OCR: pdfminer fallback (text-only, no layout — confirm with user first)
-python .claude/skills/literature-pdf-ocr-library/scripts/paddleocr_layout_to_markdown.py \
+python "$OMP_SKILLS/literature-pdf-ocr-library/scripts/paddleocr_layout_to_markdown.py" \
   .pipeline/literature/<corpus-name>/papers/*/paper.pdf \
   --output-dir .pipeline/literature/<corpus-name>/papers \
   --fallback-pdfminer
 
 # Build index
-python .claude/skills/literature-pdf-ocr-library/scripts/build_library_index.py \
+python "$OMP_SKILLS/literature-pdf-ocr-library/scripts/build_library_index.py" \
   --library-root .pipeline/literature/<corpus-name>
 ```
 

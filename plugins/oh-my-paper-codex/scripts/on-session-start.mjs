@@ -4,24 +4,20 @@
  * 可通过 `node scripts/on-session-start.mjs` 手动触发
  */
 import fs from "node:fs/promises";
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 const PROJECT = process.cwd();
 const SESSION_CONTEXT = path.join(PROJECT, ".pipeline", ".session-context.md");
-const TTL_MS = 5 * 60 * 1000;
 
 async function main() {
-  // 如果已经有新鲜的 context，跳过
-  if (existsSync(SESSION_CONTEXT)) {
-    if (Date.now() - statSync(SESSION_CONTEXT).mtimeMs < TTL_MS) return;
-  }
-
   // 检查是否是研究项目
   const pipelineDir = path.join(PROJECT, ".pipeline");
   if (!existsSync(pipelineDir)) return;
 
   const lines = ["# Session Context (Auto-generated)", ""];
+  lines.push("Read AGENTS.md and the installed omp skill for the requested workflow. Resume the user's current task without a role-selection prompt.", "");
+  lines.push("Before selecting a workflow, run the omp skill's scripts/workflow.mjs --project . --intent continue (choose-topic for broad topic selection). Check prerequisites and evidence; finish survey before recommending topics. After verified work, execute the next authorized task without another workflow reminder; preserve the user's final topic/protocol decisions.", "");
 
   const briefPath = path.join(pipelineDir, "docs", "research_brief.json");
   if (existsSync(briefPath)) {
@@ -67,4 +63,4 @@ async function main() {
   await fs.writeFile(SESSION_CONTEXT, output, "utf8");
 }
 
-main().catch(() => process.exit(0));
+main().catch((error) => { console.error(error.message); process.exitCode = 1; });

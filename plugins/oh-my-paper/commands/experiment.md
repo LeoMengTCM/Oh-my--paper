@@ -14,15 +14,11 @@ cat .pipeline/docs/research_brief.json
 cat .pipeline/tasks/tasks.json
 ```
 
-读取 `pipeline.track`（缺省 `ml`）与 `pipeline.analysisMode`（缺省 `exploratory`）。
+读取 `pipeline.track`（缺省 `ml`）；`pipeline.analysisMode` 缺省时，clinical / systematic-review 为 `confirmatory`，其他为 `exploratory`。
 
-**clinical / systematic-review（confirmatory）有不可绕过的锁定门。** 进入任何数据采集/分析（临床）或筛选/提取（综述）之前，先确认锁定/注册门任务（如 `experiment_lock_and_register` / `survey_register_protocol`）已 `done`：
+**systematic-review 先走独立分支**：读取实际 skills 目录下 `systematic-review/references/rct-pairwise-profile.md`，按 formal-review 的前置检查执行。核对具体方案版本的人工批准、真实注册状态、筛选记录、研究归并和分析输入；任务 done 本身不是批准证据，切换 exploratory 也不能绕过正式综述规则。公开汇总数据不默认要求 IRB；未注册需如实说明并由用户确认，不伪造注册号。按 profile 完成本次正式检索、筛选或合成子任务后，更新 `experiment_ledger.md`、`figure_ledger.md`、`tasks.json` 和 `project_truth.md`，**不继续下方通用实验循环**。仅运行适用且获批准的分析和图表；允许错误修复后重跑，不为显著性改变方案。
 
-- 门 **未 done** → 不得开始采集/分析。用 `AskUserQuestion` 说明被拦原因，给三个选项：
-  - `去完成锁定/注册` — 用 `clinical-study-design`（临床）或 `systematic-review`（综述）产出并冻结 `protocol.md` + `sap.md`，注册（ClinicalTrials.gov / PROSPERO），过 IRB/IEC，再把门任务置 done
-  - `我确认已注册并解锁` — 记录注册号/批件号到 `protocol.md`，把门任务置 done
-  - `这是探索性/试点研究` — 切到 `analysisMode = exploratory` 并在 brief 标注（结论不得当确证证据报告）
-- 门 **已 done** → 继续。
+**clinical 有锁定门。** 数据采集/分析前核对 `protocol.md`、`sap.md`、适用的注册与伦理材料及研究者批准，不能只检查 `experiment_lock_and_register` 为 done。材料缺失时先补齐；探索性/试点标记不能代替适用的伦理或数据授权。其他 track 继续下方流程。
 
 ## 第一步：读取当前状态
 
@@ -103,7 +99,7 @@ cat .pipeline/memory/experiment_ledger.md
 
 **进入写作前的图检查**：选"进入 /omp:write"之前，对照 `figure_ledger.md` 确认每个主要结果、每个消融、每个数据集都至少有一张子图素材；缺的先补——写作阶段回头补图的代价远高于现在顺手画。
 
-**confirmatory** — 预设分析**只跑一次，得到什么报什么**。**不提供"调整后再跑到达标"的选项**（反复重跑到显著是 p-hacking）。用 `AskUserQuestion`：
+**confirmatory** — 按预设方案如实报告；允许错误修复后重跑、确定性复现和预设敏感性分析。**不提供“调整后再跑到达标”的选项**；方法变更先获批准再记入 `protocol_deviations.md`。用 `AskUserQuestion`：
 - `分析完成，进入写作` — 按 CONSORT/STROBE/STARD/PRISMA 如实报告，含预设与实际的任何偏离
 - `发现了计划外现象` — 登记为**探索性/产生假设**的发现，另起一个 exploratory 分析，绝不混入确证结论
 - `执行偏离了冻结计划` — 记入 `protocol_deviations.md` 并在报告中说明

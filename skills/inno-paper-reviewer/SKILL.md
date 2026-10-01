@@ -33,6 +33,9 @@ resourceFlags:
 
 # inno-paper-reviewer
 
+Resolve `OMP_SKILLS` from the parent of this loaded skill directory before running command examples; it is the actual shared skills directory in either Codex or Claude Code. Quote paths containing spaces.
+
+
 ## Canonical Summary
 
 Structured manuscript/grant review with checklist-based evaluation. Use when writing formal peer reviews with specific criteria methodology assessment, statistical validity, reporting standards compliance (CONSORT/STROBE), and constructive...
@@ -84,7 +87,7 @@ If your document does not already contain schematics or diagrams:
 
 **How to generate schematics:**
 ```bash
-uv run .claude/skills/inno-figure-gen/scripts/generate_image.py --prompt "your diagram description" --filename "figure.png" --resolution 4K
+uv run "$OMP_SKILLS/inno-figure-gen/scripts/generate_image.py" --prompt "your diagram description" --filename "figure.png" --resolution 4K
 ```
 
 The AI will automatically:

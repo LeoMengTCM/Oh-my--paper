@@ -23,6 +23,12 @@ Use this skill when the project is ready to translate ideas into executable expe
 2. Keep experiment plans falsifiable and measurable.
 3. Separate implementation tasks from analysis tasks.
 4. Do not claim results before they exist in the project.
+5. In a Codex OMP project, read `../omp/SKILL.md` and run its task preflight. Respect
+   `projectContext.researchType`/articleType: for narrative-review, integrate claims,
+   sources, competing evidence and limitations instead of designing training runs.
+6. On completion, register artifacts and completionSummary, update result_summary
+   and the handoff, then route the next authorized writing task. Missing evidence
+   returns to retrieval/analysis rather than being filled by the writer.
 
 ## Expected Outputs
 

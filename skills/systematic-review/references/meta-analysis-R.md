@@ -2,27 +2,37 @@
 
 Two mainstream packages: `metafor` (flexible, model-first) and `meta`
 (convenience wrappers). Install once: `install.packages(c("metafor","meta"))`.
-Prefer a **random-effects** model for clinical reviews. Report the pooled effect with
-95% CI, heterogeneity (I², τ², Q), a forest plot, and — with ≥10 studies — a funnel
-plot and Egger's test.
+统计模型、方差估计和区间方法由批准的 SAP 决定。下方随机效应代码是示例，不替代临床可合并性判断；
+先核对独立研究、结局时间窗、字段单位及零事件规则，再执行。输出效应量、95% CI 和适用的异质性统计。
+森林图使用单一效应尺度、研究标签和置信区间，不靠颜色区分结果；正式输出还需核对表格与图形布局。
+少于 10 个独立研究不执行小样本效应检验，达到 10 个也不是自动执行条件。
 
 ## Binary outcomes (events / total per arm) — metafor
 
 ```r
 library(metafor)
-# df columns: author, year, ev_t, n_t (intervention), ev_c, n_c (comparator)
-dat <- escalc(measure = "RR",            # "RR" | "OR" | "RD"
+# df 须先明确映射字段；旧 data-extraction.csv 不能直接作为本示例输入。
+# 每行一个独立研究的同一比较、结局和时间窗；零事件策略须在 SAP 中确定。
+# 所需列：author, year, ev_t, n_t（干预组）, ev_c, n_c（对照组）。
+measure <- "RR"                         # "RR" | "OR" | "RD"，由批准的方案决定
+stopifnot(measure %in% c("RR", "OR", "RD"))
+dat <- escalc(measure = measure,
               ai = ev_t, n1i = n_t,
               ci = ev_c, n2i = n_c,
               data = df, slab = paste(author, year))
 
-res <- rma(yi, vi, data = dat, method = "REML")   # random-effects
-summary(res)                                       # pooled est, CI, I^2, tau^2, Q, p
-predict(res, transf = exp)                         # back-transform log-RR/OR to ratio scale
-
-forest(res, atransf = exp, refline = 1,
-       header = c("Study", "RR [95% CI]"))
-funnel(res); regtest(res)                          # Egger's test (use only if k >= 10)
+res <- rma(yi, vi, data = dat, method = "REML")
+summary(res)
+if (measure %in% c("RR", "OR")) {
+  pooled <- predict(res, transf = exp)  # 对数比值还原到比值尺度
+  forest(res, transf = exp, refline = 1,
+         header = c("Study", paste0(measure, " [95% CI]")))
+} else {
+  pooled <- predict(res)               # RD 保持风险差尺度，不能 exp
+  forest(res, refline = 0, header = c("Study", "RD [95% CI]"))
+}
+print(pooled)
+# 不自动运行 funnel/regtest；见下方小样本效应检验的适用条件。
 ```
 
 ## Continuous outcomes (mean, SD, n per arm) — metafor
@@ -64,14 +74,36 @@ rma(yi, vi, data = dat, subset = (risk_of_bias == "low"))  # restrict to low-RoB
 library(meta)
 mb <- metabin(ev_t, n_t, ev_c, n_c, studlab = paste(author, year),
               data = df, sm = "RR", method = "MH", random = TRUE)
-forest(mb); funnel(mb); metabias(mb, method = "linreg")   # Egger
+forest(mb)  # 小样本效应检验不默认执行，不能把 linreg 一律用于二分类结局
 
 mc <- metacont(n_t, mean_t, sd_t, n_c, mean_c, sd_c,
                studlab = paste(author, year), data = df, sm = "SMD", random = TRUE)
 summary(mc)
 ```
 
+## 小样本效应检验：先确认适用性
+
+先确认 `res` 是本次分析的模型。下列代码只在独立研究数足够且研究者已确认 SAP 中的检验适用时执行。
+Egger 检验不能一律用于二分类结局或 SMD；不适用时采用预设的合适方法或说明未执行。
+漏斗图不对称还可能来自异质性等原因，不是发表偏倚的确定证明。
+
+```r
+small_study_test <- "none"              # 只有 SAP 预设且适用时才改为 "egger"
+if (small_study_test == "egger" && res$k >= 10L) {
+  funnel(res)
+  regtest(res, model = "lm", predictor = "sei")
+} else {
+  message("未执行 Egger 检验：未预设适用方法，或独立研究不足 10 项。")
+}
+```
+
 ## Reading heterogeneity
-- **I²**: ~25% low, ~50% moderate, ~75% high. High I² → explain it (subgroups), do not just pool harder.
-- **τ²**: between-study variance on the effect scale; 0 means a fixed-effect model would have sufficed.
-- A wide prediction interval (`predict(res)`) is often more honest than the CI of the mean effect.
+- **I²**：结合不确定性、效应方向与临床差异解释，不把 25/50/75% 当作固定的可合并性阈值。
+- **τ²**：研究间方差的估计；估计为 0 不证明不存在异质性，也不应据此事后改为固定效应模型。
+- 预测区间与平均效应的置信区间回答不同问题；研究少时要说明不确定性。
+
+## API 核对来源
+
+- [metafor forest.rma](https://wviechtb.github.io/metafor/reference/forest.rma.html)：`transf` 转换效应与坐标，`atransf` 只转换标签；参考线必须匹配实际坐标尺度。
+- [metafor predict.rma](https://wviechtb.github.io/metafor/reference/predict.rma.html)：比值效应的对数尺度还原。
+- 本文件是方法示例。结构化 RCT 输入使用 `scripts/meta_analysis.py` 和 `references/extraction-and-analysis.md`；不要直接把旧 CSV 交给这些片段。

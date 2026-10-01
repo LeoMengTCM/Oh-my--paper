@@ -33,6 +33,9 @@ resourceFlags:
 
 # scientific-writing
 
+Resolve `OMP_SKILLS` from the parent of this loaded skill directory before running command examples; it is the actual shared skills directory in either Codex or Claude Code. Quote paths containing spaces.
+
+
 ## Canonical Summary
 
 Core skill for the deep research and writing tool. Write scientific manuscripts in full paragraphs (never bullet points). Use two-stage process: (1) create section outlines with key points using literature search, (2) convert to flowing pros...
@@ -93,7 +96,7 @@ Before finalizing any document:
 
 **How to generate schematics:**
 ```bash
-uv run .claude/skills/inno-figure-gen/scripts/generate_image.py --prompt "your diagram description" --filename "figure.png" --resolution 4K
+uv run "$OMP_SKILLS/inno-figure-gen/scripts/generate_image.py" --prompt "your diagram description" --filename "figure.png" --resolution 4K
 ```
 
 The skill will:

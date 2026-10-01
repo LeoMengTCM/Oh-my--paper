@@ -13,7 +13,9 @@ Domains (each: Low / Some concerns / High):
 4. Bias in measurement of the outcome
 5. Bias in selection of the reported result
 
-Overall = worst domain (any High → High; any "Some concerns" without High → Some concerns).
+使用当前版本官方 RoB 2 的信号问题和决策规则，记录算法建议与人工判断。任何域 high 通常要求总体 high；所有域 low 才能总体 low。多个 some_concerns 若显著降低对结果的信任，也可能总体 high，因此不能简单采用“最差域”。人工偏离算法建议时保留理由。
+
+此处只是域清单，不是完整 RoB 2 工具。正式表格与说明见 <https://www.riskofbias.info/welcome/rob-2>。SR-04 的 `rob2.jsonl` 还需关联具体研究、比较、结局、时间、人群、目标效应和完整人工评估文件，字段见 `references/extraction-and-analysis.md`；代码检查不等于人工评估已真实完成。
 
 ## ROBINS-I — non-randomized studies of interventions
 Domains (Low / Moderate / Serious / Critical / No information):

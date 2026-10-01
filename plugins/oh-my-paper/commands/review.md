@@ -15,7 +15,7 @@ cat .pipeline/docs/research_brief.json
 
 读 `pipeline.track`，在通用维度（技术贡献 / 实验充分性 / 写作质量 / 引用准确性 / **图表充分性** / **篇幅完整性**）之外叠加：
 - **clinical**：注册号在位且与方案一致；对应报告规范清单逐条核对（CONSORT/STROBE/STARD，按设计）；伦理与知情同意声明；样本量/检验效能交代；主要结局是否与预设一致、有无未声明偏离；数据可得性声明。依据 `clinical-study-design`、`scientific-writing` 的 references。
-- **systematic-review**：PROSPERO 注册号；PRISMA 2020 清单 + 流程图；检索式可复现；偏倚风险（RoB 2/ROBINS-I/QUADAS-2）；GRADE 分级；有无选择性报告。依据 `systematic-review` 的 templates/references。
+- **systematic-review**：读取实际 skills 目录下 `systematic-review/references/rct-pairwise-profile.md`。核查真实注册状态和时间（含未注册说明，不伪造 PROSPERO 号）、PRISMA 2020 清单与真实 records/reports/studies 计数、检索覆盖、人工筛选与 AI 建议区分、提取出处、重复报告、结果级 RoB 2、结局级 GRADE 及分析偏离。公开汇总不默认要求 IRB；按实际完成工作评审，不因未做不适用的图表或统计而要求补造结果。
 - **ml / bioinformatics**：通用维度即可；生信另查工具/参考/依赖版本与可复现性。
 
 ## 第一步：确认审查范围

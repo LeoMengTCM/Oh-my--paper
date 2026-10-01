@@ -47,8 +47,8 @@ cat .pipeline/memory/decision_log.md
 ## 阶段推进前的闸门检查（按 track）
 
 读 `research_brief.json` 的 `pipeline.track`，仅当对应闸门通过才允许推进；否则用 `AskUserQuestion` 说明缺口并引导补齐：
-- **clinical / systematic-review**：进入数据采集/分析前——`protocol.md` + `sap.md` 已冻结、已注册（ClinicalTrials.gov / PROSPERO）、过 IRB（综述无需 IRB）。
-- **进入 publication（临床/综述强制）**：按报告规范清单核对——注册号在位；对应清单齐全（CONSORT / STROBE / STARD 或 PRISMA）；伦理与数据可得性声明；流程图/主结果图已就绪。核对依据见 `clinical-study-design`、`systematic-review`、`scientific-writing` 的 references。
+- **clinical**：采集/分析前核对冻结方案、适用的注册及伦理批准；进入 publication 时核对相应 CONSORT/STROBE/STARD 清单、伦理及数据可得性声明。
+- **systematic-review**：读取实际 skills 目录下 `systematic-review/references/rct-pairwise-profile.md`。survey 为探索，ideation 批准方案，experiment 才执行 formal-review。核对方案版本与人工批准、真实注册状态及未注册说明；公开汇总不默认要求 IRB，任务 done 本身不构成批准。进入 publication 前核对实际检索/筛选记录、PRISMA、结果级 RoB 2 与结局级 GRADE；不强制生成不适用的分析或图表。
 - **ml / bioinformatics**：无硬闸门，但确认每阶段图已产出、版本/依赖可复现。
 
 ## 最后：更新状态文件

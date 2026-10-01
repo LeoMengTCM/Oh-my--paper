@@ -1,0 +1,1 @@
+合成原文数值：{"n_intervention": 20, "n_comparator": 20, "mean_intervention": 8, "mean_comparator": 10, "sd_intervention": 1, "sd_comparator": 1}

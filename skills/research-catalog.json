@@ -1,9 +1,9 @@
 {
   "schema": "omp-research-catalog-v1",
-  "generatedAt": "2026-09-28T06:05:47.105Z",
+  "generatedAt": "2026-10-01T01:28:02.633Z",
   "upstream": {
     "repo": "Oh-my--paper",
-    "revision": "48bee56c12e8be1b90df4b6f36ca5162916f3088"
+    "revision": "3156a69b705c55d1889eab84f5fa4dd9225c94e5"
   },
   "skills": [
     {
@@ -367,18 +367,20 @@
     {
       "id": "codex-dispatch",
       "name": "codex-dispatch",
-      "version": "1.0.0",
-      "description": "Delegate coding tasks to OpenAI Codex CLI",
-      "summary": "Delegate coding tasks to OpenAI Codex CLI",
+      "version": "1.1.0",
+      "description": "Delegate coding tasks to a separate OpenAI Codex CLI process when native subagents are unavailable or an independent session is requested.",
+      "summary": "Delegate coding tasks to a separate OpenAI Codex CLI process when native subagents are unavailable or an independent session is requested.",
       "stages": [
         "experiment"
       ],
       "tools": [
-        "bash"
+        "read_file",
+        "search_project",
+        "write_file"
       ],
-      "primaryIntent": "Invoke Codex as a sub-agent for coding tasks when OpenAI models are preferred",
+      "primaryIntent": "research",
       "intents": [
-        "Invoke Codex as a sub-agent for coding tasks when OpenAI models are preferred"
+        "research"
       ],
       "capabilities": [
         "research-planning",
@@ -1045,14 +1047,14 @@
       "status": "verified",
       "resourceFlags": {
         "hasReferences": true,
-        "hasScripts": false,
+        "hasScripts": true,
         "hasTemplates": false,
         "hasAssets": false,
         "referenceCount": 5,
-        "scriptCount": 0,
+        "scriptCount": 1,
         "templateCount": 0,
         "assetCount": 0,
-        "optionalScripts": false
+        "optionalScripts": true
       }
     },
     {
@@ -1305,6 +1307,58 @@
         "hasAssets": false,
         "referenceCount": 3,
         "scriptCount": 2,
+        "templateCount": 0,
+        "assetCount": 0,
+        "optionalScripts": true
+      }
+    },
+    {
+      "id": "omp",
+      "name": "omp",
+      "version": "1.1.0",
+      "description": "Codex workflow entrypoint.",
+      "summary": "Codex workflow entrypoint. Follow the Oh My Paper (OMP) research pipeline, including 按照omp流程来 and 下一步. Check stage and evidence before acting; broad topic selection starts with survey, then evidence-based ideation and user selection. Initialize, resume, execute and advance authorized research work without repeated workflow reminders.",
+      "stages": [
+        "survey",
+        "ideation",
+        "experiment",
+        "publication",
+        "promotion"
+      ],
+      "tools": [
+        "read_file",
+        "search_project",
+        "write_file",
+        "run_terminal"
+      ],
+      "primaryIntent": "research",
+      "intents": [
+        "research"
+      ],
+      "capabilities": [
+        "research-planning",
+        "visualization-reporting"
+      ],
+      "domains": [
+        "cs-ai"
+      ],
+      "keywords": [
+        "omp",
+        "survey",
+        "ideation",
+        "experiment",
+        "publication",
+        "promotion"
+      ],
+      "source": "builtin",
+      "status": "verified",
+      "resourceFlags": {
+        "hasReferences": true,
+        "hasScripts": true,
+        "hasTemplates": false,
+        "hasAssets": false,
+        "referenceCount": 9,
+        "scriptCount": 3,
         "templateCount": 0,
         "assetCount": 0,
         "optionalScripts": true
@@ -1690,11 +1744,12 @@
       "id": "pubmed-search",
       "name": "pubmed-search",
       "version": "1.0.0",
-      "description": "Search PubMed and MEDLINE for peer-reviewed biomedical and clinical literature through the NCBI E-utilities API with MeSH terms, date filters, and abstracts.",
-      "summary": "Search PubMed and MEDLINE for peer-reviewed biomedical and clinical literature through the NCBI E-utilities API with MeSH terms, date filters, and abstracts.",
+      "description": "Search PubMed and MEDLINE with MeSH/date filters, explicit retrieval completeness, batched metadata and abstracts, and resumable checkpoints.",
+      "summary": "Search PubMed and MEDLINE with MeSH/date filters, explicit retrieval completeness, batched metadata and abstracts, and resumable checkpoints.",
       "stages": [
         "survey",
-        "ideation"
+        "ideation",
+        "experiment"
       ],
       "tools": [
         "read_file",
@@ -1707,8 +1762,8 @@
         "research"
       ],
       "capabilities": [
-        "search-retrieval",
-        "research-planning"
+        "research-planning",
+        "data-processing"
       ],
       "domains": [
         "clinical-medicine"
@@ -1726,12 +1781,12 @@
       "source": "builtin",
       "status": "verified",
       "resourceFlags": {
-        "hasReferences": false,
+        "hasReferences": true,
         "hasScripts": true,
         "hasTemplates": false,
         "hasAssets": false,
-        "referenceCount": 0,
-        "scriptCount": 1,
+        "referenceCount": 1,
+        "scriptCount": 4,
         "templateCount": 0,
         "assetCount": 0,
         "optionalScripts": true
@@ -1888,7 +1943,7 @@
       "id": "research-idea-convergence",
       "name": "Research Idea Convergence",
       "version": "1.0.0",
-      "description": "Generates 2-4 candidate research directions from survey results, presents them with pros/cons for user selection, and converges to a publishable angle.",
+      "description": "Standalone 2-4 candidate research direction comparison from completed survey results when that lightweight workflow is requested.",
       "summary": "Interactive research direction selection. Reads survey reports and gap analysis, generates 2-4 candidate research directions with pros/cons/feasibility, and waits for user selection before writing the final publishable angle.",
       "stages": [
         "ideation"
@@ -2240,6 +2295,8 @@
       "summary": "Run a PRISMA 2020 systematic review and meta-analysis end to end from protocol and search through screening, risk-of-bias, evidence synthesis, and GRADE.",
       "stages": [
         "survey",
+        "ideation",
+        "experiment",
         "publication"
       ],
       "tools": [
@@ -2276,14 +2333,14 @@
       "status": "verified",
       "resourceFlags": {
         "hasReferences": true,
-        "hasScripts": false,
+        "hasScripts": true,
         "hasTemplates": true,
         "hasAssets": false,
-        "referenceCount": 1,
-        "scriptCount": 0,
+        "referenceCount": 5,
+        "scriptCount": 14,
         "templateCount": 3,
         "assetCount": 0,
-        "optionalScripts": false
+        "optionalScripts": true
       }
     }
   ],
@@ -2337,7 +2394,8 @@
         "academic-researcher",
         "pubmed-search",
         "clinicaltrials-gov",
-        "clinical-study-design"
+        "clinical-study-design",
+        "systematic-review"
       ],
       "byTaskType": {
         "analysis": [
@@ -2345,7 +2403,8 @@
           "inno-idea-eval",
           "inno-deep-research",
           "academic-researcher",
-          "clinical-study-design"
+          "clinical-study-design",
+          "systematic-review"
         ],
         "exploration": [
           "inno-idea-generation",
@@ -2371,6 +2430,8 @@
         "inno-experiment-analysis",
         "bioinformatics-init-analysis",
         "clinical-study-design",
+        "systematic-review",
+        "pubmed-search",
         "inno-figure-gen"
       ],
       "byTaskType": {
@@ -2382,13 +2443,15 @@
         "analysis": [
           "inno-experiment-analysis",
           "bioinformatics-init-analysis",
+          "systematic-review",
           "inno-figure-gen"
         ],
         "exploration": [
           "inno-code-survey",
           "dataset-discovery",
           "inno-deep-research",
-          "biorxiv-database"
+          "biorxiv-database",
+          "pubmed-search"
         ]
       }
     },

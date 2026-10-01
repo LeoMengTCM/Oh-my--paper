@@ -43,6 +43,9 @@ upstream:
 
 # CNKI Search（中国知网检索）
 
+Resolve `OMP_SKILLS` from the parent of this loaded skill directory before running command examples; it is the actual shared skills directory in either Codex or Claude Code. Quote paths containing spaces.
+
+
 从用户**自己开着远程调试、且已登录**的 Chrome 里操作 CNKI，拿到检索结果与论文元数据。
 不做请求伪造、不绕验证码——CNKI 没有公开 API，登录态是唯一的正路。
 
@@ -54,10 +57,10 @@ upstream:
 
 1. Chrome 以 `--remote-debugging-port=9222` 启动；
 2. Chrome 里已登录 CNKI 账号（下载全文才需要，检索一般不需要）；
-3. CDP proxy 就绪——`bash .claude/skills/literature-pdf-ocr-library/scripts/check-deps.sh`
+3. CDP proxy 就绪——`bash "$OMP_SKILLS/literature-pdf-ocr-library/scripts/check-deps.sh"`
    会检查并自动拉起（`cnki.mjs` 也会在首次调用时自己拉起）。
 
-先跑 `node .claude/skills/cnki-search/scripts/cnki.mjs status` 看环境。**退出码 2 表示
+先跑 `node "$OMP_SKILLS/cnki-search/scripts/cnki.mjs" status` 看环境。**退出码 2 表示
 "需要用户处理"**（Chrome 没开 / 没登录 / 撞验证码），此时停下告诉用户，别重试。
 
 **滑块验证码**：CNKI 用腾讯滑块（"拖动下方拼图完成验证"），程序解不了。检测到就停下，
@@ -65,7 +68,7 @@ upstream:
 
 ## 命令
 
-脚本路径以 `.claude/skills/cnki-search/scripts/cnki.mjs` 为例（下文简写 `cnki.mjs`），
+脚本路径以 `"$OMP_SKILLS/cnki-search/scripts/cnki.mjs"` 为例（下文简写 `cnki.mjs`），
 输出一律是 JSON。
 
 ```bash

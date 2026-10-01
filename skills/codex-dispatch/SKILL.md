@@ -1,33 +1,26 @@
 ---
 name: codex-dispatch
-description: Delegate coding tasks to OpenAI Codex CLI
-version: "1.0"
-stages:
-  - experiment
-  - analysis
-tools:
-  - bash
-primaryIntent: Invoke Codex as a sub-agent for coding tasks when OpenAI models are preferred
+description: Delegate coding tasks to a separate OpenAI Codex CLI process when native subagents are unavailable or an independent session is requested.
+version: "1.1"
+stages: [experiment]
 ---
 
-# Codex 委派技能
+# Codex dispatch
 
-当用户明确要求使用 OpenAI 模型，或需要利用 Codex 的特定能力时，通过 `exec` 工具调用 Codex CLI。
+Prefer native Codex subagent tools for already-authorized delegation. Use a separate
+CLI process when requested or when native agents are unavailable. Inherit the
+session model preference; do not pin a model without an explicit requirement.
 
-## 适用场景
-- 用户要求使用 GPT / o3 / o4 模型
-- 需要 OpenAI 特有的代码补全能力
-- 与 OpenAI 生态集成的任务
-
-## 调用方式
+Write the task, context, allowed files, expected artifacts, and validation commands
+to a prompt file. Pass it through stdin, avoiding shell interpolation of its contents:
 
 ```bash
-codex --approval-mode full-auto \
-  -p "<详细任务描述>" \
-  --cwd {baseDir}
+codex exec --cd /path/to/project --json --output-last-message /path/to/run/result.md - < /path/to/run/prompt.md
 ```
 
-## 注意
-- 默认优先使用 Claude Code（推理能力更强）
-- 仅在用户明确请求 OpenAI 模型时使用 Codex
-- Codex 会自动读取项目上下文
+Use a new run directory for each dispatch. Keep the returned process/session handle
+and poll it to completion. A timeout is not proof of failure. Verify the exit code,
+result and artifacts before updating task state; old handoff markers are not job IDs.
+If execution requires unavailable permissions or credentials, report the specific
+failure and continue independent work. Do not use unsupported `--background`,
+`--approval-mode`, `-p` prompt, or `--cwd` flags, or bypass sandbox/approval policies.

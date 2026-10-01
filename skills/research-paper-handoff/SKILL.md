@@ -19,10 +19,19 @@ Use this skill when the workflow moves into writing or delivery.
 
 ## Working Rules
 
-1. Treat the LaTeX workspace as the canonical publication surface.
+1. Use the project's actual manuscript format and location as canonical; do not
+   force a Markdown/Word narrative review into a LaTeX conference layout.
 2. Keep handoff notes compact and directly actionable.
 3. Link each writing task to the evidence or artifact it depends on.
 4. Do not rewrite the whole manuscript unless the user asks.
+5. In Codex, follow `../omp/SKILL.md` for task-based routing. Separate draft, integrity audit,
+   scientific review, revision, re-review and submission-readiness tasks. Link review
+   and revision records to the current manuscript version and preserve issue IDs.
+6. A review report can be complete with unresolved manuscript issues. Add the required
+   repair/evidence tasks and recheck before delivery; do not jump directly to promotion.
+7. Continue already-authorized downstream work without another workflow reminder.
+   Promotion and actual external submission/upload are not automatic consequences
+   of completing a manuscript.
 
 ## Expected Outputs
 

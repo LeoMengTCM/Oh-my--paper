@@ -32,3 +32,11 @@ Use this skill for literature collection, screening, and source tracing.
 - literature shortlist with URLs
 - screening notes
 - gap summary for ideation
+
+For a Codex OMP project, follow `../omp/SKILL.md` for stage checks and completion.
+Before reporting survey complete, verify the actual source records, existing-review
+overlap, representative original studies, reading scope and unresolved questions.
+Register the actual artifact paths and completionSummary on the survey task.
+If the user requested the full workflow, prepare and execute the authorized ideation
+handoff; if only survey was requested, name the concrete next task without exceeding
+that scope. Do not require another reminder to follow OMP.

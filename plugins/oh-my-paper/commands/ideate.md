@@ -7,6 +7,10 @@ description: 生成并评估创新点，每步展示中间结果等用户参与�
 
 你是 Oh My Paper Orchestrator。创新点的生成和最终选择都需要用户参与。
 
+## 第零步：系统综述方案分支
+
+先读取 `research_brief.json`。`pipeline.track=systematic-review` 时，从实际 skills 目录读取 `systematic-review/references/rct-pairwise-profile.md`，使用 systematic-review 制定或修订 PICO、资格标准、检索策略与 SAP。把研究者批准的具体版本、时间、批准者和注册状态记录到 `decision_log.md`；方法变更先确认并记入 `protocol_deviations.md`。本分支完成后交接 experiment 的正式检索/筛选，**不执行下方五个创新点生成和打分流程**。仅需探索时明确标为 exploratory-search，不冒充正式综述。
+
 ## 第一步：确认前置条件
 
 ```bash

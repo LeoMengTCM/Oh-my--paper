@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { access, cp, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { access, cp, mkdir, readFile, rename, rm, writeFile, mkdtemp } from "node:fs/promises";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -114,17 +114,52 @@ function requireValue(argv, index, flag) {
   return value;
 }
 
+function isWithin(parent, child) {
+  const relative = path.relative(parent, child);
+  return !relative || (!relative.startsWith(`..${path.sep}`) && relative !== ".." && !path.isAbsolute(relative));
+}
+
+async function requireOwnedDestination(directory) {
+  if (!(await pathExists(directory))) return;
+  const manifest = path.join(directory, ".codex-plugin/plugin.json");
+  if (!(await pathExists(manifest)) || JSON.parse(await readFile(manifest, "utf8")).name !== PLUGIN_NAME) {
+    throw new Error("Refusing to replace/remove a directory without an Oh My Paper Codex manifest.");
+  }
+}
+
 async function installPlugin({ sourceDir, pluginDir, marketplacePath, skipAppServer }) {
   const sourceManifestPath = path.join(sourceDir, ".codex-plugin", "plugin.json");
-  await readFile(sourceManifestPath, "utf8");
-
-  await rm(pluginDir, { recursive: true, force: true });
-  await mkdir(path.dirname(pluginDir), { recursive: true });
-  await cp(sourceDir, pluginDir, { recursive: true, force: true, dereference: true });
-
+  const sourceManifest = JSON.parse(await readFile(sourceManifestPath, "utf8"));
+  if (sourceManifest.name !== PLUGIN_NAME) throw new Error("Source is not the Oh My Paper Codex plugin.");
+  if (isWithin(sourceDir, pluginDir) || isWithin(pluginDir, sourceDir)) {
+    throw new Error("Source and installed plugin directories must not overlap.");
+  }
+  await requireOwnedDestination(pluginDir);
   const { marketplace } = await loadMarketplace(marketplacePath);
-  marketplace.plugins = upsertPluginEntry(marketplace.plugins);
-  await writeMarketplace(marketplacePath, marketplace);
+  const marketplaceRoot = path.resolve(path.dirname(marketplacePath), "../..");
+  const relative = path.relative(marketplaceRoot, pluginDir);
+  if (!relative || relative.startsWith("..") || path.isAbsolute(relative)) {
+    throw new Error("Plugin directory must be inside the marketplace root.");
+  }
+  marketplace.plugins = upsertPluginEntry(marketplace.plugins, `./${relative.split(path.sep).join("/")}`);
+  await mkdir(path.dirname(pluginDir), { recursive: true });
+  const staging = await mkdtemp(path.join(path.dirname(pluginDir), ".omp-install-"));
+  const backup = path.join(staging, "previous");
+  const copy = path.join(staging, "plugin");
+  let replaced = false;
+  try {
+    await cp(sourceDir, copy, { recursive: true, dereference: true });
+    if (await pathExists(pluginDir)) await rename(pluginDir, backup);
+    await rename(copy, pluginDir);
+    replaced = true;
+    await writeMarketplace(marketplacePath, marketplace);
+  } catch (error) {
+    if (replaced) await rm(pluginDir, { recursive: true, force: true });
+    if (await pathExists(backup)) await rename(backup, pluginDir);
+    throw error;
+  } finally {
+    await rm(staging, { recursive: true, force: true });
+  }
 
   console.log(`Copied ${DISPLAY_NAME} to ${pluginDir}`);
   console.log(`Updated marketplace: ${marketplacePath}`);
@@ -145,9 +180,11 @@ async function installPlugin({ sourceDir, pluginDir, marketplacePath, skipAppSer
 }
 
 async function uninstallPlugin({ pluginDir, marketplacePath, skipAppServer }) {
+  await requireOwnedDestination(pluginDir);
+  const { marketplace, exists } = await loadMarketplace(marketplacePath);
   let uninstallMessage = null;
   if (!skipAppServer) {
-    const uninstallResult = await tryUninstallViaCodex();
+    const uninstallResult = await tryUninstallViaCodex(marketplacePath);
     if (uninstallResult.ok) {
       uninstallMessage = `Uninstalled "${DISPLAY_NAME}" from Codex.`;
     } else {
@@ -157,7 +194,6 @@ async function uninstallPlugin({ pluginDir, marketplacePath, skipAppServer }) {
 
   await rm(pluginDir, { recursive: true, force: true });
 
-  const { marketplace, exists } = await loadMarketplace(marketplacePath);
   if (exists) {
     marketplace.plugins = marketplace.plugins.filter((plugin) => plugin?.name !== PLUGIN_NAME);
     await writeMarketplace(marketplacePath, marketplace);
@@ -249,9 +285,13 @@ async function loadMarketplace(marketplacePath) {
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
       throw new Error("Marketplace file must contain a JSON object.");
     }
+    if (parsed.plugins !== undefined && !Array.isArray(parsed.plugins)) {
+      throw new Error("Marketplace plugins must be an array; existing entries were not changed.");
+    }
     return {
       exists: true,
       marketplace: {
+        ...parsed,
         name: typeof parsed.name === "string" && parsed.name ? parsed.name : DEFAULT_MARKETPLACE_NAME,
         interface:
           parsed.interface && typeof parsed.interface === "object" && !Array.isArray(parsed.interface)
@@ -303,13 +343,13 @@ function summarizePluginEntries(listing) {
   return matches;
 }
 
-function upsertPluginEntry(plugins) {
+function upsertPluginEntry(plugins, sourcePath) {
   const nextPlugins = Array.isArray(plugins) ? plugins.filter((plugin) => plugin?.name !== PLUGIN_NAME) : [];
   nextPlugins.push({
     name: PLUGIN_NAME,
     source: {
       source: "local",
-      path: `./plugins/${PLUGIN_NAME}`,
+      path: sourcePath,
     },
     policy: {
       installation: "AVAILABLE",
@@ -335,6 +375,9 @@ async function tryInstallViaCodex(marketplacePath) {
         pluginName: PLUGIN_NAME,
         forceRemoteSync: false,
       });
+      const detail = await client.request("plugin/read", { marketplacePath, pluginName: PLUGIN_NAME });
+      const installed = detail.plugin?.summary;
+      if (!installed?.installed || !installed?.enabled) throw new Error("Install returned without a verified installed/enabled entry; check Codex Plugins.");
     });
     return { ok: true };
   } catch (error) {
@@ -342,12 +385,12 @@ async function tryInstallViaCodex(marketplacePath) {
   }
 }
 
-async function tryUninstallViaCodex() {
+async function tryUninstallViaCodex(marketplacePath) {
   try {
     const pluginId = await withCodexAppServer(async (client) => {
-      const listing = await client.request("plugin/list", { forceRemoteSync: false });
-      const installedPlugin = findInstalledPlugin(listing);
-      if (!installedPlugin?.id) {
+      const detail = await client.request("plugin/read", { marketplacePath, pluginName: PLUGIN_NAME });
+      const installedPlugin = detail.plugin?.summary;
+      if (!installedPlugin?.id || !installedPlugin.installed) {
         return null;
       }
       await client.request("plugin/uninstall", {
@@ -367,28 +410,11 @@ async function tryUninstallViaCodex() {
   }
 }
 
-function findInstalledPlugin(listing) {
-  if (!listing || !Array.isArray(listing.marketplaces)) {
-    return null;
-  }
-  for (const marketplace of listing.marketplaces) {
-    if (!Array.isArray(marketplace.plugins)) {
-      continue;
-    }
-    const installed = marketplace.plugins.find(
-      (plugin) => plugin?.name === PLUGIN_NAME && (plugin.installed || plugin.enabled),
-    );
-    if (installed) {
-      return installed;
-    }
-  }
-  return null;
-}
-
 async function withCodexAppServer(run) {
   const codexCommand = process.platform === "win32" ? "codex.cmd" : "codex";
   const child = spawn(codexCommand, ["app-server"], {
     stdio: ["pipe", "pipe", "pipe"],
+    shell: process.platform === "win32",
   });
 
   const requests = new Map();
@@ -407,6 +433,7 @@ async function withCodexAppServer(run) {
   child.on("error", (error) => {
     rejectAll(error);
   });
+  child.stdin.on("error", rejectAll);
 
   child.on("exit", (code, signal) => {
     if (settled) {
@@ -460,7 +487,14 @@ async function withCodexAppServer(run) {
       return new Promise((resolve, reject) => {
         const id = nextId;
         nextId += 1;
-        requests.set(id, { resolve, reject });
+        const timer = setTimeout(() => {
+          requests.delete(id);
+          reject(new Error(`Codex app-server timed out while handling ${method}.`));
+        }, 15000);
+        requests.set(id, {
+          resolve: value => { clearTimeout(timer); resolve(value); },
+          reject: error => { clearTimeout(timer); reject(error); },
+        });
         child.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id, method, params })}\n`);
       });
     },
@@ -468,8 +502,8 @@ async function withCodexAppServer(run) {
 
   try {
     await client.request("initialize", {
-      protocolVersion: 2,
       clientInfo: CLIENT_INFO,
+      capabilities: { experimentalApi: true },
     });
     const result = await run(client);
     settled = true;

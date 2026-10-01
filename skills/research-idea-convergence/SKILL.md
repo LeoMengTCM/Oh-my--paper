@@ -3,7 +3,7 @@ id: research-idea-convergence
 name: Research Idea Convergence
 version: 1.0.0
 description: |-
-  Generates 2-4 candidate research directions from survey results, presents them with pros/cons for user selection, and converges to a publishable angle.
+  Standalone 2-4 candidate research direction comparison from completed survey results when that lightweight workflow is requested. Do not replace the OMP five-direction idea board, evaluation-scope checkpoint, idea evaluation and final selection workflow.
 stages: ["ideation"]
 tools: ["read_file", "search_project", "write_file"]
 summary: |-
@@ -46,6 +46,12 @@ Use this skill when:
 
 ## Execution Contract
 
+- For a Codex OMP project, read `../omp/SKILL.md` and run its workflow preflight before
+  generating candidates. Follow `omp/references/omp-ideate.md` for the standard
+  five-direction generation/evaluation workflow; this standalone 2–4 format applies
+  only when the user or project explicitly chooses it. A request to choose a topic does not establish that survey
+  is complete. Inspect existing survey evidence; if incomplete, route to survey.
+  Preserve existing artifact paths, including `Survey/` as well as `survey/`.
 - Resolve every relative path from this skill directory first.
 - Do not write generated artifacts back into the skill directory; save them inside the active project workspace.
 - **Never skip the user selection checkpoint** — this is the core purpose of this skill.
@@ -53,6 +59,8 @@ Use this skill when:
 ## Working Rules
 
 1. Read existing survey outputs before generating candidates.
+   Verify the source records, existing-review overlap, representative original
+   studies and limitations; a search count or completion claim alone is insufficient.
 2. Generate **2-4 candidate directions**, no more, no fewer.
 3. Each candidate must be concrete enough to evaluate (not vague platitudes).
 4. **[USER_CHECKPOINT]** — Always stop and wait for user selection. Never auto-select.
@@ -61,6 +69,8 @@ Use this skill when:
 ## Step-by-step Instructions
 
 ### Step 1 — Read Survey Context
+
+读取/更新任务前运行 `node "<实际skills目录>/inno-pipeline-planner/scripts/task-contract.mjs" .pipeline/tasks/tasks.json`（从实际安装的 skills 目录解析）。成功 stdout 为规范化文档且不写文件；错误 stderr、退出 1，停止更新和阶段判断。新建写顶层 `tasks` 和任务内 `dependencies`，读取兼容 `master.tasks` / `dependsOn`，不得把嵌套任务当零条；双列表或依赖冲突停止。保留数字或字符串旧 ID、状态、元数据及 gate ID，更新旧文件保留原格式，不自动迁移。
 
 Read all available survey outputs to understand the research landscape:
 
@@ -76,6 +86,10 @@ Extract:
 - **Strong baselines** that exist (traditional and learning-based)
 - **Available datasets / experimental platforms**
 - **Target venue** constraints (if specified)
+
+For narrative review topics, compare existing reviews, evidence boundaries,
+organizing questions and translational gaps. Do not force the ML-specific baseline,
+dataset and experiment rubric onto a narrative oncology review.
 
 ### Step 2 — Generate Candidate Directions
 
@@ -171,7 +185,7 @@ Produce **2-4 candidate research directions**. For each candidate, provide:
    ```
    路径: .pipeline/tasks/tasks.json
    ```
-   标记 ideation 任务完成，触发下一阶段任务
+   只标记已有完成证据的具体任务，不把方向选择等同于整个 ideation 完成，也不自动触发下一阶段。systematic-review 还须按实际 skills 目录下 `systematic-review/references/rct-pairwise-profile.md` 取得 PICO/方案/SAP 的明确批准并记录到 `decision_log.md`；门任务 `done` 本身不是审批证据。
 
 4. **记录选择理由**
    在 `publishable_angle.md` 末尾附加：

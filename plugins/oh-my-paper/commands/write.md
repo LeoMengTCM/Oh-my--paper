@@ -7,7 +7,16 @@ description: 论文写作冲刺：按节确认后逐步推进，每节完成后�
 
 你是 Oh My Paper Orchestrator。写作按节推进，每节完成后确认再继续。
 
+## 第零步：系统综述写作规则
+
+先读 `research_brief.json`。systematic-review 使用实际 skills 目录下 `systematic-review/references/rct-pairwise-profile.md` 与 scientific-writing：按 PRISMA 和期刊要求组织正文，下方 ML 章节、固定词数下限与消融图要求不适用。注册、筛选人数与方法必须来自真实记录，不把计划写成已执行。复用已核实的引用、结果和 `.R`/`.py` 图形脚本；缺证据列出缺口，不新增分析或编造结果。PRISMA 计数按共享 profile 调用只读脚本，partial 不能写成最终结果；统计只使用已核对的 completed 运行及其 summary/effects，SoF 草稿不冒充完成的 GRADE。官方 PRISMA 流程图渲染仍未实现。
+
 ## 第一步：确认写作范围
+
+systematic-review 先读取 `systematic-review/references/writing-handoff.md`，按项目 publication.json 调用
+`writing_handoff.py check`，需要导出时用 build 指向新目录。仅使用当前有效运行与核验引用；
+partial 按 blockers 补齐，ready_for_drafting 不代表可以投稿。software_validation/public_benchmark
+不得作为真实研究结果。负责人须登记所有待报告分析，不自行挑选有利运行。
 
 先确定 LaTeX 工作区根目录：优先 `paper/`（README 推荐布局），若 `sections/` 直接在项目根目录则用根目录。下文的 `sections/`、`refs/`、`main.tex` 都相对这个根。
 

@@ -1,7 +1,7 @@
 {
   "name": "oh-my-paper-codex",
-  "version": "2.0.3",
-  "description": "Oh My Paper research harness for Codex: research roles, slash commands, shared skills, and a structured memory system for academic projects.",
+  "version": "2.1.0",
+  "description": "Oh My Paper for Codex: an invocable research workflow skill, five project roles, native lifecycle hooks, shared research skills and persistent project memory.",
   "author": {
     "name": "LigphiDonk",
     "url": "https://github.com/LigphiDonk"
@@ -32,13 +32,14 @@
     "privacyPolicyURL": "https://github.com/LigphiDonk/Oh-my--paper",
     "termsOfServiceURL": "https://github.com/LigphiDonk/Oh-my--paper",
     "defaultPrompt": [
-      "Set up a research project with Oh My Paper",
-      "Run a literature survey for my paper topic",
-      "Plan the next experiment for this project"
+      "Use the omp skill to initialize this research project",
+      "Use Oh My Paper to resume the current research task",
+      "Use Oh My Paper for the full systematic-review workflow"
     ],
     "brandColor": "#2F6B5F",
     "composerIcon": "./assets/32x32.png",
     "logo": "./assets/icon.png",
     "screenshots": []
-  }
+  },
+  "hooks": "./hooks/hooks.json"
 }

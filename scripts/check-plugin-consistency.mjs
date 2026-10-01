@@ -13,6 +13,7 @@
  *      改动一侧的核心机制时必须同步另一侧，此检查防止静默漂移
  *   8. 双插件结构对应：commands/<x>.md ↔ prompts/omp-<x>.md，agents/<x>.md ↔ agents/<x>.toml
  *   9. README 徽章数字（skills/commands/agents）与仓库实际数量一致
+ *  10. SR 命令与角色引用同一 profile（静态规则，不替代执行验证）
  *
  * 用法：node scripts/check-plugin-consistency.mjs
  * 退出码：0 = 全部通过；1 = 有失败项
@@ -35,8 +36,8 @@ function readJson(rel) {
 }
 
 function trackedFiles(pattern) {
-  const out = execFileSync("git", ["ls-files", pattern], { cwd: repoRoot, encoding: "utf8" });
-  return out.split("\n").filter(Boolean);
+  const out = execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard", pattern], { cwd: repoRoot, encoding: "utf8" });
+  return [...new Set(out.split("\n").filter(Boolean))];
 }
 
 // ---------- 1. 版本号一致 ----------
@@ -234,6 +235,35 @@ function corpusOf(patterns) {
       if (!m) { fail(`${readme} 缺少 ${kind} 徽章`); continue; }
       if (Number(m[1]) !== count) {
         fail(`${readme} 徽章数字过期：${kind} 写的是 ${m[1]}，实际是 ${count}`);
+      }
+    }
+  }
+}
+
+// ---------- 10. SR 入口引用同一规则，避免仅一侧或仅命令获得修复 ----------
+{
+  checks++;
+  const profile = "systematic-review/references/rct-pairwise-profile.md";
+  if (!existsSync(path.join(repoRoot, "skills", profile))) fail(`SR profile 不存在：${profile}`);
+  for (const plugin of ["oh-my-paper", "oh-my-paper-codex"]) {
+    const codex = plugin.endsWith("-codex");
+    const entries = [
+      ...["setup", "survey", "ideate", "experiment", "plan", "review", "write"].map((name) =>
+        codex ? `prompts/omp-${name}.md` : `commands/${name}.md`),
+      ...["conductor", "experiment-driver", "literature-scout", "paper-writer", "reviewer"].map((name) =>
+        `agents/${name}.${codex ? "toml" : "md"}`),
+    ];
+    for (const entry of entries) {
+      const rel = `plugins/${plugin}/${entry}`;
+      if (!existsSync(path.join(repoRoot, rel)) || !readFileSync(path.join(repoRoot, rel), "utf8").includes(profile)) {
+        fail(`SR 入口缺少共享 profile：${rel}`);
+      }
+    }
+    for (const entry of [codex ? "prompts/omp-write.md" : "commands/write.md", `agents/paper-writer.${codex ? "toml" : "md"}`]) {
+      const rel = `plugins/${plugin}/${entry}`;
+      const content = readFileSync(path.join(repoRoot, rel), "utf8");
+      for (const required of ["systematic-review/references/writing-handoff.md", "writing_handoff.py check", "ready_for_drafting", "public_benchmark"]) {
+        if (!content.includes(required)) fail(`SR 写作入口缺少 ${required}：${rel}`);
       }
     }
   }

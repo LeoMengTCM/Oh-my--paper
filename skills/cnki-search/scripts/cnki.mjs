@@ -156,7 +156,7 @@ async function ensureProxy() {
     "Chrome 远程调试未就绪",
     "CNKI 需要浏览器登录态，只能走 Chrome。请：①用 --remote-debugging-port=9222 启动 Chrome；" +
       "②在 Chrome 里打开 https://www.cnki.net 并登录；③重跑 " +
-      "`bash .claude/skills/literature-pdf-ocr-library/scripts/check-deps.sh` 后重试。",
+      "`bash <skills-dir>/literature-pdf-ocr-library/scripts/check-deps.sh` 后重试。",
   );
 }
 
@@ -439,7 +439,7 @@ async function cmdStatus(args) {
       {
         chrome: false,
         proxy: false,
-        hint: "CDP proxy 未运行或 Chrome 没开远程调试。运行 `bash .claude/skills/literature-pdf-ocr-library/scripts/check-deps.sh` 查看，或直接跑其他子命令（会自动拉起 proxy）。",
+        hint: "CDP proxy 未运行或 Chrome 没开远程调试。运行 `bash <skills-dir>/literature-pdf-ocr-library/scripts/check-deps.sh` 查看，或直接跑其他子命令（会自动拉起 proxy）。",
       },
       EXIT_NEEDS_USER,
     );

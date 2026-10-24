@@ -10,7 +10,9 @@ OMP 项目先读取实际 skills 目录下 `omp/SKILL.md`，运行 `omp/scripts/
 
 你是 Oh My Paper Orchestrator。文献调研的瓶颈在"筛"不在"搜"，分两遍走：先多源检索出轻量摘要表让用户挑核心论文，再只对选中的下载 PDF + OCR。把最贵的 OCR 留给会被读的论文。
 
-## 第零步：系统综述路由（优先于下方通用流程）
+## 第零步：综述类型路由（优先于下方通用流程）
+
+`pipeline.track=narrative-review`，或旧项目的 `projectContext.researchType/articleType`、根级同名字段明确为 narrative-review 时，读取实际 skills 目录下 `inno-pipeline-planner/references/narrative-review-profile.md`。保存实际检索式、日期、来源、全文阅读层级与局限；按学科选数据库和受控词表，临床主题使用 PubMed/MeSH，不强制 PICO。候选筛选是叙述性综述选文，不生成正式 PRISMA 纳入计数，不要求 RCT、注册或 Meta 分析。检索后交接 ideation 确定重点和论证问题，不机械生成五个创新点。
 
 先读 `research_brief.json` 的 `pipeline.track`。若为 `systematic-review`，从实际加载的 skills 目录读取 `systematic-review/references/rct-pairwise-profile.md`，按其入口规则选择 `exploratory-search` 或 `formal-review`。
 
@@ -26,7 +28,7 @@ cat .pipeline/docs/research_brief.json
 cat .pipeline/memory/literature_bank.md
 ```
 
-留意 `pipeline.track`（ml / clinical / systematic-review / bioinformatics）：决定查询扩展的受控词表（clinical→MeSH+PICO、ml→ACM CCS、math→MSC、economics→JEL）和是否走 PRISMA 筛选。
+留意 `pipeline.track`（ml / clinical / systematic-review / bioinformatics / narrative-review）和已有研究类型说明：研究方法与学科分开解释，学科决定检索词表，只有正式系统综述才按方案执行 PRISMA 筛选。
 
 ## 第二步：沿用已确定方向并展开查询
 
@@ -45,7 +47,7 @@ python "$OMP_SKILLS/literature-pdf-ocr-library/scripts/search_and_download_paper
 ```
 
 - 设了 `S2_API_KEY` 降低 429 概率；没有也能跑（其他源兜底）。
-- clinical / SR track：数据源加 `pubmed`，按 PICO 记录检索式留痕。
+- 临床主题（含 narrative-review）按问题需要加入 `pubmed` 与 MeSH，并记录实际检索式；PICO 只在问题适用时采用。
 - 可选 Google Scholar 补引用数 / 捞漏（需 Chrome 远程调试）：先 `bash "$OMP_SKILLS/literature-pdf-ocr-library/scripts/check-deps.sh"`，没有 Chrome 就跳过。
 
 ### 3b. 中文文献（用户选了"加 CNKI"才做）
@@ -142,11 +144,11 @@ cite_key 取自写回的 `citation_key`；元数据不足没进 bib 的填 `need
 
 CNKI 来源的行：只有 PDF 归档进 `papers/<slug>/` 并生成了 `metadata.json` 的才进 `references.bib`；没有全文的中文文献 cite_key 填 `needs_verification`，在 bank 里保留但不可引用。GB/T 7714 引用串（`cnki.mjs export --mode gbt`）不能直接当 BibTeX 用。
 
-生成 `.pipeline/docs/gap_matrix.md`，更新 `.pipeline/memory/agent_handoff.md`。clinical / SR track 按 PRISMA 记录各阶段计数。
+生成 `.pipeline/docs/gap_matrix.md`，更新 `.pipeline/memory/agent_handoff.md`。只有正式系统综述按方案和真实记录报告 PRISMA 计数；narrative-review 保存选文依据和阅读范围，不冒称系统筛选。
 
 ## 第九步：结果摘要
 
 核对报告、可追溯书目、已有综述重合、代表性原始研究、实际全文阅读范围及未决问题，不能靠篇数或一句“已完成”通过。
 将真实文件路径写入 survey 任务的 `artifacts`，将核查范围、结果和局限写入 `completionSummary`，再更新状态与 project_truth.md。
-重跑 workflow preflight：用户已要求 OMP 全流程时，读取 ideate 工作流并在本轮产出基于证据的候选方向比较，停在用户选择方向处；不要只说“下一步我将收敛选题”。
+重跑 workflow preflight：用户已要求 OMP 全流程时，读取 ideate 工作流，按研究类型在本轮完成基于证据的重点或候选比较；narrative-review 使用综述重点分支，不强制五方向和 idea eval。仅在未确认的真实方向取舍处等待用户，不要只说“下一步我将收敛选题”。
 用户仅授权本轮 survey 时，交付报告并说明具体下一任务，不擅自超范围。正式系统综述分支依然交接筛选，不转入候选题目循环。

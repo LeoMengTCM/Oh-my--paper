@@ -123,6 +123,54 @@ test('兼容值 ml 不覆盖明确的叙述性综述类型', t => {
   const project = publicationFixture(t, { workflow: 'write' });
   assert.equal(route(project).researchDesign, 'narrative-review');
 });
+test('正式叙述性综述类型不被旧项目字段覆盖', t => {
+  const project = fixture(t, { tasks: pending });
+  writeFileSync(path.join(project, '.pipeline/docs/research_brief.json'), JSON.stringify({
+    currentStage: 'survey', pipeline: { startStage: 'survey', track: 'narrative-review' },
+    projectContext: { researchType: 'clinical', articleType: 'narrative-review' },
+  }));
+  const result = route(project);
+  assert.equal(result.researchDesign, 'narrative-review');
+  assert.equal(result.workflow, 'survey');
+});
+
+test('正式及旧兼容叙述综述按已有任务衔接调研、证据整合与写作', t => {
+  for (const design of [
+    { track: 'narrative-review' },
+    { track: 'ml', projectContext: { articleType: 'narrative-review' } },
+    { track: 'clinical', researchType: 'narrative-review' },
+  ]) {
+    const tasks = [
+      { id: 'survey', title: 'AIG 指南与原始研究检索', stage: 'survey', status: 'pending', dependencies: [] },
+      { id: 'evidence', title: '逐项核查原文并整合 AIG 证据', stage: 'experiment', status: 'pending', dependencies: ['survey'] },
+      { id: 'draft', title: '撰写英文叙述性综述', stage: 'publication', status: 'pending', dependencies: ['evidence'] },
+    ];
+    const project = fixture(t, { version: 1, tasks });
+    const { track, ...legacy } = design;
+    writeFileSync(path.join(project, '.pipeline/docs/research_brief.json'), JSON.stringify({
+      topic: 'Autoimmune gastritis narrative review', currentStage: 'survey',
+      pipeline: { track, analysisMode: 'exploratory', startStage: 'survey' }, ...legacy,
+    }));
+    const tasksPath = path.join(project, '.pipeline/tasks/tasks.json');
+    const briefPath = path.join(project, '.pipeline/docs/research_brief.json');
+    const beforeBrief = readFileSync(briefPath, 'utf8');
+    for (const [index, workflow] of ['survey', 'experiment', 'write'].entries()) {
+      const beforeTasks = readFileSync(tasksPath, 'utf8');
+      const result = route(project);
+      assert.equal(result.researchDesign, 'narrative-review');
+      assert.equal(result.taskId, tasks[index].id);
+      assert.equal(result.workflow, workflow);
+      assert.equal(result.action, 'execute');
+      assert.equal(readFileSync(tasksPath, 'utf8'), beforeTasks);
+      assert.equal(readFileSync(briefPath, 'utf8'), beforeBrief);
+      const artifact = `${tasks[index].id}.md`;
+      writeFileSync(path.join(project, artifact), '# 软件验证材料\n本文件不代表真实研究证据或人工审批。\n');
+      tasks[index] = { ...tasks[index], status: 'done', artifacts: [artifact], completionSummary: '已核对本项软件测试材料。' };
+      writeFileSync(tasksPath, JSON.stringify({ version: 1, tasks }));
+    }
+  }
+});
+
 test('审稿退回补证时也核对后期阶段的依赖报告', t => {
   const project = fixture(t, { tasks: [
     { id: 'evidence-fix', stage: 'experiment', status: 'pending', workflow: 'experiment', dependencies: ['review'] },

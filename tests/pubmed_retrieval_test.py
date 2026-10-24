@@ -2,6 +2,7 @@
 import contextlib
 import importlib.util
 import io
+from http.client import IncompleteRead
 import json
 from pathlib import Path
 import subprocess
@@ -119,6 +120,70 @@ class PubMedRetrievalTests(unittest.TestCase):
         code, out, err = self.run_cli(*args, "--resume")
         self.assertEqual(code, 0, err)
         self.assertEqual(self.api.calls, [])
+
+    def test_incomplete_response_read_retries_at_each_endpoint(self):
+        class BrokenResponse(io.BytesIO):
+            def read(self, *args):
+                raise IncompleteRead(b"PRIVATE_PARTIAL_RESPONSE", 20)
+
+        for endpoint in ("esearch.fcgi", "esummary.fcgi", "efetch.fcgi"):
+            with self.subTest(endpoint=endpoint):
+                api = FakeNCBI()
+                broken = []
+                def transport(request, timeout=None):
+                    response = api(request, timeout)
+                    if api.calls[-1]["endpoint"] == endpoint and not broken:
+                        response.close()
+                        failure = BrokenResponse()
+                        broken.append(failure)
+                        return failure
+                    return response
+                self.api = transport
+                code, out, err = self.run_cli("--abstracts", "--retries", "2")
+                self.assertEqual(code, 0, err)
+                self.assertTrue(json.loads(out)["retrieval_complete"])
+                self.assertEqual(sum(call["endpoint"] == endpoint for call in api.calls), 2)
+                self.assertTrue(all(response.closed for response in broken))
+                self.assertNotIn("PRIVATE_PARTIAL_RESPONSE", out + err)
+
+    def test_incomplete_response_exhaustion_preserves_output_and_resume(self):
+        class BrokenResponse(io.BytesIO):
+            def read(self, *args):
+                raise IncompleteRead(b"PRIVATE_PARTIAL_RESPONSE", 20)
+
+        api = self.api
+        broken = []
+        def transport(request, timeout=None):
+            response = api(request, timeout)
+            if api.calls[-1]["endpoint"] == "efetch.fcgi":
+                response.close()
+                failure = BrokenResponse()
+                broken.append(failure)
+                return failure
+            return response
+        self.api = transport
+        checkpoint = self.directory / "truncated-checkpoint"
+        output = self.directory / "partial.json"
+        args = ("--all", "--checkpoint", str(checkpoint), "--batch-size", "2", "--abstracts", "--retries", "2")
+        code, out, err = self.run_cli(*args, "--output", str(output))
+        self.assertEqual(code, 2, err)
+        payload = json.loads(output.read_text())
+        self.assertEqual(payload["returned"], 2)
+        self.assertFalse(payload["retrieval_complete"])
+        self.assertEqual(len(broken), 2)
+        self.assertTrue(all(response.closed for response in broken))
+        self.assertFalse((checkpoint / ".lock").exists())
+        saved = "".join(p.read_text() for p in checkpoint.rglob("*") if p.is_file())
+        self.assertNotIn("PRIVATE_PARTIAL_RESPONSE", out + err + saved + output.read_text())
+        self.api = api
+        api.calls.clear()
+        code, out, err = self.run_cli(*args, "--resume")
+        self.assertEqual(code, 0, err)
+        resumed = json.loads(out)
+        self.assertEqual(resumed["run_id"], payload["run_id"])
+        self.assertTrue(resumed["retrieval_complete"])
+        self.assertNotIn("esearch.fcgi", [call["endpoint"] for call in api.calls])
+        self.assertEqual([call["ids"] for call in api.calls if call["endpoint"] == "esummary.fcgi"], [["3"]])
 
     def test_resume_only_requests_missing_metadata_or_abstract_records(self):
         checkpoint = self.directory / "checkpoint"

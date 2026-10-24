@@ -1,90 +1,41 @@
 ---
 name: delegate
-description: 为代码/实验任务生成 Codex prompt，用户复制到新终端执行，结果自动落到共享文件
+description: 实际启动 Codex 执行已确认任务，保存运行状态并验收产物
 ---
 
-> **确认或选择类步骤用 AskUserQuestion 工具。构造调用时务必：①每个 question 带齐 question、header(不超过12字)、options(2到4项，每项含 label 与 description)、multiSelect 字段，缺任一个都会报 Invalid tool parameters；②字段全部用纯文本加半角标点，不要放 emoji、特殊符号(如星号、箭头、警告标志)或全角括号；③需要 emoji、表格或长说明时，放在调用前的正文里输出，别塞进工具参数。payload 越精简越不容易出错。**
+你是 Oh My Paper Orchestrator。此入口用于实际委派已授权研究任务，不是仅生成命令让用户复制。
 
-你是 Oh My Paper 研究项目的 Orchestrator。此命令专用于需要 Codex 执行的**代码和实验任务**。
+## 执行器规则
 
-## 第一步：读取上下文
+先读取当前插件实际 skills 目录的 `codex-dispatch/references/execution-routing.md`，运行其中的 `executor.mjs status`。所有步骤遵守 `.pipeline/execution.json`；无配置先保存用户选择，失败不自动切换。
 
-```bash
-cat .pipeline/memory/project_truth.md
-cat .pipeline/memory/agent_handoff.md
-cat .pipeline/memory/decision_log.md
-cat .pipeline/docs/research_brief.json
-```
+## 读取与确认任务
 
-## 第二步：展示计划，等待确认
+读取研究 brief、execution_context、project_truth、decision_log 及相关输入文件。只使用实际存在的路径，沿用已批准的研究方法和当前稿件语言。缺少初始化文件时先 `/omp:setup`，不覆盖已有研究。
 
-用 `AskUserQuestion` 向用户展示将要委派的任务摘要：
+向用户说明任务范围、输入、允许修改的文件和期望产物。尚未授权时用 `AskUserQuestion` 提供 `确认并启动` / `调整任务` / `取消`；已有明确授权时不重复确认。
 
-- **任务内容**：用 1-2 句话描述将交给 Codex 做什么
-- **注入的上下文**：列出将附带哪些背景信息
-- **输出文件**：Codex 完成后会写入哪个文件
+执行器为当前 Agent 时，不擅自启动 Codex；若用户明确要求本次使用 Codex，先说明现有配置并确认是否切换，再保存新选择。
 
-选项：
-- `确认，生成 prompt`
-- `我来调整任务描述`
-- `取消`
+## 实际启动与等待
 
-## 第三步：生成 Codex prompt（仅在确认后）
+按共享路由规则创建唯一任务目录，写入 `prompt.md` 和 `request.json`，`intent` 使用 `delegate` 或实际阶段。任务包包含相关 skill 的真实绝对路径和必要上下文，不包含凭据。评审只评不改，任务不能绕过用户审批。
 
-构建完整 prompt，格式如下：
-
-```
-[项目背景]
-研究主题：（project_truth.md 前 10 行）
-当前阶段：（research_brief.json 的 currentStage）
-
-[已否决方向 - 不要重蹈]
-（decision_log.md 最近 3 条，如有）
-
-[上一步交接]
-（agent_handoff.md 最近一条 Handoff 块，如有）
-
-[你的任务]
-（确认后的任务描述）
-
-[输出要求]
-完成后将结果摘要写入 .pipeline/memory/agent_handoff.md，
-在文件末尾追加一行 <!-- CODEX_DONE -->
-```
-
-## 第四步：展示给用户复制执行
-
-用代码块展示完整命令，告知用户在**新终端**里执行：
-
-```
-在新终端里运行：
-codex "[完整 prompt]"
-
-或后台运行：
-codex --background "[完整 prompt]"
-```
-
-用 `AskUserQuestion` 询问：
-- `我已经在新终端里跑起来了`
-- `取消`
-
-## 第五步：等待完成，读取结果
-
-用户确认跑起来后，轮询等待完成信号：
+使用宿主 Bash 工具实际运行：
 
 ```bash
-# 每 10 秒检查一次，最多等 10 分钟
-for i in $(seq 1 60); do
-  grep -q "CODEX_DONE" .pipeline/memory/agent_handoff.md 2>/dev/null && break
-  sleep 10
-done
-cat .pipeline/memory/agent_handoff.md | tail -30
+# OMP_SKILLS 先替换为当前插件实际 skills 目录的绝对路径：
+#   Claude Code: "${CLAUDE_PLUGIN_ROOT}/skills"
+#   Qoder:       "${QODER_PLUGIN_ROOT}/skills"
+#   环境变量不可用时，从已加载的 codex-dispatch/SKILL.md 路径反推父目录
+OMP_SKILLS="/实际/插件/skills"
+node "$OMP_SKILLS/codex-dispatch/scripts/executor.mjs" run --project "/实际研究目录" --request ".pipeline/dispatch/<本次任务>/request.json"
 ```
 
-读取结果后向用户简要说明：做了什么、产出了哪些文件、有没有问题。
+耗时任务使用宿主后台能力并保留实际句柄。只有看到 `running` 与 PID 才报告已启动；等待进程结束后，读取该次 `.pipeline/runs/<runId>/status.json`、`result.md`、错误日志和实际产物。超时不是完成，历史 handoff 注释不是任务句柄。
 
-用 `AskUserQuestion` 询问：
-- `接受结果，继续下一步`
-- `需要 Codex 修改某处`
-- `这个结果有问题，放弃`
+## 验收与失败
 
+- `ready_for_review`：产物通过运行检查，主 Agent 再核对内容、来源、方法和任务完成条件。验收通过后才更新任务与交接；有问题则提出具体修订，再派发一次新任务。
+- `failed` / `blocked`：说明具体原因和日志位置，保留失败现场，不由主 Agent 代做。缺少权限、网络或凭据时由用户处理，不绕过宿主限制。
+- 用户未授权继续时，展示结果后询问 `接受结果` / `需要修改` / `暂停`；已授权完整流程时执行下一项真正可执行的任务。

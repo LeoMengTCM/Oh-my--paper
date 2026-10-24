@@ -55,6 +55,16 @@ Use this skill when the user request matches its research workflow scope. Prefer
 - If a required runtime, CLI, credential, or API is unavailable, explain the blocker and continue with the best manual fallback instead of silently skipping the step.
 - Do not write generated artifacts back into the skill directory; save them inside the active project workspace.
 
+## 叙述性综述优先规则
+
+当 `pipeline.track = narrative-review`，或旧 `projectContext.researchType` / `articleType`、根级同名字段表示叙述性综述时，先读 `$OMP_SKILLS/inno-pipeline-planner/references/narrative-review-profile.md`。本分支优先于下方原始研究的统计、实验设计、报告清单和默认制图要求。
+
+- 审查综述问题与范围、文献选择透明度、原始证据覆盖、相互矛盾的研究、临床适用性、引用语境和局限性。
+- 不因没有训练、消融、RCT 注册、IRB 或 PRISMA 而判定叙述综述不合格；同时检查稿件是否不当宣称系统综述、双人独立筛选或 Meta 分析。
+- 对每个实质问题给出稿件位置、依据和可执行的修改要求；文献未核实的事项保留为未解决，不猜测。
+- 审查报告本身不需要生成示意图。只有稿件确实缺少有解释价值的图表时提出建议，不执行未经请求的图像生成。
+- 完成评审报告不等于稿件通过；返修后复查当前版本，记录仍未解决的问题。
+
 ## Upstream Instructions
 
 # Scientific Critical Evaluation and Peer Review

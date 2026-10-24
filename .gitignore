@@ -24,3 +24,9 @@ __pycache__/
 
 # Local MCP server data
 sqlite_mcp_server.db
+
+# Generated installers
+dist/
+
+# Kimi plugin skills bundle (build output; run scripts/sync-kimi-skills.mjs sync)
+plugins/oh-my-paper-kimi/skills/

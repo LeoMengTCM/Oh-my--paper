@@ -28,7 +28,7 @@ function event(project, hook_event_name, data = {}, file = hook) {
 }
 
 test('Codex setup supports every research track, real TOML roles and repeated initialization', t => {
-  for (const track of ['ml', 'clinical', 'systematic-review', 'bioinformatics']) {
+  for (const track of ['ml', 'clinical', 'systematic-review', 'bioinformatics', 'narrative-review']) {
     const project = temp(t);
     writeFileSync(path.join(project, 'AGENTS.md'), '# Existing conventions\nKeep this line.\n');
     init(project, track);
@@ -45,6 +45,36 @@ test('Codex setup supports every research track, real TOML roles and repeated in
     const parsed = spawnSync(python, ['-c', 'import pathlib,sys,tomllib; files=list(pathlib.Path(sys.argv[1]).glob("*.toml")); assert len(files)==5\nfor f in files:\n d=tomllib.loads(f.read_text()); assert d["name"]==f.stem; assert isinstance(d["developer_instructions"],str); assert "model" not in d', path.join(project, '.codex/agents')], { encoding: 'utf8' });
     assert.equal(parsed.status, 0, parsed.stderr);
   }
+});
+
+test('叙述性综述初始化保留研究记录与旧任务，不生成临床试验专用文件', t => {
+  const project = temp(t);
+  const args = ['init', '--project', project, '--topic', 'Autoimmune gastritis narrative review', '--track', 'narrative-review'];
+  ok(run(setup, args));
+  const briefPath = path.join(project, '.pipeline/docs/research_brief.json');
+  const brief = JSON.parse(readFileSync(briefPath));
+  assert.deepEqual(brief.pipeline, { track: 'narrative-review', analysisMode: 'exploratory', startStage: 'survey' });
+  brief.goal = 'Write an evidence-based English narrative review of AIG.';
+  brief.projectContext = { writingLanguage: 'en', scopeStatus: 'awaiting-survey' };
+  const files = {
+    '.pipeline/docs/research_brief.json': JSON.stringify(brief, null, 2),
+    '.pipeline/tasks/tasks.json': JSON.stringify({ version: 1, master: { tasks: [{ id: 23, title: '核查 AIG 综述范围', stage: 'survey', status: 'in-progress', dependsOn: [] }] }, metadata: 'retain' }),
+    '.pipeline/memory/project_truth.md': '# AIG\n研究者已选择英文叙述性综述。\n',
+    '.pipeline/memory/decision_log.md': '# 决策记录\n不得把叙述性综述宣称为系统综述。\n',
+  };
+  for (const [name, contents] of Object.entries(files)) writeFileSync(path.join(project, name), contents);
+  assert.deepEqual(ok(run(setup, args)).changed, []);
+  for (const [name, contents] of Object.entries(files)) assert.equal(readFileSync(path.join(project, name), 'utf8'), contents);
+  for (const name of ['.pipeline/docs/protocol.md', '.pipeline/docs/sap.md', '.pipeline/memory/protocol_deviations.md']) {
+    assert.equal(existsSync(path.join(project, name)), false);
+  }
+  const state = ok(run(setup, ['status', '--project', project]));
+  assert.equal(state.initialized, true);
+  assert.equal(state.track, 'narrative-review');
+  assert.equal(state.taskCount, 1);
+  const instructions = readFileSync(path.join(project, 'AGENTS.md'), 'utf8');
+  assert.match(instructions, /pipeline\.track.*narrative-review/);
+  assert.match(instructions, /inno-pipeline-planner\/references\/narrative-review-profile\.md/);
 });
 
 test('Setup retains old tasks, approved plans, customized roles and external instructions', t => {
@@ -156,6 +186,13 @@ test('Installed standalone bundle includes all workflows, initializes a project 
   init(project, 'systematic-review', path.join(plugin, 'skills/omp/scripts/project.mjs'));
   assert.equal(ok(run(path.join(plugin, 'skills/omp/scripts/project.mjs'), ['status', '--project', project])).initialized, true);
   assert.equal(ok(event(project, 'SessionStart', {}, path.join(plugin, 'scripts/codex-hook.mjs'))).hookSpecificOutput.hookEventName, 'SessionStart');
+  const narrative = path.join(home, 'narrative review');
+  const installedSetup = path.join(plugin, 'skills/omp/scripts/project.mjs');
+  init(narrative, 'narrative-review', installedSetup);
+  const narrativeState = ok(run(installedSetup, ['status', '--project', narrative]));
+  assert.equal(narrativeState.initialized, true);
+  assert.equal(narrativeState.track, 'narrative-review');
+  assert.equal(existsSync(path.join(narrative, '.pipeline/docs/sap.md')), false);
   assert.equal(run(manager, ['install', ...args]).status, 0);
   assert.equal(run(manager, ['uninstall', ...args]).status, 0);
   assert.equal(existsSync(plugin), false);

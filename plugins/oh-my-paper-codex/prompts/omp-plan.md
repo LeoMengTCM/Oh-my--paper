@@ -26,6 +26,8 @@ cat .pipeline/memory/decision_log.md
 
 先使用 research-pipeline-planner 与 inno-pipeline-planner，根据已确认研究主题、track 和起始阶段生成具体任务及依赖。读取既有任务先运行 task-contract.mjs；空列表是尚未规划，不是阶段完成。已有任务保留 ID 和完成证据，只补充当前目标所需内容。
 
+`pipeline.track=narrative-review`，或旧项目的 `projectContext.researchType/articleType`、根级同名字段明确为 narrative-review 时，先读 `inno-pipeline-planner/references/narrative-review-profile.md`，安排检索阅读、确定重点、证据提取与综合、写作、引用核验、科学评审和必要返修。保留已确认写作语言，不要求五个 idea、训练、RCT 注册或正式 PRISMA。
+
 ## 第二步：生成状态摘要，和用户对话
 
 向用户展示项目当前状态：
@@ -45,7 +47,8 @@ cat .pipeline/memory/decision_log.md
 
 ## 阶段推进前的闸门检查（按 track）
 
-读 `research_brief.json` 的 `pipeline.track`，仅当对应闸门通过才允许推进；否则向用户说明缺口并引导补齐：
+读 `research_brief.json` 的 `pipeline.track`，先按上述兼容规则识别叙述性综述，仅在适用检查通过后推进：
+- narrative-review：核对确认范围、实际检索与全文记录、论点来源对应及证据缺口；写作前需要可核对的证据综合，不要求 RCT 注册、IRB、Meta 分析、固定图数或正式 PRISMA 计数。
 - clinical：采集/分析前核对冻结方案、适用的注册及伦理批准；进入 publication 时核对相应 CONSORT/STROBE/STARD 清单、伦理及数据可得性声明。
 - systematic-review：读取实际 skills 目录下 `systematic-review/references/rct-pairwise-profile.md`。survey 为探索，ideation 批准方案，experiment 才执行 formal-review。核对方案版本与人工批准、真实注册状态及未注册说明；公开汇总不默认要求 IRB，任务 done 本身不构成批准。进入 publication 前核对实际检索/筛选记录、PRISMA、结果级 RoB 2 与结局级 GRADE；不强制生成不适用的分析或图表。
 - ml / bioinformatics：无硬闸门，但确认每阶段图已产出、版本/依赖可复现。

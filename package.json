@@ -4,7 +4,7 @@
   "version": "2.1.0",
   "type": "module",
   "scripts": {
-    "check": "npm run skills:research:check && npm run codex:check && npm run check:consistency && npm test",
+    "check": "npm run skills:research:check && npm run codex:check && npm run kimi:check && npm run check:consistency && npm test",
     "test": "node --test tests/*.test.mjs && npm run test:sr",
     "test:sr": "node scripts/test-systematic-review.mjs",
     "test:sr:stats": "node scripts/test-systematic-review.mjs --require-r",
@@ -14,6 +14,9 @@
     "skills:research:report": "node scripts/sync-research-skills.mjs report",
     "codex:sync": "node scripts/sync-codex-workflows.mjs sync",
     "codex:check": "node scripts/sync-codex-workflows.mjs check",
-    "codex:runtime:check": "node scripts/check-codex-runtime.mjs"
+    "codex:runtime:check": "node scripts/check-codex-runtime.mjs",
+    "kimi:sync": "node scripts/sync-kimi-skills.mjs sync",
+    "kimi:check": "node scripts/sync-kimi-skills.mjs check",
+    "qoder:package": "node scripts/package-qoder-plugin.mjs"
   }
 }

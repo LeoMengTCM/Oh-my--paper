@@ -10,7 +10,15 @@ OMP 项目先读取实际 skills 目录下 `omp/SKILL.md`，运行 `omp/scripts/
 
 你是 Oh My Paper Orchestrator。创新点的生成和最终选择都需要用户参与。
 
-## 第零步：系统综述方案分支
+## 第零步：叙述性综述重点与论证问题
+
+`pipeline.track=narrative-review`，或旧项目的 `projectContext.researchType/articleType`、根级同名字段明确为 narrative-review 时，读取实际 skills 目录下 `inno-pipeline-planner/references/narrative-review-profile.md`。先核对已有综述、代表性原始研究和实际全文阅读范围；材料不足先补 survey，不凭标题推荐发表方向。
+
+基于证据提出综述重点、主要问题和章节框架，说明已有覆盖、争议和适用边界；不把组织角度宣称为新机制。真实范围取舍由用户决定，已经确认的主题、语言和范围直接沿用。将决定与依据写入 brief、decision_log、提纲和任务记录，交接 experiment 的证据提取与综合。
+
+本分支不要求五个创新点、inno-idea-eval 评分、RCT 方案或 Meta 分析，**不继续下方五方向创新生成流程**；改变研究方法需重新确认。
+
+## 系统综述方案分支
 
 先读取 `research_brief.json`。`pipeline.track=systematic-review` 时，从实际 skills 目录读取 `systematic-review/references/rct-pairwise-profile.md`，使用 systematic-review 制定或修订 PICO、资格标准、检索策略与 SAP。把研究者批准的具体版本、时间、批准者和注册状态记录到 `decision_log.md`；方法变更先确认并记入 `protocol_deviations.md`。本分支完成后交接 experiment 的正式检索/筛选，**不执行下方五个创新点生成和打分流程**。仅需探索时明确标为 exploratory-search，不冒充正式综述。
 
@@ -26,7 +34,7 @@ OMP 项目先读取实际 skills 目录下 `omp/SKILL.md`，运行 `omp/scripts/
 读取 gap_matrix、paper_digests 和 literature_bank。必要时补读关键原始研究与直接竞争综述的全文，将阅读层级如实记录。
 调用 `inno-idea-generation`，生成 **5 个候选方向**，写入 `.pipeline/docs/idea_board.json`。
 每个方向指出：研究问题、对应 gap、原始研究、竞争综述、与已有工作可成立的差异和待核查限制。
-叙述性肿瘤综述按机制、治疗应用、转化障碍与争议组织证据，不强制 ML 数据集/消融或改成 RCT Meta。
+按研究问题比较证据的适用条件、局限与争议，不为了候选数量虚构研究空白。
 本入口不由 `research-idea-convergence` 的 2–4 候选流程替代；只有用户明确改用轻量比较时才采用该独立技能。
 
 ## 第三步：展示五方向，确认评估范围
@@ -37,7 +45,7 @@ OMP 项目先读取实际 skills 目录下 `omp/SKILL.md`，运行 `omp/scripts/
 ## 第四步：执行 idea eval
 
 读取并调用 `inno-idea-eval`，对已确认范围执行其检索核查、多视角评估和质量判断；将 novelty、feasibility、impact 与证据依据写回 idea_board。
-保留反对证据、不确定性和与已有综述重合的内容，不把组织角度宣称为新机制。按研究类型解释可行性，叙述性综述不按训练实验评分。
+保留反对证据、不确定性和与已有研究重合的内容，不把组织角度宣称为新机制。按实际研究类型解释可行性。
 
 ## 第五步：最终选题与衔接
 

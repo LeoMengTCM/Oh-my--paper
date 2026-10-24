@@ -1,0 +1,138 @@
+---
+name: setup
+description: 初始化研究项目结构（.pipeline/），并检查 Codex 插件是否就绪
+---
+
+> **确认或选择类步骤用 AskUserQuestion 工具。构造调用时务必：①每个 question 带齐 question、header(不超过12字)、options(2到4项，每项含 label 与 description)、multiSelect 字段，缺任一个都会报 Invalid tool parameters；②字段全部用纯文本加半角标点，不要放 emoji、特殊符号(如星号、箭头、警告标志)或全角括号；③需要 emoji、表格或长说明时，放在调用前的正文里输出，别塞进工具参数。payload 越精简越不容易出错。**
+
+你正在为研究目录初始化 Oh My Paper 研究 harness。先确认目标目录；当前目录若是插件源码仓库而用户要求新研究，使用独立研究目录，不把源码仓库误初始化为论文项目。沿用已明确的主题、文章类型、写作语言和起始阶段，只询问真正缺失的信息；写作语言与对话语言分别保存。
+
+## 第一步：检查 Codex CLI（可选依赖）
+
+```bash
+node -e "process.exit(0)" 2>/dev/null && echo "Node.js OK"
+which codex 2>/dev/null && codex --version 2>/dev/null || echo "Codex not found"
+```
+
+用 `AskUserQuestion` 告知状态：
+
+> **环境检查**：
+> - Node.js：[OK / 未安装]
+> - Codex CLI：[版本 / 未安装]
+>
+> Codex 用于并行执行代码/实验子任务（/omp:delegate）。没有它一切照常——子任务由当前 Agent 自己执行。
+> 安装方法：`npm install -g @openai/codex`（详见 github.com/openai/codex）
+
+选项：
+- `Codex 已就绪，继续初始化`
+- `不用 Codex，继续初始化（子任务由当前 Agent 执行）`
+- `先去安装 Codex，稍后再运行 /omp:setup`
+
+## 第二步：询问研究信息
+
+仅对尚未提供的信息使用 `AskUserQuestion`。已知主题、写作语言和起始阶段直接写入 brief，不让用户重复回答。
+
+> 请描述你的研究项目：
+> - 研究主题是什么？（例：多模态医学影像分割）
+
+然后再问：
+
+> 从哪个阶段开始？
+
+选项：
+- `survey（文献调研）`
+- `ideation（创新点生成）`
+- `experiment（实验）`
+- `publication（论文写作）`
+
+然后确定研究类型（决定阶段含义、适用检查与报告方式）。用户已明确类型时直接采用；否则先区分“文献综述”和“原始研究”，再询问对应子类，避免一次提供超过 4 个选项：
+
+- 文献综述：`narrative-review — 叙述性综述` / `systematic-review — 系统综述或 Meta 分析`。
+- 原始研究：`ml — 机器学习或计算实验` / `clinical — 临床原始研究` / `bioinformatics — 生物信息学`。
+
+记下选择写入 `pipeline.track`。clinical / systematic-review 自动设 `analysisMode = confirmatory`，其余为 `exploratory`。新建叙述性综述使用正式 `narrative-review`，不以 ml 或 clinical 代替。
+
+narrative-review 读取实际 skills 目录下 `inno-pipeline-planner/references/narrative-review-profile.md`：survey 检索与阅读 → ideation 确定重点和论证问题 → experiment 提取、核对和综合证据 → publication 写作、引用核验和评审 → 按需 promotion。默认 exploratory，不自动生成临床 protocol/SAP，不要求 RCT 注册、IRB、PRISMA 计数或 Meta 分析。记录真实检索范围和限制，不将其宣称为系统综述。旧项目的 `projectContext.researchType/articleType` 或根级同名字段可继续表示 narrative-review；不静默迁移旧 track，类型冲突先核对原始决定。
+
+systematic-review 读取实际 skills 目录下 `systematic-review/references/rct-pairwise-profile.md`。五阶段不变：survey 探索 → ideation 批准 PICO/方案/SAP → experiment 正式检索、筛选、提取与合成 → publication → promotion。默认 `confirmatory`；批准记录写入 `.pipeline/memory/decision_log.md`，关联批准的方案版本，任务 `done` 本身不是审批证据。注册状态如实记录为 `planned` / `submitted` / `registered` / `not_registered` / `not_applicable`；未注册须用户说明并确认，但不绝对阻断。公开汇总数据不默认要求 IRB；涉及个体数据或其他伦理要求时另行核实。允许错误修复后重跑并记录原因与偏离，不允许为显著性改方案。
+
+若从 experiment 或更晚阶段开始，也须核验既有批准记录；不能用起始阶段跳过适用审批。
+
+## 第三步：创建目录结构
+
+```bash
+mkdir -p .pipeline/memory .pipeline/tasks .pipeline/docs .pipeline/.hook-events
+```
+
+> **Kimi Code**：插件启用后 skills 已作为插件技能可用（`/skill:omp:<name>`），项目角色 agents 也会被自动发现；但各命令通过**项目内相对路径**调用技能脚本，仍需创建项目内副本：
+>
+> ```bash
+> mkdir -p .agents/skills && cp -rn "${KIMI_PLUGIN_ROOT}/skills/." .agents/skills/
+> ```
+>
+> 环境变量不可用时，从已加载的 omp 插件技能（如 `/skill:omp:codex-dispatch`）的实际路径反推插件 skills 目录。
+
+> 如果 `.agents/skills/` 已存在（重复运行 setup，常见于插件升级后），`cp -rn` 不会覆盖旧副本。此时用 `AskUserQuestion` 问一句：`保留现有技能副本` / `用插件最新版覆盖刷新（cp -rf）`——项目里自己改过技能的选保留，否则建议刷新。
+
+> **关于 hooks**：SessionStart / Stop / PostToolUse 三个 hook 由插件清单 `kimi.plugin.json` 的 `hooks` 字段提供，**插件启用即生效，无需在项目里重复注册**，也不要在 `~/.kimi-code/config.toml` 再写一份同样的 `[[hooks]]`。
+
+## 第四步：写入初始文件
+
+创建以下文件（已存在则跳过）：
+
+已有 `research_brief.json`、`tasks.json`、方案和记忆文件不得覆盖或重置。先检查原有状态；确需迁移时展示变更并征得用户同意。任务文件存在时先按下面的只读契约检查，不得替换为空任务表。
+
+读取或更新任务前，运行 `node "<实际skills目录>/inno-pipeline-planner/scripts/task-contract.mjs" .pipeline/tasks/tasks.json`。从插件实际安装的 skills 目录定位脚本，不依赖仓库根 `scripts/`。成功 stdout 输出规范化文档，CLI 不写文件；错误 stderr、退出 1，此时停止更新和阶段判断。新建统一写顶层 `tasks` 和任务内 `dependencies`；读兼容 `master.tasks` / `dependsOn`，不得把旧嵌套任务当作零条。双列表或依赖冲突必须停止。保留数字或字符串旧 ID、状态和元数据，尤其不重编号 gate ID；旧文件更新保留原格式，迁移需用户同意，不把规范化输出直接覆盖回原文件。
+
+**`.pipeline/docs/research_brief.json`**：
+```json
+{
+  "topic": "[用户填写的主题]",
+  "goal": "",
+  "currentStage": "[用户选择的阶段]",
+  "pipeline": {
+    "track": "[ml|clinical|systematic-review|bioinformatics|narrative-review]",
+    "analysisMode": "[clinical/SR 填 confirmatory，其余 exploratory]",
+    "startStage": "[用户选择的阶段]"
+  },
+  "projectContext": {
+    "writingLanguage": "[已确认的稿件语言，独立于对话语言]"
+  },
+  "successThreshold": "成功标准（叙述性综述：证据与论点可核对；confirmatory 研究：主要结局与预设分析，而非可反复迭代的阈值）"
+}
+```
+
+> clinical / systematic-review track 额外创建冻结计划与偏离记录：`.pipeline/docs/protocol.md`、`.pipeline/docs/sap.md`（统计分析计划）、`.pipeline/memory/protocol_deviations.md`。它们是预注册的依据——锁定后不得随意改写，任何变更记入 deviations。
+
+**`.pipeline/memory/project_truth.md`**：
+```markdown
+# Project Truth
+
+## 研究主题
+[主题]
+
+## 已确认决策
+（空，随项目推进逐步填充）
+```
+
+**`.pipeline/memory/orchestrator_state.md`**、**`execution_context.md`**、**`review_log.md`**、**`agent_handoff.md`**、**`decision_log.md`**、**`literature_bank.md`**、**`experiment_ledger.md`**、**`figure_ledger.md`**：均创建空白初始版本。
+
+**`.pipeline/tasks/tasks.json`**：
+```json
+{"version": 1, "tasks": []}
+```
+
+## 第五步：完成确认
+
+> ✅ 研究项目初始化完成！
+>
+> **项目**：[主题]
+> **起始阶段**：[阶段]
+>
+> 接下来：
+> - 运行 `/omp:plan` 查看整体状态
+> - 运行 `/omp:survey` 开始文献调研（如果从 survey 阶段）
+
+记录实际创建和保留的文件，校验 `tasks.json`，确认 brief 的研究类型、写作语言与已知决定一致。空任务表表示尚未规划，不表示研究已经完成。若用户已授权完整流程，直接运行 `/omp:plan`；仅在下一步尚未明确时提供下列选项：
+- `开始！运行 /omp:plan`
+- `我先自己看看文件结构`

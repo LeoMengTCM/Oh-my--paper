@@ -8,7 +8,7 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { readTaskDocument } from "../skills/inno-pipeline-planner/scripts/task-contract.mjs";
 
-const PROJECT = process.cwd();
+const PROJECT = process.env.QODER_PROJECT_DIR || process.env.CLAUDE_PROJECT_DIR || process.cwd();
 
 async function main() {
   // PostToolUse hook 的数据通过 stdin 的 JSON 传入（不存在 CLAUDE_TOOL_INPUT 环境变量）

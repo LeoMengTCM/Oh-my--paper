@@ -1,0 +1,248 @@
+---
+name: survey
+description: 文献调研（先筛后深）：多源检索出轻量摘要表（可加 CNKI 中文文献）→用户勾选核心论文→只对选中的下载真实 PDF 并 OCR，再做 gap 分析
+---
+
+> **确认或选择类步骤用 AskUserQuestion 工具。构造调用时务必：①每个 question 带齐 question、header(不超过12字)、options(2到4项，每项含 label 与 description)、multiSelect 字段，缺任一个都会报 Invalid tool parameters；②字段全部用纯文本加半角标点，不要放 emoji、特殊符号(如星号、箭头、警告标志)或全角括号；③需要 emoji、表格或长说明时，放在调用前的正文里输出，别塞进工具参数。payload 越精简越不容易出错。**
+
+你是 Oh My Paper Orchestrator。文献调研的瓶颈不在"搜"而在"筛"，所以分两遍走：**先**多源检索出一张轻量摘要表，让用户挑出真正要读的核心论文；**再**只对选中的论文下载真实 PDF 并 OCR，供 ideation 阅读全文。把最贵的 OCR 留给会被读的论文。
+
+## 执行器规则
+
+先读取当前插件实际 skills 目录的 `codex-dispatch/references/execution-routing.md`，运行 `executor.mjs status`，遵守 `.pipeline/execution.json`。选择 Codex 后，下方检索、下载、OCR、整理和分析必须通过统一 runner 实际派发；主 Agent 只负责确认范围、用户选文、验收和状态维护。此规则先于所有研究类型分支，失败不自动切换。
+
+## 初始化前置检查
+
+先检查 `.pipeline/docs/research_brief.json` 与 `.pipeline/tasks/tasks.json`；任一缺失时先执行 `/omp:setup`，保留已有资料，完成后返回本入口。可用实际 skills 目录的 `omp/scripts/workflow.mjs --project . --intent survey` 做只读状态检查；主 Agent 仍使用本宿主命令，不注册 Codex 续行。任务表为空时先运行 `/omp:plan`，不能凭聊天中的主题跳过初始化和规划。
+
+## 第零步：综述类型路由（优先于下方通用流程）
+
+`pipeline.track=narrative-review`，或旧项目的 `projectContext.researchType/articleType`、根级同名字段明确为 narrative-review 时，读取实际 skills 目录下 `inno-pipeline-planner/references/narrative-review-profile.md`。下方工具可用于检索、选读和书目整理，但须保存真实检索式、日期、来源、全文阅读层级与限制；按学科选库，临床主题使用 PubMed/MeSH，不强行套 PICO。叙述性综述不生成正式 PRISMA 纳入计数，不因没有 RCT、注册或 Meta 分析阻断。检索后比较已有综述覆盖与证据争议，交接 ideation 确定重点，不机械生成五个创新点。
+
+先读 `research_brief.json` 的 `pipeline.track`。若为 `systematic-review`，从实际加载的 skills 目录读取 `systematic-review/references/rct-pairwise-profile.md`，按其入口规则选择 `exploratory-search` 或 `formal-review`。
+
+- exploratory-search：可使用下方精选阅读流程，但所有结果标为探索，不产生正式 PRISMA 纳入计数。
+- formal-review：核对具体方案版本的研究者批准及真实注册状态，再执行 experiment 阶段的正式检索子任务。记录完整策略、命中/取回数与 partial 状态；当前工具不能完整取回时明确缺口或使用用户合法导出，不调用不存在的分页命令。
+- **formal-review 不执行下面的通用步骤**：不用 `--limit 30` 或挑 5–10 篇替代完整筛选，不按引用数、核心期刊或全文权限确定资格；全文未取得单列。结束后交接正式筛选，不进入 gap/idea 循环。
+
+叙述性综述已有合法 JATS/XML、HTML 正文或文本层材料时，按实际读取方式登记，不能把收费 OCR 当作无条件前置步骤；下方 OCR 选择仅用于确实需要解析的 PDF。外部上传仍须符合已获授权，不把元数据或摘要标成全文阅读。
+
+## 第一步：读取研究主题
+
+```bash
+cat .pipeline/memory/project_truth.md
+cat .pipeline/docs/research_brief.json
+cat .pipeline/memory/literature_bank.md   # 已有多少文献
+```
+
+留意 `research_brief.json` 里的 `pipeline.track`（ml / clinical / systematic-review / bioinformatics / narrative-review），并保留已确认写作语言。研究类型决定方法，学科决定检索词表；叙述性临床综述不能被误当作临床原始研究。
+
+## 第二步：对齐方向 + 查询扩展（确认后再搜）
+
+把用户的主题展开成 2-3 个互补检索式（同义词 / 子概念 / 缩写全称；按 track 补受控词表：clinical→MeSH+PICO、ml→ACM CCS+同义词、math→MSC、economics→JEL）。
+
+先用正文展示扩展后的检索式和数据源，再用 `AskUserQuestion` 确认：
+
+> 准备按以下方向检索（先出摘要表，不下载）：
+> 1. 检索式 A：...
+> 2. 检索式 B：...
+> 3. 检索式 C：...
+>
+> 数据源：arxiv semanticscholar openalex crossref（ML）/ 临床另加 pubmed
+> 目标：约 20-30 篇候选，已有 X 篇
+
+选项：
+- `确认，出摘要表`
+- `要中文文献，加 CNKI`（主题涉及中文期刊 / 学位论文 / 国内临床实践时选这个；需要 Chrome 开着远程调试并已登录知网）
+- `调整检索式`
+- `我有 arXiv ID 列表，直接确认这些`
+
+如果用户提供 arXiv ID 列表，用 `--arxiv-ids ... --summary-only` 先确认元数据，再进第四步。
+
+## 第三步：第一遍检索 —— 轻量摘要表（不下载）
+
+corpus-name 按主题命名（短横线，如 `humanoid-locomotion`）。
+
+```bash
+python .agents/skills/literature-pdf-ocr-library/scripts/search_and_download_papers.py \
+  --queries "<检索式A>" "<检索式B>" "<检索式C>" \
+  --summary-only --limit 30 \
+  --sources arxiv semanticscholar openalex crossref \
+  --out-dir .pipeline/literature/<corpus-name>
+```
+
+- 设了 `S2_API_KEY` 会显著降低 Semantic Scholar 的 429 概率；没有也能跑（其他源兜底）。
+- 临床主题（含 narrative-review）按问题需要加入 `pubmed` 和 MeSH，并记录实际检索式；只有正式 systematic-review 按其方案使用 PRISMA 计数，不把一般检索记录自动写成系统综述。
+- 可选：若本机 Chrome 开了远程调试，跑 `bash .agents/skills/literature-pdf-ocr-library/scripts/check-deps.sh` 就绪后，用 Google Scholar 补最全引用数 / 捞其他源没收录的论文（见 `references/site-patterns/scholar.google.com.md`）；没有 Chrome 就跳过。
+
+### 3b. 中文文献（用户选了"加 CNKI"才做）
+
+先自检环境：
+
+```bash
+node .agents/skills/cnki-search/scripts/cnki.mjs status
+```
+
+**退出码 2 表示需要用户处理**（Chrome 没开远程调试 / 没开知网标签）。此时停下来把 `hint` 告诉用户，等他弄好再继续；不要跳过这一步假装查过了，也不要改用 curl 硬抓。
+
+环境就绪后按检索式查 CNKI，优先用高级检索限定来源类别与年份：
+
+```bash
+node .agents/skills/cnki-search/scripts/cnki.mjs advanced \
+  --query "<检索式A>" --source 北大核心 CSSCI --from-year <起始年> --sort citations
+
+# 需要多页时逐页取，页间留间隔
+node .agents/skills/cnki-search/scripts/cnki.mjs pages --action next
+```
+
+**排序一定要显式指定**：CNKI 会跨检索保留上次的排序，不传 `--sort` 可能拿到按发表时间排的结果（全是当天网络首发），对调研没用。取回后核对 `activeSort` 字段是不是你要的。
+
+把返回的 `papers[]` 并进 `survey_screening.md`，数据源列标 `cnki`，`full_text_status` 按实际状态填：还没下的填 `needs_institution`（CNKI 全文多数要机构权限），**真下载归档成功后填 `institution_pdf`**（机构订阅取得），两种情况都**别默认写成 `open_pdf`**——那表示合法开放获取。
+
+- 撞到滑块验证码会返回 `{"error": "captcha"}` 且退出码 2——停下让用户在 Chrome 里手动完成拼图，等他回话再继续。
+- 主题涉及期刊级别时，用 `node .agents/skills/cnki-search/scripts/cnki.mjs journal --name "<刊名>"` 查收录情况（北大核心 / CSSCI / CSCD），把结论写进摘要表的 venue 列备注。
+
+把生成的 `survey_screening.md` 摘要表直接展示给用户（标题 / 年 / venue / 引用 / [new] / full_text_status / 代码）。
+
+## 第四步：用户从摘要表勾选核心论文
+
+用 `AskUserQuestion`（multiSelect 为 true）让用户挑出要深读 / 下载的核心论文。问题正文里先给出带行号的摘要表，选项用论文行号或简短标题。建议引导用户选 5-10 篇。
+
+> 从上面 N 篇候选里，选出要下载全文 + OCR 的核心论文（建议 5-10 篇）：
+
+选项示例（每项 label 用"序号+短标题"，description 写年份/venue/引用/full_text_status）：
+- `1 Attention Is All You Need`
+- `2 BERT ...`
+- ...
+- `让我自己给 arXiv ID 列表`
+
+只有 `full_text_status=open_pdf` 的论文能下载到 PDF；其余仅作为元数据保留在 bank 里（标注 full_text_status）。把这点告诉用户，便于他们取舍。
+
+CNKI 来源的行是例外：能不能下全文取决于**用户在 Chrome 里的登录态与机构权限**，选了就会真的去试（见第六步的 CNKI 分支）；试失败就按元数据保留。把这句一并告诉用户，让他们知道选 CNKI 行是在赌权限。
+
+## 第五步：询问 OCR 方式（仅对选中论文，下载前确认）
+
+用 `AskUserQuestion`：
+
+> 选中的论文下载 PDF 后需要 OCR 转 Markdown，供 ideation 阅读真实内容。请选择 OCR 方式：
+
+选项：
+- `PaddleOCR API（高质量布局识别，需要 Token）`
+- `pdfminer 本地（纯文本，无需 Token）`
+- `只下载 PDF，暂不 OCR`
+
+**选 PaddleOCR**：再用 `AskUserQuestion` 请用户提供 `PADDLEOCR_TOKEN`（仅本次会话，不写入任何文件）。
+**选 pdfminer**：再确认一次（pdfminer 无图表/公式布局识别）。
+**不得在未确认的情况下擅自用 pdfminer，不得把 Token 写入任何文件。**
+
+## 第六步：第二遍 —— 下载选中 + OCR（仅在确认后）
+
+```bash
+# 下载用户选中的论文（按 arXiv ID；非 arXiv 的有 DOI 走同一脚本）
+python .agents/skills/literature-pdf-ocr-library/scripts/search_and_download_papers.py \
+  --arxiv-ids <选中id1> <选中id2> ... \
+  --download-pdfs \
+  --out-dir .pipeline/literature/<corpus-name>
+
+# PaddleOCR API（用户提供 Token）
+export PADDLEOCR_TOKEN="<用户提供，不要写入文件>"
+python .agents/skills/literature-pdf-ocr-library/scripts/paddleocr_layout_to_markdown.py \
+  .pipeline/literature/<corpus-name>/papers/*/paper.pdf \
+  --output-dir .pipeline/literature/<corpus-name>/papers \
+  --skip-existing
+
+# 或 pdfminer fallback（用户已确认）
+python .agents/skills/literature-pdf-ocr-library/scripts/paddleocr_layout_to_markdown.py \
+  .pipeline/literature/<corpus-name>/papers/*/paper.pdf \
+  --output-dir .pipeline/literature/<corpus-name>/papers \
+  --fallback-pdfminer
+
+# 生成索引
+python .agents/skills/literature-pdf-ocr-library/scripts/build_library_index.py \
+  --library-root .pipeline/literature/<corpus-name>
+```
+
+### 6b. CNKI 选中论文的下载（与上面并行，各走各的）
+
+CNKI 的全文下载不了走 `--arxiv-ids`（那是开放获取那条链），单独用 cnki-search：
+
+```bash
+# 单篇：先取详情元数据（顺手存下来喂给 collect），再触发下载
+node .agents/skills/cnki-search/scripts/cnki.mjs detail --url "<论文url>" > /tmp/omp-meta.json
+node .agents/skills/cnki-search/scripts/cnki.mjs download --format pdf
+
+# 把 Chrome 下载目录里的文件归档进语料库（--meta 让年份/作者/期刊一起写进去）
+node .agents/skills/cnki-search/scripts/cnki.mjs collect \
+  --title "<论文标题>" --into .pipeline/literature/<corpus-name>/papers \
+  --meta /tmp/omp-meta.json
+```
+
+`download` 不带 `--url` 时会回到 `detail` 刚用过的那个标签页，所以这两条要连着跑；中途去操作别的论文会打乱它（那时就给 `download` 显式传 `--url`）。
+
+`download` 的失败一律以退出码 2 返回，按 `error` 分四种处理：
+- `not_logged_in` / `captcha`：让用户登录、手动过拼图，然后重跑。
+- `record_only`：**知网对这篇只有题录、没有全文**，页面上连下载区都不存在。登录或换权限都没用，直接按元数据保留，`full_text_status` 标 `needs_institution`。
+- `no_download_link`：页面上没有下载区，通常是该文献确实未提供全文。
+
+任何放弃的情况都按元数据保留，`full_text_status` 标 `needs_institution`，**不要伪称拿到了全文**。
+
+`download` 只是**触发**，返回 `status: downloading` 时文件还没落盘（实测 PDF 约 4–5 秒，
+CAJ 更久）。先等几秒再跑 `collect`，否则会报"没找到近期下载的文件"。
+`collect` 匹配不到或匹配有歧义时以退出码 2 报错，**不会替你猜**——这时看它列出的
+实际文件名，改用 `--file "<文件名>"` 重跑，不要盲目重试 `--title`。
+
+`collect` 会在论文目录里写出 `metadata.json`，这一步不能省：`build_library_index.py`
+和 `build_bibliography.py` 都是按 `papers/*/metadata.json` 遍历的，缺了就报 0 篇且
+退出码为 0。带上 `--meta` 才有年份/作者/期刊，缺年份的记录会被判为不可引用。
+`full_text_status` 写 `institution_pdf`，**不要写成 `open_pdf`**。
+
+归档后的 PDF 可以和开放获取的论文一起跑同一套 OCR：
+
+```bash
+export PADDLEOCR_TOKEN="<用户提供，不要写入文件>"
+python .agents/skills/literature-pdf-ocr-library/scripts/paddleocr_layout_to_markdown.py \
+  .pipeline/literature/<corpus-name>/papers/*/paper.pdf \
+  --output-dir .pipeline/literature/<corpus-name>/papers \
+  --skip-existing
+```
+
+注意 **CAJ 不是 PDF**，OCR 脚本读不了；`download --format pdf` 拿不到 PDF 时才退 CAJ，退到 CAJ 就只能留档不能 OCR。
+
+## 第七步：补充搜索（按需）
+
+如果摘要表 + gap 分析显示某些方向覆盖不足，调用 `inno-deep-research` skill 针对性补搜那些方向（每个方向至少 5 篇），把新发现并回摘要表 / bank。不要默认对所有方向再来一遍全量。
+
+中文文献不足的方向用 cnki-search 补（`advanced` 限定主题 + 来源类别），别拿英文库的结果硬凑中文覆盖。
+
+## 第八步：固化参考文献 + 入库 + gap 分析
+
+### 8a. 生成权威参考文献库（write 阶段唯一可信的引用源）
+
+```bash
+python .agents/skills/literature-pdf-ocr-library/scripts/build_bibliography.py \
+  --library-root .pipeline/literature/<corpus-name> \
+  --bib-out refs/references.bib --origin survey
+```
+
+从每篇真实 `metadata.json` 生成 `refs/references.bib`（稳定 cite_key，写回 metadata）+ `bibliography.json`（每条带来源，供审计追溯）。**cite_key 一律由脚本生成——任何人都不要手写 bib 条目、不要凭记忆编 cite_key。** `--bib-out` 按你的 LaTeX 主目录调整。
+
+### 8b. 入库（表头加 cite_key 列，作为 write 阶段的引用锚点）
+
+逐条追加到 `.pipeline/memory/literature_bank.md`：
+
+```
+| cite_key | [URL] | Title | Year | Venue | Citations | full_text_status | Relevance | accepted | Date | OCR路径 |
+```
+
+cite_key 取自 8a 写回 metadata 的 `citation_key`。元数据不足、没进 bib 的（见 bibliography.json 的 `skipped`）cite_key 填 `needs_verification`，不可被引用。OCR 路径填实际路径（如 `.pipeline/literature/<corpus-name>/papers/<slug>/ocr/paper/doc_0.md`），没有 OCR 的填 `none`。
+
+CNKI 来源的行要注意：只有 PDF 归档进 `papers/<slug>/` 并生成了 `metadata.json` 的才会进 `references.bib`。没有全文的中文文献 cite_key 填 `needs_verification`，**在 bank 里保留但不可引用**——GB/T 7714 引用串（`cnki.mjs export --mode gbt`）不能直接当 BibTeX 用，字段映射和 cite_key 都得由脚本生成。
+
+完成后生成 `.pipeline/docs/gap_matrix.md`，更新 `.pipeline/memory/agent_handoff.md`。只有正式系统综述按方案和真实记录报告 PRISMA 计数；叙述性综述保存选文依据、阅读范围和证据问题，不冒称完整系统筛选。
+
+## 第九步：结果摘要
+
+用正文告诉用户：候选多少篇、用户选了多少篇、成功下载/OCR 多少篇（多少篇受限于 full_text_status 只留元数据）、主要覆盖方向、gap_matrix 找到哪些空白。再用 `AskUserQuestion`：
+- `够了，进入 /omp:ideate`
+- `补充搜索某个方向`
+- `看看 gap_matrix 再决定`

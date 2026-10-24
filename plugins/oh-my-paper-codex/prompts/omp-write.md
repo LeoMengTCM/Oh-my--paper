@@ -17,11 +17,11 @@ OMP 项目先读取实际 skills 目录下 `omp/SKILL.md`，运行 `omp/scripts/
 
 ## 叙述性综述分支
 
-先核对 brief 的 projectContext.researchType / articleType、根级 researchType / articleType 和项目指令。
-narrative-review 优先于兼容的 track=ml：复用选定方向、评估结果、证据矩阵、已确认提纲、result_summary 和原引用库。
-按实际格式在现有 Publication/、paper/ 或正文目录写作；借鉴参考文的机制—应用—转化障碍—展望结构时仍以内容需要和用户要求为准。
+先核对 brief 的 `pipeline.track`、projectContext.researchType / articleType、根级 researchType / articleType 和项目指令。`pipeline.track=narrative-review` 或旧字段明确为 narrative-review 时，读取实际 skills 目录下 `inno-pipeline-planner/references/narrative-review-profile.md`。
+narrative-review 优先于兼容的 track=ml：复用确认重点、证据矩阵、提纲、result_summary 和原引用库；既有评估结果可复用，但不要求五方向或创新评分。
+按已确认的 `writingLanguage` 和实际格式在现有 Publication/、paper/ 或正文目录写作；对话语言不自动决定论文语言。章节以综述问题、证据和用户要求组织，不强制沿用某一学科的机制—应用模板。
 使用 scientific-writing 中适用的学术写作指导，不强制 ML 的 related_work/methodology/experiments、固定词数下限或原始临床研究 IMRaD。
-已授权完整稿时连续完成所需章节和图注，不逐节停下来要求“继续”。引用与论点逐项对应，保留适用条件、反对证据和不确定性，不把叙述性综述说成系统综述。
+已授权完整稿时连续完成所需章节和图注，不逐节停下来要求“继续”。交代真实检索和选文方法，引用与论点逐项对应，保留适用条件、反对证据和不确定性，不把叙述性综述说成系统综述，不要求 RCT 注册或正式 PRISMA 计数。
 按实际格式检查参考文献、图文对应与篇幅，调用 integrity-auditor 核查一致性；LaTeX 校验脚本仅用于 LaTeX，不能因 Markdown/Word 没有 main.tex 就改造项目。
 写作或返修结束后执行本页“完成后”的交接，不继续下方 ML 默认章节流程。
 

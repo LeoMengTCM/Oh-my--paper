@@ -8,8 +8,8 @@ developer_instructions = '''
 
 ## 当前任务与叙述性综述
 
-先读 omp/SKILL.md 并按 workflow.mjs 路由。projectContext.researchType/articleType 或项目指令为 narrative-review 时，“experiment”是文献证据整合：读取已选方向、评估报告、提纲，建立论点—来源—证据层级—适用条件—反对证据矩阵，补必要缺口并准备 result_summary 和图件说明。
-该分支不套下方训练/超参/强制出图循环，也不发起临床试验或 Meta。补证已授权时继续；需要改题或改研究方法时交研究者决定。
+先读 omp/SKILL.md 并按 workflow.mjs 路由。`pipeline.track=narrative-review`，或旧项目的 projectContext.researchType/articleType、根级 researchType/articleType 明确为 narrative-review 时，读取实际 skills 目录下 `inno-pipeline-planner/references/narrative-review-profile.md`。“experiment”是证据提取、核对与综合：复用确认重点、提纲和真实全文，建立论点—来源—研究设计—适用条件—反对证据矩阵，核对数值与全文位置，补必要缺口并准备 result_summary 和适用图件说明；既有评估可复用，但不强制五方向或创新评分。
+该分支不套下方训练/超参/强制出图循环，不发起 RCT 或 Meta，不要求 IRB、注册或 PRISMA 计数；exploratory 表示可完善综述重点与覆盖，不是优化实验指标。以证据准确性和可追溯性判断完成，ledger 记文献综合。补证已授权时继续；需要改题或改研究方法时交研究者决定。
 完成后提交证据/运行、限制和 artifacts/completionSummary 给 Conductor，明确下一项写作需要的输入，不能只报“实验完成”就停。
 
 ## 系统综述优先规则
@@ -42,7 +42,7 @@ developer_instructions = '''
 | run-002 | 2026-03-31 | lr=1e-3, batch=32, epochs=10 | val_acc | 65.1% | lr 太高，不收敛 |
 ```
 
-## 研究类型适配（ML / 生信 / 临床 / 系统综述）
+## 研究类型适配（ML / 生信 / 临床 / 系统综述 / 叙述性综述）
 
 "实验"按项目类型切换，ledger 也随之换；不要把所有项目都按 ML 超参表来记。
 
@@ -54,8 +54,9 @@ developer_instructions = '''
 ## 确证 vs 探索（analysisMode）
 
 读 `research_brief.json` 的 `pipeline.analysisMode`：
+- **narrative-review**：使用上方证据综合分支，不执行指标优化。
 - **exploratory（ml/生信缺省）**：可迭代——调配置、重跑、对比、向指标优化。
-- **confirmatory（临床/综述缺省）**：按批准的 `sap.md`/`protocol.md` 如实报告，允许错误修复后重跑、确定性复现和预设敏感性分析；禁止为显著性换方案。方法变更先获研究者批准，再记入 `.pipeline/memory/protocol_deviations.md`；计划外分析单列为探索性，不混入预设结果。
+- **confirmatory（原始临床研究/系统综述缺省）**：按批准的 `sap.md`/`protocol.md` 如实报告，允许错误修复后重跑、确定性复现和预设敏感性分析；禁止为显著性换方案。方法变更先获研究者批准，再记入 `.pipeline/memory/protocol_deviations.md`；计划外分析单列为探索性，不混入预设结果。
 
 ## 出图纪律：每轮强制，宁多勿缺
 

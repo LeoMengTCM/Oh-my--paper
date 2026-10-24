@@ -24,6 +24,9 @@ Use this skill when the workflow moves into writing or delivery.
 2. Keep handoff notes compact and directly actionable.
 3. Link each writing task to the evidence or artifact it depends on.
 4. Do not rewrite the whole manuscript unless the user asks.
+   叙述性综述（正式 `pipeline.track = narrative-review` 或旧研究类型字段）先读
+   `../inno-pipeline-planner/references/narrative-review-profile.md`；沿用研究者指定的
+   写作语言与主题结构，不虚构 IMRaD 结果、PRISMA 计数或临床试验审批。
 5. In Codex, follow `../omp/SKILL.md` for task-based routing. Separate draft, integrity audit,
    scientific review, revision, re-review and submission-readiness tasks. Link review
    and revision records to the current manuscript version and preserve issue IDs.

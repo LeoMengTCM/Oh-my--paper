@@ -10,17 +10,22 @@ OMP 项目先读取实际 skills 目录下 `omp/SKILL.md`，运行 `omp/scripts/
 
 # Setup
 
-复用用户已提供的主题、研究类型和起始阶段，仅询问缺失信息。
-类型为 ml / clinical / systematic-review / bioinformatics；阶段为
+复用用户已提供的主题、研究类型、写作语言和起始阶段，仅询问缺失信息。先确认研究目录；不要把插件源码仓库误初始化为论文项目。
+类型为 ml / clinical / systematic-review / bioinformatics / narrative-review；阶段为
 survey / ideation / experiment / publication / promotion。
+类型未明确时先区分文献综述与原始研究，再选择子类：综述为 narrative-review / systematic-review，原始研究为 ml / clinical / bioinformatics；有最多 4 选项限制的交互不能一次列出五类。
 定位已加载 omp skill 的实际目录，以其父目录为 OMP_SKILLS。
 
 运行 Node.js 初始化器（将变量替换为已确认值；路径和主题作为独立参数传入）：
 
 ```bash
-node "$OMP_SKILLS/omp/scripts/project.mjs" init --project . --topic "研究主题" --track systematic-review --stage survey
+node "$OMP_SKILLS/omp/scripts/project.mjs" init --project . --topic "研究主题" --track "$TRACK" --stage "$STAGE"
 node "$OMP_SKILLS/omp/scripts/project.mjs" status --project .
 ```
+
+`TRACK` 和 `STAGE` 必须来自已确认信息，不把示例值当成研究决定。初始化后将已确认的稿件语言写入 brief 的 `projectContext.writingLanguage`；兼容旧根级 `writingLanguage`，不同时创建两个值。对话语言不自动决定论文语言。
+
+narrative-review 读取实际 skills 目录下 `inno-pipeline-planner/references/narrative-review-profile.md`，默认 exploratory；不生成临床 protocol/SAP，不要求 RCT 注册、IRB、PRISMA 计数或 Meta 分析。ideation 确定综述重点，experiment 提取、核对与综合证据，publication 按主题写作和核验。新项目直接使用 `pipeline.track=narrative-review`，不伪装为 ml 或 clinical；旧项目的 projectContext.researchType/articleType 或根级同名字段继续兼容，类型冲突先核对原始决定，不静默迁移。
 
 脚本创建缺失的 brief、空任务表、十个记忆文件、适用的 protocol/SAP/deviations；
 在 AGENTS.md 追加或更新自身标记块，保留外部指令；将五个角色安装到

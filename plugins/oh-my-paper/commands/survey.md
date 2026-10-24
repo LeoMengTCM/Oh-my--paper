@@ -7,13 +7,25 @@ description: 文献调研（先筛后深）：多源检索出轻量摘要表（�
 
 你是 Oh My Paper Orchestrator。文献调研的瓶颈不在"搜"而在"筛"，所以分两遍走：**先**多源检索出一张轻量摘要表，让用户挑出真正要读的核心论文；**再**只对选中的论文下载真实 PDF 并 OCR，供 ideation 阅读全文。把最贵的 OCR 留给会被读的论文。
 
-## 第零步：系统综述路由（优先于下方通用流程）
+## 执行器规则
+
+先读取当前插件实际 skills 目录的 `codex-dispatch/references/execution-routing.md`，运行 `executor.mjs status`，遵守 `.pipeline/execution.json`。选择 Codex 后，下方检索、下载、OCR、整理和分析必须通过统一 runner 实际派发；主 Agent 只负责确认范围、用户选文、验收和状态维护。此规则先于所有研究类型分支，失败不自动切换。
+
+## 初始化前置检查
+
+先检查 `.pipeline/docs/research_brief.json` 与 `.pipeline/tasks/tasks.json`；任一缺失时先执行 `/omp:setup`，保留已有资料，完成后返回本入口。可用实际 skills 目录的 `omp/scripts/workflow.mjs --project . --intent survey` 做只读状态检查；主 Agent 仍使用本宿主命令，不注册 Codex 续行。任务表为空时先运行 `/omp:plan`，不能凭聊天中的主题跳过初始化和规划。
+
+## 第零步：综述类型路由（优先于下方通用流程）
+
+`pipeline.track=narrative-review`，或旧项目的 `projectContext.researchType/articleType`、根级同名字段明确为 narrative-review 时，读取实际 skills 目录下 `inno-pipeline-planner/references/narrative-review-profile.md`。下方工具可用于检索、选读和书目整理，但须保存真实检索式、日期、来源、全文阅读层级与限制；按学科选库，临床主题使用 PubMed/MeSH，不强行套 PICO。叙述性综述不生成正式 PRISMA 纳入计数，不因没有 RCT、注册或 Meta 分析阻断。检索后比较已有综述覆盖与证据争议，交接 ideation 确定重点，不机械生成五个创新点。
 
 先读 `research_brief.json` 的 `pipeline.track`。若为 `systematic-review`，从实际加载的 skills 目录读取 `systematic-review/references/rct-pairwise-profile.md`，按其入口规则选择 `exploratory-search` 或 `formal-review`。
 
 - exploratory-search：可使用下方精选阅读流程，但所有结果标为探索，不产生正式 PRISMA 纳入计数。
 - formal-review：核对具体方案版本的研究者批准及真实注册状态，再执行 experiment 阶段的正式检索子任务。记录完整策略、命中/取回数与 partial 状态；当前工具不能完整取回时明确缺口或使用用户合法导出，不调用不存在的分页命令。
 - **formal-review 不执行下面的通用步骤**：不用 `--limit 30` 或挑 5–10 篇替代完整筛选，不按引用数、核心期刊或全文权限确定资格；全文未取得单列。结束后交接正式筛选，不进入 gap/idea 循环。
+
+叙述性综述已有合法 JATS/XML、HTML 正文或文本层材料时，按实际读取方式登记，不能把收费 OCR 当作无条件前置步骤；下方 OCR 选择仅用于确实需要解析的 PDF。外部上传仍须符合已获授权，不把元数据或摘要标成全文阅读。
 
 ## 第一步：读取研究主题
 
@@ -23,7 +35,7 @@ cat .pipeline/docs/research_brief.json
 cat .pipeline/memory/literature_bank.md   # 已有多少文献
 ```
 
-留意 `research_brief.json` 里的 `pipeline.track`（ml / clinical / systematic-review / bioinformatics），它决定查询扩展用哪套受控词表、以及是否走 PRISMA 筛选流程。
+留意 `research_brief.json` 里的 `pipeline.track`（ml / clinical / systematic-review / bioinformatics / narrative-review），并保留已确认写作语言。研究类型决定方法，学科决定检索词表；叙述性临床综述不能被误当作临床原始研究。
 
 ## 第二步：对齐方向 + 查询扩展（确认后再搜）
 
@@ -60,7 +72,7 @@ python .claude/skills/literature-pdf-ocr-library/scripts/search_and_download_pap
 ```
 
 - 设了 `S2_API_KEY` 会显著降低 Semantic Scholar 的 429 概率；没有也能跑（其他源兜底）。
-- 临床 / 系统综述 track：数据源加 `pubmed`，并按 PICO 记录检索式（写进 `survey_screening.md` 旁的说明），为 PRISMA 流程图留痕。
+- 临床主题（含 narrative-review）按问题需要加入 `pubmed` 和 MeSH，并记录实际检索式；只有正式 systematic-review 按其方案使用 PRISMA 计数，不把一般检索记录自动写成系统综述。
 - 可选：若本机 Chrome 开了远程调试，跑 `bash .claude/skills/literature-pdf-ocr-library/scripts/check-deps.sh` 就绪后，用 Google Scholar 补最全引用数 / 捞其他源没收录的论文（见 `references/site-patterns/scholar.google.com.md`）；没有 Chrome 就跳过。
 
 ### 3b. 中文文献（用户选了"加 CNKI"才做）
@@ -226,7 +238,7 @@ cite_key 取自 8a 写回 metadata 的 `citation_key`。元数据不足、没进
 
 CNKI 来源的行要注意：只有 PDF 归档进 `papers/<slug>/` 并生成了 `metadata.json` 的才会进 `references.bib`。没有全文的中文文献 cite_key 填 `needs_verification`，**在 bank 里保留但不可引用**——GB/T 7714 引用串（`cnki.mjs export --mode gbt`）不能直接当 BibTeX 用，字段映射和 cite_key 都得由脚本生成。
 
-完成后生成 `.pipeline/docs/gap_matrix.md` 分析研究空白，更新 `.pipeline/memory/agent_handoff.md`。临床 / SR track 额外按 PRISMA 记录各阶段计数（检索命中 → 去重 → 标题摘要筛选 → 全文）。
+完成后生成 `.pipeline/docs/gap_matrix.md`，更新 `.pipeline/memory/agent_handoff.md`。只有正式系统综述按方案和真实记录报告 PRISMA 计数；叙述性综述保存选文依据、阅读范围和证据问题，不冒称完整系统筛选。
 
 ## 第九步：结果摘要
 

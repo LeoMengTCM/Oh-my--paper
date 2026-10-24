@@ -7,6 +7,22 @@ description: 论文写作冲刺：按节确认后逐步推进，每节完成后�
 
 你是 Oh My Paper Orchestrator。写作按节推进，每节完成后确认再继续。
 
+## 执行器规则
+
+先读取当前插件实际 skills 目录的 `codex-dispatch/references/execution-routing.md`，运行 `executor.mjs status`，遵守 `.pipeline/execution.json`。选择 Codex 后，下方正文、图表、修订和稿件检查必须通过统一 runner 实际派发；主 Agent 负责确认与验收，不直接代写。此规则先于所有研究类型分支，失败不自动切换。
+
+## 初始化前置检查
+
+先检查 `.pipeline/docs/research_brief.json` 与 `.pipeline/tasks/tasks.json`；任一缺失先运行 `/omp:setup`，保留用户已有稿件和文献，完成后返回本入口。可用实际 skills 目录的 `omp/scripts/workflow.mjs --project . --intent write` 做只读检查；主 Agent 不注册 Codex 续行。已明确的单次写作按原范围处理，不擅自重建用户项目。
+
+## 叙述性综述写作分支（优先判定）
+
+`pipeline.track=narrative-review`，或旧项目的 `projectContext.researchType/articleType`、根级同名字段明确为 narrative-review 时，先读实际 skills 目录的 `inno-pipeline-planner/references/narrative-review-profile.md`。复用确认重点、提纲、证据矩阵、`result_summary.md` 与真实引用库，按已确认的 `writingLanguage` 和实际稿件格式写作；不强制改成 LaTeX。
+
+使用 scientific-writing 中适用的综述写作指导，按主题组织论证，交代实际检索与选文方法、阅读限制、相反证据和不确定性。引用必须确实支持对应论断，不把叙述性综述写成系统综述，不套下方 ML 章节、固定词数下限、消融或原始临床研究 IMRaD。
+
+已授权完整稿时连续完成章节和适用图注；返修只处理当前稿件的具体问题并记录问题与修改的对应关系。按实际格式核对来源、数字、图文和篇幅，使用 integrity-auditor 检查一致性；缺证据先交回证据整合，不用润色掩盖。登记当前稿件版本和检查结果，交接 `/omp:review` 及必要返修、复审。**本分支不继续下方 ML 默认章节流程**，检查通过不等于获准投稿或上传。
+
 ## 第零步：系统综述写作规则
 
 先读 `research_brief.json`。systematic-review 使用实际 skills 目录下 `systematic-review/references/rct-pairwise-profile.md` 与 scientific-writing：按 PRISMA 和期刊要求组织正文，下方 ML 章节、固定词数下限与消融图要求不适用。注册、筛选人数与方法必须来自真实记录，不把计划写成已执行。复用已核实的引用、结果和 `.R`/`.py` 图形脚本；缺证据列出缺口，不新增分析或编造结果。PRISMA 计数按共享 profile 调用只读脚本，partial 不能写成最终结果；统计只使用已核对的 completed 运行及其 summary/effects，SoF 草稿不冒充完成的 GRADE。官方 PRISMA 流程图渲染仍未实现。
@@ -80,7 +96,7 @@ cat .pipeline/memory/figure_ledger.md   # 实验期攒下的图素材清单
 
 > 现在写 **[节名]**，基于：[依赖的来源文件]
 
-然后调用 Codex：
+然后按已选执行器执行；选择 Codex 时，把以下适用 skill 和任务说明写入任务包，通过统一 runner 实际派发：
 
 **摘要 + 引言：**
 

@@ -1,0 +1,42 @@
+{
+  "name": "omp",
+  "version": "2.1.0",
+  "displayName": "Oh My Paper",
+  "description": "Oh My Paper research harness for Qoder: memory, Codex delegation, and the survey → ideation → experiment → publication pipeline.",
+  "author": {
+    "name": "LigphiDonk",
+    "url": "https://github.com/LigphiDonk"
+  },
+  "homepage": "https://github.com/LigphiDonk/Oh-my--paper",
+  "repository": "https://github.com/LigphiDonk/Oh-my--paper",
+  "license": "MIT",
+  "keywords": [
+    "research",
+    "academic-writing",
+    "literature-review",
+    "paper-writing",
+    "qoder",
+    "codex"
+  ],
+  "commands": "./commands/",
+  "skills": "./skills/",
+  "hooks": "./hooks/qoder-hooks.json",
+  "interface": {
+    "displayName": "Oh My Paper",
+    "shortDescription": "Research pipeline for Qoder projects",
+    "longDescription": "Run literature surveys, ideation, experiments, and paper writing inside Qoder with structured `/omp:*` commands, role agents, persistent project memory, and optional Codex delegation.",
+    "developerName": "LigphiDonk",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/LigphiDonk/Oh-my--paper",
+    "defaultPrompt": [
+      "用 /omp:setup 初始化这个研究项目",
+      "用 Oh My Paper 继续当前研究任务",
+      "用 /omp:survey 开始文献调研"
+    ]
+  }
+}

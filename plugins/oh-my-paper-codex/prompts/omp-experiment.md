@@ -12,13 +12,13 @@ OMP 项目先读取实际 skills 目录下 `omp/SKILL.md`，运行 `omp/scripts/
 
 ## 叙述性综述分支（优先判定研究实质）
 
-读取 brief 的 projectContext.researchType / articleType、根级 researchType / articleType 和项目指令。
-narrative-review 即使保留 track=ml 兼容值，也执行文献证据整合：
-1. 读取用户已选方向、评估报告、既有提纲、文献库与尚未解决的问题，不重做选题。
+读取 brief 的 `pipeline.track`、projectContext.researchType / articleType、根级 researchType / articleType 和项目指令。`pipeline.track=narrative-review` 或旧字段明确为 narrative-review 时，先读实际 skills 目录下 `inno-pipeline-planner/references/narrative-review-profile.md`。
+narrative-review 即使保留 track=ml 兼容值，也执行文献证据整合；类型冲突先核对原始决定，不静默改写：
+1. 读取用户已确认的综述重点、提纲、文献库与尚未解决的问题；有既存评估报告时复用，但不要求先生成五方向或创新评分。
 2. 为主要论点登记来源、证据层级、研究条件、反对证据、全文定位及可支持的表述边界；必要缺口补检索/核读。
 3. 形成与章节对应的证据矩阵、图表计划和 `.pipeline/memory/result_summary.md`，复用已有路径；结果摘要写文献证据，不伪造新实验。
 4. 检查覆盖与出处，登记本任务 artifacts/completionSummary 及交接说明，重跑路由，继续已授权写作。
-本分支不调用训练/远程实验循环，不强制 RCT、Meta、IRB、消融或训练图。方法或主题发生实质改变时才请求新决定。完成后不继续下方 ML/临床循环。
+本分支不调用训练/远程实验循环，不强制 RCT、Meta、IRB、PRISMA 计数、消融、训练图或固定图数。方法或主题发生实质改变时才请求新决定。完成后不继续下方 ML/临床循环。
 
 ## 第零步：判定 track 与 analysisMode，先过硬闸门
 

@@ -12,6 +12,7 @@ Use this index to load only the minimum required context.
 ## Files
 
 - `generation-rules.md`: directory layout, `.pipeline/config.json`, mode selection, task generation logic, `nextActionPrompt`
-- `track-profiles.md`: per-track (ml / clinical / systematic-review / bioinformatics) stage interpretation, hard gates, figure timeline, confirmatory-vs-exploratory analysisMode
+- `track-profiles.md`: per-track (ml / clinical / systematic-review / narrative-review / bioinformatics) stage interpretation, hard gates, figure timeline, confirmatory-vs-exploratory analysisMode
+- `narrative-review-profile.md`: 叙述性综述的初始化、检索、范围确认、证据综合、写作和评审边界
 - `brief-schema.md`: canonical `research_brief.json` structure
 - `tasks-schema.md`: canonical `tasks.json` structure

@@ -16,6 +16,8 @@ OMP 项目先读取实际 skills 目录下 `omp/SKILL.md`，运行 `omp/scripts/
 
 同步只重建进度文档，不迁移或重写 `tasks.json`。计数只使用 CLI 成功输出的 `tasks`；空阶段不代表审批通过，注册与方案批准须查 `decision_log.md` 和原始记录，不从任务 `done` 推断。confirmatory 项目报告预设分析结果和偏离，不挑选“最佳”显著结果。
 
+`pipeline.track=narrative-review`，或旧项目的 projectContext.researchType/articleType、根级同名字段明确为 narrative-review 时，读取 `inno-pipeline-planner/references/narrative-review-profile.md`。保留确认的综述重点和写作语言，将下方“实验结果/最佳结果”替换为“证据综合及限制”，不因模板标题生成训练、RCT、Meta 或 PRISMA 结果。
+
 一次性读取所有状态文件，获取完整上下文：
 
 ```bash

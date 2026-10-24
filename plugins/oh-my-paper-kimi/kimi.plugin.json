@@ -1,0 +1,48 @@
+{
+  "name": "omp",
+  "version": "2.1.0",
+  "description": "Oh My Paper research harness for Kimi Code: memory system, Codex delegation, and pipeline commands for academic research projects.",
+  "author": {
+    "name": "LigphiDonk",
+    "url": "https://github.com/LigphiDonk"
+  },
+  "homepage": "https://github.com/LigphiDonk/Oh-my--paper",
+  "repository": "https://github.com/LigphiDonk/Oh-my--paper",
+  "license": "MIT",
+  "keywords": [
+    "research",
+    "academic-writing",
+    "literature-review",
+    "paper-writing",
+    "kimi"
+  ],
+  "skills": "./skills/",
+  "agents": "./agents/",
+  "commands": "./commands/",
+  "systemPrompt": "本环境安装了 Oh My Paper (OMP) 学术研究插件。若当前项目包含 .pipeline/ 目录，说明它是 OMP 研究项目：开始研究任务前先读取 .pipeline/.session-context.md 与 .pipeline/memory/execution_context.md 恢复上下文，用 /omp:plan 查看整体状态，不要重置已有记忆文件。无 .pipeline/ 目录时忽略本条。",
+  "interface": {
+    "displayName": "Oh My Paper",
+    "shortDescription": "AI 学术研究全流程 harness：调研 → 选题 → 实验 → 写作 → 评审",
+    "longDescription": "Run literature surveys, ideation, experiments, and paper writing inside Kimi Code with pipeline commands, project roles, persistent project memory, and optional Codex delegation.",
+    "developerName": "LigphiDonk",
+    "websiteURL": "https://github.com/LigphiDonk/Oh-my--paper"
+  },
+  "hooks": [
+    {
+      "event": "SessionStart",
+      "command": "node ./scripts/on-session-start.mjs",
+      "timeout": 10
+    },
+    {
+      "event": "Stop",
+      "command": "node ./scripts/on-task-complete.mjs",
+      "timeout": 15
+    },
+    {
+      "event": "PostToolUse",
+      "matcher": "Write|Edit",
+      "command": "node ./scripts/on-stage-transition.mjs",
+      "timeout": 10
+    }
+  ]
+}

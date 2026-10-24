@@ -7,7 +7,21 @@ description: 生成并评估创新点，每步展示中间结果等用户参与�
 
 你是 Oh My Paper Orchestrator。创新点的生成和最终选择都需要用户参与。
 
-## 第零步：系统综述方案分支
+## 执行器规则
+
+先读取当前插件实际 skills 目录的 `codex-dispatch/references/execution-routing.md`，运行 `executor.mjs status`，遵守 `.pipeline/execution.json`。选择 Codex 后，下方全文总结、方向生成与评估、综述框架或方案草案必须通过统一 runner 实际派发；主 Agent 负责确认、展示和验收。此规则先于所有研究类型分支，失败不自动切换。
+
+## 初始化前置检查
+
+先检查 `.pipeline/docs/research_brief.json` 与 `.pipeline/tasks/tasks.json`；任一缺失先运行 `/omp:setup`，保留已有资料，完成后返回本入口。可用实际 skills 目录的 `omp/scripts/workflow.mjs --project . --intent ideate` 做只读状态检查；主 Agent 不注册 Codex 续行。空任务表先规划，缺调研证据先回 `/omp:survey`，不能以选题要求跳过前置步骤。
+
+## 第零步：叙述性综述重点与论证问题
+
+`pipeline.track=narrative-review`，或旧项目的 `projectContext.researchType/articleType`、根级同名字段明确为 narrative-review 时，读取实际 skills 目录下 `inno-pipeline-planner/references/narrative-review-profile.md`。核对已有综述、代表性原始研究和实际全文阅读范围后，提出与证据匹配的重点、主要问题和章节框架；比较已有覆盖、争议和适用边界，不把新的组织角度宣称为新机制。只有确有范围取舍时才让用户选择；已确认主题和语言直接沿用。
+
+把确认结果和依据写入 brief、`decision_log.md`、提纲及任务记录，交接 experiment 的证据提取与综合。本分支不要求五个创新点、`inno-idea-eval` 评分、RCT 方案或 Meta 分析，**不继续下方创新生成流程**；改变研究方法须重新确认。
+
+## 系统综述方案分支
 
 先读取 `research_brief.json`。`pipeline.track=systematic-review` 时，从实际 skills 目录读取 `systematic-review/references/rct-pairwise-profile.md`，使用 systematic-review 制定或修订 PICO、资格标准、检索策略与 SAP。把研究者批准的具体版本、时间、批准者和注册状态记录到 `decision_log.md`；方法变更先确认并记入 `protocol_deviations.md`。本分支完成后交接 experiment 的正式检索/筛选，**不执行下方五个创新点生成和打分流程**。仅需探索时明确标为 exploratory-search，不冒充正式综述。
 

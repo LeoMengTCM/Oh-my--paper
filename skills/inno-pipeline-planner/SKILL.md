@@ -24,7 +24,7 @@ resourceFlags:
   hasScripts: true
   hasTemplates: false
   hasAssets: false
-  referenceCount: 4
+  referenceCount: 6
   scriptCount: 1
   templateCount: 0
   assetCount: 0
@@ -110,7 +110,9 @@ Capture at least:
 - If the user is starting from scratch or only has a vague direction -> `startStage = "survey"` (default)
 - Detect automatically from conversation context (e.g., "I already ran all experiments" implies publication; "I need slides for my paper" implies promotion).
 
-**Determine the track** (`pipeline.track`, default `ml`): is this machine-learning/CS, **clinical** (human studies), a **systematic-review / meta-analysis**, or **bioinformatics**? It sets `analysisMode`, hard gates, the figure timeline, and quality gates — see `references/track-profiles.md`. When the topic is biomedical and the track is ambiguous, ask one question rather than guessing.
+**Determine the track** (`pipeline.track`, default `ml`): is this machine-learning/CS, **clinical** (human studies), a **systematic-review / meta-analysis**, a **narrative-review**, or **bioinformatics**? It sets `analysisMode`, hard gates, the figure timeline, and quality gates — see `references/track-profiles.md`. When the topic is biomedical and the track is ambiguous, ask one question rather than guessing.
+
+`narrative-review` 及旧研究类型字段标为叙述综述时，先读 `references/narrative-review-profile.md`。已知的类型、阶段、主题和写作语言不重复询问；范围确认不等于 RCT 方案审批，证据综合不等于训练或 Meta 分析。
 
 Typical question buckets:
 - Project identity: topic, prior paper/method/dataset, target venue (optional)

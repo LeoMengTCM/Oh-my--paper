@@ -7,6 +7,25 @@ description: 实验循环：展示实验方案后确认，每轮结果回来后�
 
 你是 Oh My Paper Orchestrator。实验不能盲目启动，每轮都需要确认。
 
+## 执行器规则
+
+先读取当前插件实际 skills 目录的 `codex-dispatch/references/execution-routing.md`，运行 `executor.mjs status`，遵守 `.pipeline/execution.json`。选择 Codex 后，下方实验设计、实现、运行及综述证据提取与综合必须通过统一 runner 实际派发；主 Agent 负责审批确认与验收。此规则先于所有研究类型分支，失败不自动切换。
+
+## 初始化前置检查
+
+先检查 `.pipeline/docs/research_brief.json` 与 `.pipeline/tasks/tasks.json`；任一缺失先运行 `/omp:setup`，保留已有资料，完成后返回本入口。可用实际 skills 目录的 `omp/scripts/workflow.mjs --project . --intent experiment` 做只读检查；主 Agent 不注册 Codex 续行。空任务表先规划，不依据主题猜测实验类型。
+
+## 叙述性综述分支（优先判定）
+
+`pipeline.track=narrative-review`，或旧项目的 `projectContext.researchType/articleType`、根级同名字段明确为 narrative-review 时，先读实际 skills 目录的 `inno-pipeline-planner/references/narrative-review-profile.md`。本阶段是证据提取、核对和综合：
+
+1. 复用确认的综述重点、提纲、文献库和真实全文；缺少材料时补检索或如实标明缺口。
+2. 按主要论点记录来源、全文定位、研究设计、适用人群和条件、反对证据与不确定性；核对关键数值，不把摘要级材料说成已读全文。
+3. 形成与章节对应的证据矩阵和 `result_summary.md`，按实际需要登记图表，不伪造新实验或合并效应。
+4. 核验后登记任务产物和完成说明，更新 ledger 与交接记录，继续已授权的 `/omp:write`；实质改变主题或研究方法时才请求新决定。
+
+不运行下方训练或远程实验循环，不要求 RCT、Meta、IRB、PRISMA 计数、消融、固定图数或成功阈值优化。**完成本分支后不继续下方通用实验流程。**
+
 ## 第零步：判定 track 与 analysisMode，先过硬闸门
 
 ```bash
@@ -41,7 +60,7 @@ cat .pipeline/memory/experiment_ledger.md
 
 ## 第二步：确定方案（按 track 分流）
 
-- **exploratory（ml / bioinformatics）**：设计可迭代的实验方案。把下面的任务交给 Codex（用 `codex-dispatch` 技能或 `/omp:delegate` 流程；Codex 不可用就自己执行）：
+- **exploratory（ml / bioinformatics）**：设计可迭代的实验方案。按已选执行器执行下面的任务（选择 Codex 时通过统一 runner 派发，失败停止）：
   ```
   阅读 .pipeline/memory/project_truth.md 和 .pipeline/memory/experiment_ledger.md（避免重复失败配置），使用 .claude/skills/inno-experiment-dev/SKILL.md 设计实验方案，写入 .pipeline/docs/experiment_plan.md，不要写代码
   ```
@@ -56,7 +75,7 @@ cat .pipeline/memory/experiment_ledger.md
 
 ## 第三步：实现并运行
 
-把下面的任务交给 Codex（用 `codex-dispatch` 技能或 `/omp:delegate` 流程，建议后台运行；Codex 不可用就自己执行）：
+按已选执行器执行下面的任务（选择 Codex 时通过统一 runner 派发，可使用宿主后台能力，失败停止）：
 
 ```
 根据冻结方案（confirmatory：protocol.md + sap.md；exploratory：experiment_plan.md）实现并运行分析，结果追加到 .pipeline/memory/experiment_ledger.md

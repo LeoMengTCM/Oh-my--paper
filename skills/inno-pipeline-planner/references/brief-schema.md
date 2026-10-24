@@ -2,7 +2,9 @@
 
 Canonical contract for `.pipeline/docs/research_brief.json`.
 
-**`pipeline.track`** ∈ `ml | clinical | systematic-review | bioinformatics` (default `ml`) selects stage interpretation, hard gates, figure timeline, and quality gates — see `track-profiles.md`. **`pipeline.analysisMode`** ∈ `exploratory | confirmatory` (default set by track: clinical/systematic-review → confirmatory, ml/bioinformatics → exploratory).
+**`pipeline.track`** ∈ `ml | clinical | systematic-review | narrative-review | bioinformatics` (default `ml`) selects stage interpretation, hard gates, figure timeline, and quality gates — see `track-profiles.md`. **`pipeline.analysisMode`** ∈ `exploratory | confirmatory` (default set by track: clinical/systematic-review → confirmatory, ml/narrative-review/bioinformatics → exploratory).
+
+`narrative-review` 的阶段与证据规则见 `narrative-review-profile.md`。旧 `projectContext.researchType` / `projectContext.articleType` 或根级同名字段仍用于解释旧 track；不自动迁移旧项目。写作语言按研究者要求保存在 `projectContext.writingLanguage`，不要从文献语言或对话语言猜测。
 
 ```json
 {

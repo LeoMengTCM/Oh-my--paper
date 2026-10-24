@@ -61,7 +61,8 @@ function main() {
   }
   tasks.forEach(check);
   result.currentStage = current;
-  result.researchDesign = brief.projectContext?.researchType ?? brief.projectContext?.articleType ?? brief.researchType ?? brief.articleType ?? brief.pipeline?.track ?? 'unspecified';
+  result.researchDesign = brief.pipeline?.track === 'narrative-review' ? 'narrative-review'
+    : brief.projectContext?.researchType ?? brief.projectContext?.articleType ?? brief.researchType ?? brief.articleType ?? brief.pipeline?.track ?? 'unspecified';
   if (['setup', 'plan', 'sync'].includes(args.intent)) return emit({ workflow: args.intent, action: args.intent });
   if (!tasks.length) return emit({ workflow: 'plan', action: 'plan-tasks', next: 'Create tasks for the stated goal, starting with survey when choosing a topic.' });
 

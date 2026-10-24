@@ -104,6 +104,8 @@
 - [给 AI Agent 看](#给-ai-agent-看)
 - [设计理念](#设计理念)
 - [贡献](#贡献)
+- [Qoder 支持](#qoder-支持)
+- [Kimi Code 支持](#kimi-code-支持)
 - [卸载](#卸载)
 
 ---
@@ -126,7 +128,7 @@ Oh My Paper 让 Codex 与 Claude Code **理解科研**，提供：
 
 ## 安装
 
-以下为 Claude Code 安装步骤；Codex 请使用上方快速开始或 [Codex 支持](#codex-支持)。
+以下为 Claude Code 安装步骤；Codex 请使用上方快速开始或 [Codex 支持](#codex-支持)，Qoder 见 [Qoder 支持](#qoder-支持)，Kimi Code 见 [Kimi Code 支持](#kimi-code-支持)。
 
 ### 第一步：添加 marketplace
 
@@ -304,12 +306,13 @@ Oh My Paper 注册三个后台运行的 hook：
 
 ### 研究类型(track)与闸门
 
-流水线会根据 `/omp:setup` 设定的 `pipeline.track` 自适应——`ml`（缺省）、`clinical`、`systematic-review`、`bioinformatics`。track 决定每个阶段如何解释、产出哪些图、适用哪些闸门：
+流水线会根据 `/omp:setup` 设定的 `pipeline.track` 自适应——`ml`（缺省）、`clinical`、`systematic-review`、`narrative-review`、`bioinformatics`。track 决定每个阶段如何解释、产出哪些图、适用哪些检查：
 
-- **确证 vs 探索** — 临床/综述按预设分析跑一次、如实报告（不迭代到显著）；ML/生信可自由迭代。
-- **锁定与注册门** — 临床/综述在方案 + SAP 冻结、完成注册（ClinicalTrials.gov / PROSPERO）并过 IRB 之前，不得开始采集或分析。
-- **报告规范门** — 发表/评审闸门核对注册号与对应清单（CONSORT / STROBE / STARD / PRISMA）。
-- **作图尽早** — 每个阶段边做边出图（带真实计数的流程图、森林图/KM 曲线），绝不拖到最后。
+- **确证 vs 探索** — 临床原始研究和系统综述按预设方案分析并如实报告，不迭代到显著；叙述性综述可随证据调整范围，但须记录理由，不能选择性取证。
+- **研究审批** — 临床原始研究核实适用的方案、注册和伦理要求；系统综述核对具体方案批准和真实注册状态，公开汇总数据不默认要求 IRB。叙述性综述不创建不适用的临床 protocol/SAP。
+- **报告规范** — 按实际研究类型选择 CONSORT / STROBE / STARD / PRISMA；叙述性综述重视检索与文献选择透明度、证据支持和局限，不冒充系统综述。
+- **叙述性综述** — 使用正式 `narrative-review` 类型，experiment 阶段表示证据提取、核对和综合，不执行训练或自动 Meta 分析。两个宿主引用同一份 [共享规则](skills/inno-pipeline-planner/references/narrative-review-profile.md)。
+- **适用图表** — 尽早规划有助于解释的图表，叙述性综述和系统综述不为每阶段凑图或虚构计数。
 
 缺省值保证既有 ML 项目行为不变。
 
@@ -496,14 +499,16 @@ Codex 支持原生 SessionStart、PostToolUse、Stop、SubagentStop hooks。
 hooks 不代替研究批准，也不自动把任务标为完成。见 [连续执行说明](docs/codex-continuous-workflow.md)
 和 [整链验收记录](docs/codex-continuous-validation.md)。
 
-ML、临床、系统综述、生信都沿用五阶段。系统综述复用 SR-01 至 SR-05 的
+ML、临床、系统综述、叙述性综述、生信都沿用五阶段。叙述性综述使用
+`narrative-review` 类型，保留真实检索和证据综合记录，不套用试验或 Meta 分析要求。
+系统综述复用 SR-01 至 SR-05 的
 检索恢复、结构化筛选、RR/MD/SMD 分析和写作交接工具。真实筛选、提取核对、RoB 2、
 GRADE 和临床端到端验收仍需相应材料与人类判断，软件测试不能替代研究证据。
 
 ### 维护
 
 修改 Codex prompts 或角色后运行 `npm run codex:sync`；执行 `npm run check`。
-角色 TOML、独立安装包、四类研究初始化、任务保留与 hooks 均有行为测试。
+角色 TOML、独立安装包、五类研究初始化、任务保留与 hooks 均有行为测试。
 完整统计验证要求 R 依赖就绪，并运行 `OMP_REQUIRE_R=1 npm run check`。
 
 核对实际安装内容与当前项目的自动续行状态：
@@ -517,6 +522,41 @@ node scripts/check-codex-runtime.mjs --installed --project /path/to/research --r
 
 接口依据：[官方插件文档](https://developers.openai.com/plugins/build/plugins)、
 [子代理](https://developers.openai.com/codex/subagents)、[hooks](https://learn.chatgpt.com/docs/hooks)。
+
+---
+
+## Qoder 支持
+
+同一份 `plugins/oh-my-paper` 也可以作为 Qoder 插件安装：`/omp:*` 命令、五个角色 agents、全部 skills 和 SessionStart / Stop / PostToolUse hooks 都可用。Qoder 清单在 `.qoder-plugin/plugin.json`，hooks 使用 `${QODER_PLUGIN_ROOT}`，不会加载 Claude Code 的 `hooks/hooks.json`。
+
+```bash
+npm run qoder:package
+```
+
+在 Qoder 的 **Extensions → Plugins → Add Plugin → Upload Plugin** 中选择 `dist/omp-qoder-<version>.zip`，启用后新建对话。Qoder Desktop 当前版本未随附 `qodercli`，ZIP 上传最直接；目录安装会跳过越界的 `plugins/oh-my-paper/skills` 符号链接，导致技能缺失。
+
+执行器配置里的 `claude` 在 Qoder 上表示“由当前宿主 Agent 执行”，不会启动 Claude Code；选择 `codex` 时仍通过 Codex CLI 派发。安装、验证和双宿主差异见 [Qoder 支持](docs/qoder.md)。
+
+---
+
+## Kimi Code 支持
+
+`plugins/oh-my-paper-kimi` 是原生 Kimi Code 插件：清单为 `kimi.plugin.json`，插件启用后提供 `/omp:*` 命令、五个角色 agents、全部研究技能（`/skill:omp:<name>`），以及清单内联声明的 SessionStart / Stop / PostToolUse hooks。
+
+```bash
+npm run kimi:sync   # 生成 plugins/oh-my-paper-kimi/skills 实体副本（安装前必需）
+```
+
+在 Kimi Code 中运行 `/plugins install <仓库路径>/Oh-my--paper/plugins/oh-my-paper-kimi`，然后 `/reload` 或开新会话。也支持 GitHub URL 安装，但 `skills/` 副本是被 gitignore 的构建产物，fork 发布前需要先提交它。本地安装会拷贝到 `$KIMI_CODE_HOME/plugins/managed/<id>/`，之后改源码目录不会生效，需重新安装。
+
+与 Claude Code 版的差异：
+
+- **skills 是实体目录副本而非符号链接**。Kimi 插件安全模型拒绝解析到插件根目录外的路径。改动顶层 `skills/` 后用 `npm run kimi:sync` 刷新；`npm run check` 会校验一致性。
+- **项目内技能副本放在 `.agents/skills/`**（Kimi 的项目级 skills 目录），不再是 `.claude/skills/`；由 `/omp:setup` 完成拷贝。
+- **跨会话记忆**通过清单的 `systemPrompt` 恢复：项目包含 `.pipeline/` 时，Agent 会被指示在做研究任务前读取 `.pipeline/.session-context.md` 与 `.pipeline/memory/execution_context.md`（Kimi 的 SessionStart hook 是观察型的，无法向上下文注入内容）。
+- **Stop hook 的 executor 报告解析**依赖宿主特定字段（`transcript_path` / `last_assistant_message`），在 Kimi 上暂时优雅空转；报告仍可在 `.pipeline/runs/<runId>/` 中查看。
+
+执行器配置里 `codex` 仍表示通过 Codex CLI 派发；`claude` 表示“由当前宿主 Agent 执行”，不会启动 Claude Code。
 
 ---
 

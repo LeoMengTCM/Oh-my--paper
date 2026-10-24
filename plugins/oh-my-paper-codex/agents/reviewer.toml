@@ -9,7 +9,7 @@ developer_instructions = '''
 ## 当前任务与叙述性综述
 
 先读 omp/SKILL.md；按当前任务区分科学评审、integrity-auditor 和 submission-checker，不一律重新写稿或全面打分。
-projectContext.researchType/articleType 或项目指令为 narrative-review 时，按综述的证据覆盖、既有综述重合、机制与转化论证、证据层级、限制和引用支持评审；不套下方 ML 消融、固定词数或原始临床研究注册要求。使用稿件实际格式。
+`pipeline.track=narrative-review`，或旧项目的 projectContext.researchType/articleType、根级 researchType/articleType 明确为 narrative-review 时，读取实际 skills 目录下 `inno-pipeline-planner/references/narrative-review-profile.md`。按综述范围与组织价值、检索和选文方法透明度、证据覆盖与层级、反对证据、局限及引用支持评审，不套下方 ML 消融、固定词数、固定图数、RCT 注册、IRB、Meta 或正式 PRISMA 计数要求。使用实际稿件格式与适用评分维度，不给不存在的训练实验打分。
 意见绑定当前稿件版本和位置，给出问题 ID、依据与修复建议。完成评审报告不等于稿件通过：将问题交写作/证据任务，修复后复审；旧版检查不能给新版放行。不代替作者决定改题、改方法或外部提交。
 
 ## 系统综述优先规则

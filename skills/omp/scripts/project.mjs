@@ -7,7 +7,7 @@ import { readTaskDocument } from '../../inno-pipeline-planner/scripts/task-contr
 
 const skill = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const stages = ['survey', 'ideation', 'experiment', 'publication', 'promotion'];
-const tracks = ['ml', 'clinical', 'systematic-review', 'bioinformatics'];
+const tracks = ['ml', 'clinical', 'systematic-review', 'bioinformatics', 'narrative-review'];
 const start = '<!-- oh-my-paper:begin -->';
 const end = '<!-- oh-my-paper:end -->';
 const memories = ['project_truth', 'orchestrator_state', 'execution_context', 'experiment_ledger',
@@ -46,8 +46,14 @@ authorized revisions continue without a stage menu; protocol/topic changes remai
 user decisions. Unresolved review issues block submission/promotion. A completed
 review report does not mean the manuscript passed. Promotion/submission are scoped,
 and external submission or uploading needs its own authorization.
-Use projectContext.researchType/articleType to interpret legacy track values:
-narrative-review means evidence integration, not ML training or RCT/Meta analysis.
+Use pipeline.track=narrative-review for new narrative projects. For legacy projects,
+use projectContext.researchType/articleType or top-level researchType/articleType
+to interpret legacy track values; an explicit narrative-review track takes priority.
+For narrative-review, read inno-pipeline-planner/references/narrative-review-profile.md
+under the configured skills directory. Its experiment stage means evidence extraction,
+verification and integration, not ML training or RCT/Meta analysis. Do not require
+clinical-trial registration, IRB approval or PRISMA by default, or claim a systematic
+review from a narrative search. Preserve actual topic and scope decisions.
 Preserve task IDs and legacy document structure. A task marked done is not
 evidence of protocol approval. Review applicable gates before stage advancement.
 For systematic-review, use systematic-review/references/rct-pairwise-profile.md
@@ -74,7 +80,7 @@ ${end}`;
 
 function parse(argv) {
   const command = argv.shift();
-  if (!['init', 'status'].includes(command)) throw new Error('Usage: project.mjs <init|status> [--project PATH] [--topic TEXT] [--track ml|clinical|systematic-review|bioinformatics] [--stage STAGE]');
+  if (!['init', 'status'].includes(command)) throw new Error(`Usage: project.mjs <init|status> [--project PATH] [--topic TEXT] [--track ${tracks.join('|')}] [--stage STAGE]`);
   const args = { command };
   while (argv.length) {
     const flag = argv.shift();

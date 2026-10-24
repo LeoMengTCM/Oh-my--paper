@@ -102,6 +102,8 @@ This is a personal maintenance fork of **[LigphiDonk/Oh-my--paper](https://githu
 - [For LLM Agents](#for-llm-agents)
 - [Philosophy](#philosophy)
 - [Contributing](#contributing)
+- [Qoder Support](#qoder-support)
+- [Kimi Code Support](#kimi-code-support)
 - [Uninstall](#uninstall)
 
 ---
@@ -124,7 +126,7 @@ Install it and forget about it. Your sessions get smarter. Your research gets or
 
 ## Install
 
-The following steps install the Claude Code plugin. For Codex, use the quickstart above or [Codex Support](#codex-support).
+The following steps install the Claude Code plugin. For Codex, use the quickstart above or [Codex Support](#codex-support); for Qoder, see [Qoder Support](#qoder-support); for Kimi Code, see [Kimi Code Support](#kimi-code-support).
 
 ### Step 1: Add the marketplace
 
@@ -301,12 +303,13 @@ Each stage comes with:
 
 ### Research tracks & gates
 
-The pipeline adapts to a `pipeline.track` chosen at `/omp:setup` — `ml` (default), `clinical`, `systematic-review`, or `bioinformatics`. The track decides how each stage is interpreted, what figures it produces, and which gates apply:
+The pipeline adapts to a `pipeline.track` chosen at `/omp:setup` — `ml` (default), `clinical`, `systematic-review`, `narrative-review`, or `bioinformatics`. The track determines stage meaning, applicable figures, and checks:
 
-- **Confirmatory vs exploratory** — clinical/SR work runs the pre-specified analysis once and reports it as-is (no iterate-until-significant); ML/bioinformatics iterate freely.
-- **Lock & register gate** — for clinical/SR, no data collection or analysis starts until the protocol + SAP are frozen and the study is registered (ClinicalTrials.gov / PROSPERO) and IRB-approved.
-- **Reporting-guideline gate** — the publication/review gate checks the registration number and the matching checklist (CONSORT / STROBE / STARD / PRISMA).
-- **Figures early** — each stage produces its figures as the work happens (flow diagrams with real counts, forest/KM plots), never deferred to the end.
+- **Confirmatory vs exploratory** — clinical studies and systematic reviews follow their prespecified plans, without iterating toward significance. Narrative reviews may refine their scope as evidence develops, recording why rather than selecting evidence to fit a conclusion.
+- **Research approvals** — verify the protocol, registration and ethics requirements applicable to an original clinical study. For systematic reviews, verify the approved protocol version and actual registration status; public aggregate data do not automatically require IRB approval. Narrative reviews do not create inapplicable clinical protocol/SAP files.
+- **Reporting standards** — apply CONSORT / STROBE / STARD / PRISMA to the corresponding study design. Narrative reviews emphasize transparent literature selection, claim support and limitations, without claiming to be systematic reviews.
+- **Narrative reviews** — use the explicit `narrative-review` track. The experiment stage means evidence extraction, verification and synthesis, not training or automatic meta-analysis. Both hosts use the same [shared profile](skills/inno-pipeline-planner/references/narrative-review-profile.md).
+- **Applicable figures** — plan useful figures early; narrative and systematic reviews do not require a figure per stage or invented flow counts.
 
 Defaults keep existing ML projects unchanged.
 
@@ -473,13 +476,13 @@ Initialization preserves existing research files and external AGENTS.md instruct
 
 Codex supports SessionStart, PostToolUse, Stop and SubagentStop hooks. Review and trust the plugin definitions in `/hooks` to enable them. For an authorized full workflow, omp registers the current session and checks for unfinished work before stopping. Trusted Stop hooks continue a prematurely ended turn; real user decisions, external blockers and explicit pauses remain valid stopping points. Hooks never approve research or mark tasks complete. See [continuous execution](docs/codex-continuous-workflow.md) and the [end-to-end validation](docs/codex-continuous-validation.md).
 
-All five stages support ML, clinical research, systematic review and bioinformatics. The systematic-review branch reuses retrieval/recovery, screening records, RR/MD/SMD analysis and writing-handoff tools. Human screening, extraction verification, RoB 2, GRADE and real clinical end-to-end validation still require research evidence and judgment. Software examples do not establish clinical completion.
+All five stages support ML, clinical research, systematic review, narrative review and bioinformatics. The `narrative-review` track preserves traceable searches and evidence synthesis without imposing trial or meta-analysis requirements. The systematic-review branch reuses retrieval/recovery, screening records, RR/MD/SMD analysis and writing-handoff tools. Human screening, extraction verification, RoB 2, GRADE and real clinical end-to-end validation still require research evidence and judgment. Software examples do not establish clinical completion.
 
 See the [complete workflow guide](docs/codex-workflow.md) for the stage mapping, artifact contracts and commands.
 
 ### Maintain and verify
 
-After editing Codex prompts or roles, run `npm run codex:sync`, then `npm run check`. Tests cover standalone installation, project preservation, all four track initializers, TOML roles and native hook envelopes. For full statistical checks, install the R dependencies and run `OMP_REQUIRE_R=1 npm run check`.
+After editing Codex prompts or roles, run `npm run codex:sync`, then `npm run check`. Tests cover standalone installation, project preservation, all five track initializers, TOML roles and native hook envelopes. For full statistical checks, install the R dependencies and run `OMP_REQUIRE_R=1 npm run check`.
 
 Verify the installed content **and** native Stop-hook readiness for your project:
 
@@ -490,6 +493,41 @@ node scripts/check-codex-runtime.mjs --installed --project /path/to/research --r
 The check exits with status 2 if automatic continuation is not active. The opt-in real-model pipeline replay is `python3 scripts/eval-codex-pipeline.py`; it uses model calls and is separate from offline CI.
 
 Interface references: [official plugin documentation](https://developers.openai.com/plugins/build/plugins), [subagents](https://developers.openai.com/codex/subagents), and [hooks](https://learn.chatgpt.com/docs/hooks).
+
+---
+
+## Qoder Support
+
+The same `plugins/oh-my-paper` directory also installs as a Qoder plugin: `/omp:*` commands, the five role agents, all skills, and the SessionStart / Stop / PostToolUse hooks. The Qoder manifest lives in `.qoder-plugin/plugin.json`; its hooks use `${QODER_PLUGIN_ROOT}` and do not load the Claude Code `hooks/hooks.json`.
+
+```bash
+npm run qoder:package
+```
+
+In Qoder, open **Extensions → Plugins → Add Plugin → Upload Plugin** and select `dist/omp-qoder-<version>.zip`, enable it, then start a new conversation. Current Qoder Desktop builds do not bundle `qodercli`; ZIP upload is the most direct route. A directory install skips the out-of-root `plugins/oh-my-paper/skills` symlink and loses the skills.
+
+The `claude` executor value means "run in the current host agent" on Qoder; it does not launch Claude Code. Choosing `codex` still dispatches through the Codex CLI. See [Qoder support](docs/qoder.md) for install, verification and host differences.
+
+---
+
+## Kimi Code Support
+
+`plugins/oh-my-paper-kimi` is a native Kimi Code plugin. The manifest is `kimi.plugin.json`; while the plugin is enabled you get the `/omp:*` commands, the five role agents, all research skills (`/skill:omp:<name>`), and the SessionStart / Stop / PostToolUse hooks declared inline in the manifest.
+
+```bash
+npm run kimi:sync   # materialize plugins/oh-my-paper-kimi/skills (required before install)
+```
+
+In Kimi Code run `/plugins install <path-to>/Oh-my--paper/plugins/oh-my-paper-kimi`, then `/reload` (or start a new session). Installing from a GitHub URL works too, but the `skills/` copy is gitignored build output — commit it first in your fork. Local installs are copied to `$KIMI_CODE_HOME/plugins/managed/<id>/`, and editing the source checkout later has no effect until you reinstall.
+
+Differences from the Claude Code variant:
+
+- **Skills are a real directory copy, not a symlink.** Kimi's plugin security model rejects manifest paths that resolve outside the plugin root. Keep the copy fresh with `npm run kimi:sync`; `npm run check` verifies it.
+- **Project-local skill copies live in `.agents/skills/`** (Kimi's project skills directory) instead of `.claude/skills/`; `/omp:setup` performs the copy.
+- **Cross-session memory** is restored via a small `systemPrompt` contribution: when the project contains `.pipeline/`, the agent is told to read `.pipeline/.session-context.md` and `.pipeline/memory/execution_context.md` before research work (Kimi SessionStart hooks are observation-only and cannot inject context).
+- The **Stop-hook report parser** depends on host payloads (`transcript_path` / `last_assistant_message`) and is a graceful no-op on Kimi for now; executor reports remain readable in `.pipeline/runs/<runId>/`.
+
+The `codex` executor value dispatches through the Codex CLI as usual; the `claude` executor value means "run in the current host agent" and does not launch Claude Code.
 
 ---
 

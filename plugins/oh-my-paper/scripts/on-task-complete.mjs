@@ -1,26 +1,25 @@
 /**
  * on-task-complete.mjs
- * Stop hook — 从 transcript 里解析 omp_executor_report 块，追加到 review_log.md
+ * Stop hook — 从宿主的最后一条回复或 transcript 里解析 omp_executor_report 块，
+ * 追加到 review_log.md
  *
- * 注意：Stop hook 通过 stdin 收到的是 JSON（含 transcript_path、session_id、
- * stop_hook_active 等），并不包含对话正文。助手的回复正文在 transcript_path
- * 指向的 JSONL 文件里，需要读取后从最近一条 assistant 消息中提取 report。
- * （此前的版本把 stdin 当纯文本直接正则搜索代码块，永远匹配不到，hook 静默失效。）
+ * Qoder 的 Stop 输入直接提供 last_assistant_message，优先使用它；
+ * Claude Code 主要依赖 transcript_path（JSONL），保留解析作为回退。
+ * 注意：stdin 是 JSON（含 transcript_path、session_id、stop_hook_active 等），
+ * 并不包含对话正文。助手的回复正文在 transcript_path 指向的 JSONL 文件里，
+ * 需要读取后从最近一条 assistant 消息中提取 report。
  */
 import fs from "node:fs/promises";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
-const PROJECT = process.cwd();
+const PROJECT = process.env.QODER_PROJECT_DIR || process.env.CLAUDE_PROJECT_DIR || process.cwd();
 
 async function main() {
   const stdin = await readStdin();
   if (!stdin.trim()) return;
 
-  const transcriptText = resolveTranscriptText(stdin);
-  if (!transcriptText) return;
-
-  const report = extractExecutorReport(transcriptText);
+  const report = extractReportFromPayload(stdin);
   if (!report) return;
 
   const reviewLogPath = path.join(PROJECT, ".pipeline", "memory", "review_log.md");
@@ -47,6 +46,22 @@ async function main() {
     JSON.stringify({ type: "executor-report", taskId: report.taskId, timestamp: Date.now() }),
     "utf8"
   );
+}
+
+function extractReportFromPayload(stdin) {
+  let payload;
+  try {
+    payload = JSON.parse(stdin);
+  } catch {
+    return extractExecutorReport(stdin);
+  }
+
+  const direct = typeof payload.last_assistant_message === "string" ? payload.last_assistant_message : "";
+  const directReport = extractExecutorReport(direct);
+  if (directReport) return directReport;
+
+  const transcriptText = resolveTranscriptText(stdin);
+  return transcriptText ? extractExecutorReport(transcriptText) : null;
 }
 
 /**

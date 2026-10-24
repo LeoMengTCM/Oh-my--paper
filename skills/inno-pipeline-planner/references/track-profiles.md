@@ -6,8 +6,7 @@ gates* each stage produces. The stage spine never changes — only its contents 
 
 Set `pipeline.track` in `research_brief.json` (default `"ml"`). It also sets a default
 `pipeline.analysisMode`. **Consult this file whenever generating or revising
-`task_blueprints`, `quality_gate`, gates, or figure deliverables.** Unknown track →
-treat as `ml` (fully backward-compatible with existing projects).
+`task_blueprints`, `quality_gate`, gates, or figure deliverables.** 缺省类型的旧项目保留 ml 默认值；明确声明但不支持的类型先确认，不静默改成 ml。叙述综述的旧 `projectContext.researchType` / `articleType` 或根级同名字段按 `narrative-review-profile.md` 解释，不自动迁移。
 
 ## Track summary
 
@@ -17,15 +16,17 @@ treat as `ml` (fully backward-compatible with existing projects).
 | `bioinformatics` | exploratory | run analysis pipelines (often on HPC) | target journal | none, but pin pipeline + reference/DB versions |
 | `clinical` | confirmatory | conduct a **study** (RCT / cohort / case-control / cross-sectional / diagnostic) | CONSORT / STROBE / STARD (by design) | **YES** — protocol + SAP frozen, registered (ClinicalTrials.gov), IRB-approved |
 | `systematic-review` | confirmatory | formal search → screen → extract → synthesize | PRISMA 2020 | 具体方案版本获研究者批准，注册状态如实记录；见 RCT profile |
+| `narrative-review` | exploratory | 原文证据提取、核对、比较与综合 | 目标期刊格式，透明说明文献选择与局限 | 确认综述范围；不默认临床试验或系统综述审批 |
 
 ## Two cross-cutting process rules (all tracks)
 
 ### A. analysisMode: confirmatory vs exploratory
 - **exploratory** (ml/bioinformatics default): iterate freely — adjust, re-run, compare, optimize toward a target. The existing `/omp:experiment` loop applies.
+- **narrative-review 的 exploratory**：允许随检索证据调整综述范围，调整理由需记录；不为迎合预设结论选择性保留研究，不套用训练或显著性优化循环。
 - **confirmatory**（clinical/SR 默认）：按已批准的 SAP 如实报告，不为追求显著性更换方案。允许有记录的错误修复后重跑、确定性复现与预设敏感性分析。方法变更须先获研究者批准，再记入 `.pipeline/memory/protocol_deviations.md`；计划外分析标为 exploratory / hypothesis-generating，不混入预设结果。
 
 ### B. Figures early and often — never defer to publication
-**systematic-review 例外**：按 RCT profile 规划适用图表，不强制每阶段一图或不适用的分析；数据图使用真实数据和分析代码。其他 track 沿用下述图表规划规则。
+**systematic-review / narrative-review 例外**：分别按 RCT profile 与 narrative-review profile 规划适用图表，不强制每阶段一图或不适用的分析；数据图使用真实数据和分析代码。其他 track 沿用下述图表规划规则。
 **Every stage has at least one figure deliverable.** A study-flow diagram, schematic, or main-result plot built late is a late discovery of missing data. Add a figure `task_blueprint` (taskType `figure`, skill `inno-figure-gen`) to each active stage and a `quality_gate` line "stage figure(s) produced and current". Per-track figure timeline below.
 
 ## Per-track detail
@@ -71,6 +72,13 @@ treat as `ml` (fully backward-compatible with existing projects).
   ```
 - **证据检查**：done 不等于批准；必须核对 `protocol.md`、`sap.md` 和 `decision_log.md` 中的版本、批准者与时间。注册状态可为 planned/submitted/registered/not_registered/not_applicable；未注册需说明并由用户确认，不编造 PROSPERO 号。公开汇总数据不默认要求 IRB。
 - **图与报告**：PRISMA 计数来自实际 records/reports/studies；只做适用分析和图，不能强制漏斗图。RoB 2 按具体结果，GRADE 按结局。没有可合并证据时允许叙述性综合。
+
+### `narrative-review`
+- **analysisMode**：缺省 exploratory；可有记录地调整综述范围，不为迎合结论选择性取证。
+- **共享规则**：读取 `narrative-review-profile.md`，正式 track 与旧研究类型兼容字段均适用。
+- **阶段**：survey 检索与已有综述比较；ideation 确认范围、读者和论证问题；experiment 原文提取、核对和证据综合；publication 主题式写作、引用核验、评审与返修。
+- **适用检查**：确认文章范围、文献选择透明度、证据支持、临床适用性与局限；不自动建立临床 protocol/SAP，不强制 RCT 注册、IRB、训练/消融、PRISMA、Meta 分析或每阶段一图。
+- **语言与旧项目**：保留研究者指定写作语言；保留旧任务 ID、状态、格式和研究类型字段，不自动迁移。
 
 ## How the planner uses this
 1. Read `pipeline.track` (default `ml`) and set `pipeline.analysisMode`.

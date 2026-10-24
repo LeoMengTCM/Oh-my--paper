@@ -1,6 +1,7 @@
 """PubMed E-utilities 传输和解析；错误消息不包含凭证或完整请求 URL。"""
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
+from http.client import HTTPException
 import json
 import re
 import time
@@ -74,7 +75,7 @@ class EutilsClient:
                         pass
                 if backoff > 60:
                     break  # 保留检查点，让用户稍后恢复，而不是忽略服务端等待时间。
-            except (urllib.error.URLError, TimeoutError, OSError):
+            except (urllib.error.URLError, TimeoutError, OSError, HTTPException):
                 last_code = "network_error"
             if attempt + 1 < self.args.retries:
                 time.sleep(backoff)

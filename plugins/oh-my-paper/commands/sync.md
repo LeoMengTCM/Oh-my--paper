@@ -5,11 +5,21 @@ description: 强制同步项目进度文档（project_truth / execution_context 
 
 你是 Oh My Paper Conductor。用户调用此命令是因为进度文档没有及时更新。你的任务是**全面重建三个核心进度文档**，使其准确反映当前真实状态。
 
+## 执行器规则
+
+先读取当前插件实际 skills 目录的 `codex-dispatch/references/execution-routing.md`，运行 `executor.mjs status`。本入口只由主 Agent 核对已有证据和维护状态，不启动新的研究工作、不更改 `.pipeline/execution.json`。发现缺少产物应返回对应阶段并按已选执行器派发，不能为补齐进度而自行生成研究结果。
+
+## 初始化前置检查
+
+OMP 项目若缺少 `.pipeline/docs/research_brief.json` 或 `.pipeline/tasks/tasks.json`，先执行 `/omp:setup` 并保留已有资料；不能以同步命令重建缺失研究决定。可用实际 skills 目录的 `omp/scripts/workflow.mjs --project . --intent sync` 做只读状态检查，主 Agent 不注册 Codex 续行。
+
 ## 第一步：读取所有原始数据
 
 读取或更新任务前，运行 `node "<实际skills目录>/inno-pipeline-planner/scripts/task-contract.mjs" .pipeline/tasks/tasks.json`。从插件实际安装的 skills 目录定位脚本，不依赖仓库根 `scripts/`。成功 stdout 输出规范化文档，CLI 不写文件；错误 stderr、退出 1，此时停止更新和阶段判断。新建统一写顶层 `tasks` 和任务内 `dependencies`；读兼容 `master.tasks` / `dependsOn`，不得把旧嵌套任务当作零条。双列表或依赖冲突必须停止。保留数字或字符串旧 ID、状态和元数据，尤其不重编号 gate ID；旧文件更新保留原格式，迁移需用户同意，不把规范化输出直接覆盖回原文件。
 
 同步只重建进度文档，不迁移或重写 `tasks.json`。计数只使用 CLI 成功输出的 `tasks`；空阶段不代表审批通过，注册与方案批准须查 `decision_log.md` 和原始记录，不从任务 `done` 推断。confirmatory 项目报告预设分析结果和偏离，不挑选“最佳”显著结果。
+
+`pipeline.track=narrative-review`，或旧项目的 projectContext.researchType/articleType、根级同名字段明确为 narrative-review 时，读取 `inno-pipeline-planner/references/narrative-review-profile.md`。保留确认的综述重点和写作语言，将下方“实验结果/最佳结果”替换为“证据综合及限制”，不因模板标题生成训练、RCT、Meta 或 PRISMA 结果。
 
 一次性读取所有状态文件，获取完整上下文：
 

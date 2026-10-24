@@ -16,7 +16,7 @@ OMP 项目先读取实际 skills 目录下 `omp/SKILL.md`，运行 `omp/scripts/
 cat .pipeline/docs/research_brief.json
 ```
 
-读 `pipeline.track`，在通用维度（技术贡献 / 实验充分性 / 写作质量 / 引用准确性 / **图表充分性** / **篇幅完整性**）之外叠加：
+先按下方叙述性综述优先规则识别实际研究方法，再对其他类型读取 `pipeline.track`，在通用维度（技术贡献 / 实验充分性 / 写作质量 / 引用准确性 / **图表充分性** / **篇幅完整性**）之外叠加：
 - clinical：注册号在位且与方案一致；对应报告规范清单逐条核对（CONSORT/STROBE/STARD，按设计）；伦理与知情同意声明；样本量/检验效能交代；主要结局是否与预设一致、有无未声明偏离；数据可得性声明。依据 `clinical-study-design`、`scientific-writing` 的 references。
 - systematic-review：读取实际 skills 目录下 `systematic-review/references/rct-pairwise-profile.md`。核查真实注册状态和时间（含未注册说明，不伪造 PROSPERO 号）、PRISMA 2020 清单与真实 records/reports/studies 计数、检索覆盖、人工筛选与 AI 建议区分、提取出处、重复报告、结果级 RoB 2、结局级 GRADE 及分析偏离。公开汇总不默认要求 IRB；按实际完成工作评审，不因未做不适用的图表或统计而要求补造结果。
 - ml / bioinformatics：通用维度即可；生信另查工具/参考/依赖版本与可复现性。
@@ -31,9 +31,9 @@ cat .pipeline/docs/research_brief.json
 
 ## 叙述性综述优先规则
 
-读取 projectContext.researchType / articleType、根级 researchType / articleType 和项目指令；narrative-review 优先于 track=ml 兼容值。
-按叙述性综述核对选题范围、相较既有综述的组织价值、证据覆盖、机制与转化论证、证据层级、反对证据、引用支持和行文完整性。
-不能要求虚构训练/消融、RCT 注册或 PRISMA 纳入计数；不强制上述 ML 章节与词数下限。用实际稿件格式，不假定只能评审 LaTeX。
+读取 `pipeline.track`、projectContext.researchType / articleType、根级 researchType / articleType 和项目指令；`pipeline.track=narrative-review` 或旧字段明确为 narrative-review 时，读取实际 skills 目录下 `inno-pipeline-planner/references/narrative-review-profile.md`。narrative-review 优先于 track=ml 兼容值。
+按叙述性综述核对选题范围、相较既有综述的组织价值、检索与选文方法透明度、证据覆盖、论证完整性、证据层级、反对证据、引用支持和局限性。
+不能要求虚构训练/消融、RCT 注册、IRB、Meta 分析或 PRISMA 纳入计数；不强制上述 ML 章节、固定图数与词数下限。用实际稿件格式和已确认语言，不假定只能评审 LaTeX。
 
 ## 第一步：确认当前稿件和任务范围
 

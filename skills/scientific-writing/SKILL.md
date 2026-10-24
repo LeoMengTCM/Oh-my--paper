@@ -55,6 +55,15 @@ Use this skill when the user request matches its research workflow scope. Prefer
 - If a required runtime, CLI, credential, or API is unavailable, explain the blocker and continue with the best manual fallback instead of silently skipping the step.
 - Do not write generated artifacts back into the skill directory; save them inside the active project workspace.
 
+## 叙述性综述优先规则
+
+当 `pipeline.track = narrative-review`，或旧 `projectContext.researchType` / `articleType`、根级同名字段表示叙述性综述时，先读 `$OMP_SKILLS/inno-pipeline-planner/references/narrative-review-profile.md`。本分支优先于下方原始研究的 IMRaD、临床流程图和图表数量建议。
+
+- 按研究者指定的语言和期刊格式写作；通常以临床问题或主题组织正文，透明说明文献选择方式和局限。
+- 不为套用 IMRaD 虚构原始 Methods/Results，不把叙述综述称为系统综述，不要求无实际依据的 PRISMA、RCT 注册或 IRB 声明。
+- 先核对原文和证据表，再写临床结论；仅在确有解释价值时制作图表，不强制最低数量。
+- 引文元数据核验与引用语境支持是两项检查；来源存在不等于支持正文论断。
+
 ## Upstream Instructions
 
 # Scientific Writing

@@ -3,7 +3,7 @@
  * check-plugin-consistency.mjs
  *
  * 仓库一致性自检（CI 与本地均可跑）：
- *   1. 版本号一致：package.json、两个 plugin.json、marketplace.json（两处）
+ *   1. 版本号一致：package.json、三个 plugin.json、marketplace.json（两处）
  *   2. 所有被 git 跟踪的 .json 文件可解析
  *   3. 所有被 git 跟踪的 .mjs 脚本通过 node --check 语法检查
  *   4. commands/agents/prompts 的 frontmatter 必备字段齐全
@@ -46,7 +46,9 @@ function trackedFiles(pattern) {
   const sources = [
     ["package.json", () => readJson("package.json").version],
     ["plugins/oh-my-paper/.claude-plugin/plugin.json", () => readJson("plugins/oh-my-paper/.claude-plugin/plugin.json").version],
+    ["plugins/oh-my-paper/.qoder-plugin/plugin.json", () => readJson("plugins/oh-my-paper/.qoder-plugin/plugin.json").version],
     ["plugins/oh-my-paper-codex/.codex-plugin/plugin.json", () => readJson("plugins/oh-my-paper-codex/.codex-plugin/plugin.json").version],
+    ["plugins/oh-my-paper-kimi/kimi.plugin.json", () => readJson("plugins/oh-my-paper-kimi/kimi.plugin.json").version],
     [".claude-plugin/marketplace.json (metadata)", () => readJson(".claude-plugin/marketplace.json").metadata?.version],
     [".claude-plugin/marketplace.json (plugins[0])", () => readJson(".claude-plugin/marketplace.json").plugins?.[0]?.version],
   ];
@@ -112,6 +114,8 @@ function checkFrontmatter(globPattern, requiredKeys) {
   checkFrontmatter("plugins/oh-my-paper/commands/*.md", ["name", "description"]);
   checkFrontmatter("plugins/oh-my-paper/agents/*.md", ["name", "description"]);
   checkFrontmatter("plugins/oh-my-paper-codex/prompts/*.md", ["description"]);
+  checkFrontmatter("plugins/oh-my-paper-kimi/commands/*.md", ["name", "description"]);
+  checkFrontmatter("plugins/oh-my-paper-kimi/agents/*.md", ["name", "description"]);
 }
 
 // ---------- 5. hooks.json 引用的脚本存在 ----------
@@ -130,6 +134,7 @@ function checkFrontmatter(globPattern, requiredKeys) {
     }
     if (!commands.length) fail(`${hooksRel} 未注册任何 hook 命令，检查是否被误改`);
     for (const command of commands) {
+      if (command.includes("${QODER_PLUGIN_ROOT}")) fail(`${hooksRel} 不应包含 QODER_PLUGIN_ROOT`);
       const m = command.match(/\$\{CLAUDE_PLUGIN_ROOT\}\/([^"']+)/);
       if (!m) continue;
       const target = path.join(repoRoot, "plugins/oh-my-paper", m[1]);
@@ -137,6 +142,88 @@ function checkFrontmatter(globPattern, requiredKeys) {
     }
   } catch (e) {
     fail(`读取 ${hooksRel} 失败 — ${e.message}`);
+  }
+}
+
+// ---------- 5b. Qoder 插件清单与 hooks ----------
+{
+  checks++;
+  const manifestRel = "plugins/oh-my-paper/.qoder-plugin/plugin.json";
+  try {
+    const manifest = readJson(manifestRel);
+    if (manifest.name !== "omp") fail(`${manifestRel} 的 name 必须是 omp，以保留 /omp: 命名空间`);
+    for (const field of ["commands", "skills", "hooks"]) {
+      if (!manifest[field]) fail(`${manifestRel} 缺少 ${field} 字段`);
+      else if (!existsSync(path.join(repoRoot, "plugins/oh-my-paper", manifest[field]))) {
+        fail(`${manifestRel} 的 ${field} 指向不存在的路径：${manifest[field]}`);
+      }
+    }
+    // agents 字段在 Qoder schema 中只接受 .md 文件；这里走约定目录，必须真实存在。
+    if (!existsSync(path.join(repoRoot, "plugins/oh-my-paper/agents"))) {
+      fail("plugins/oh-my-paper/agents 目录不存在，Qoder 无法按约定发现角色 agents");
+    }
+    if (manifest.agents) {
+      const agents = Array.isArray(manifest.agents) ? manifest.agents : [manifest.agents];
+      for (const rel of agents) {
+        if (!String(rel).endsWith(".md")) fail(`${manifestRel} 的 agents 项必须是 .md 文件：${rel}`);
+      }
+    }
+    const hooksRel = path.join("plugins/oh-my-paper", manifest.hooks ?? "hooks/qoder-hooks.json");
+    const config = readJson(hooksRel);
+    const commands = [];
+    for (const entries of Object.values(config.hooks ?? {})) {
+      for (const entry of entries) {
+        for (const hook of entry.hooks ?? []) {
+          if (hook.command) commands.push(hook.command);
+        }
+      }
+    }
+    for (const event of ["SessionStart", "Stop", "PostToolUse"]) {
+      if (!config.hooks?.[event]?.length) fail(`${hooksRel} 未注册 ${event} hook`);
+    }
+    if (!commands.length) fail(`${hooksRel} 未注册任何 hook 命令`);
+    for (const command of commands) {
+      if (command.includes("${CLAUDE_PLUGIN_ROOT}")) fail(`${hooksRel} 不应包含 CLAUDE_PLUGIN_ROOT`);
+      const m = command.match(/\$\{QODER_PLUGIN_ROOT\}\/([^"']+)/);
+      if (!m) { fail(`${hooksRel} 的 hook 命令未使用 QODER_PLUGIN_ROOT：${command}`); continue; }
+      if (!existsSync(path.join(repoRoot, "plugins/oh-my-paper", m[1]))) {
+        fail(`${hooksRel} 引用的脚本不存在：${m[1]}`);
+      }
+    }
+  } catch (e) {
+    fail(`读取 ${manifestRel} 或其 hooks 失败 — ${e.message}`);
+  }
+}
+
+// ---------- 5c. Kimi 插件清单与 hooks ----------
+{
+  checks++;
+  const manifestRel = "plugins/oh-my-paper-kimi/kimi.plugin.json";
+  try {
+    const manifest = readJson(manifestRel);
+    if (manifest.name !== "omp") fail(`${manifestRel} 的 name 必须是 omp，以保留 /omp: 命名空间`);
+    for (const field of ["skills", "agents", "commands"]) {
+      if (!manifest[field]) fail(`${manifestRel} 缺少 ${field} 字段`);
+      else if (!existsSync(path.join(repoRoot, "plugins/oh-my-paper-kimi", manifest[field]))) {
+        fail(`${manifestRel} 的 ${field} 指向不存在的路径：${manifest[field]}`);
+      }
+    }
+    if (!Array.isArray(manifest.hooks) || !manifest.hooks.length) {
+      fail(`${manifestRel} 缺少 hooks 数组`);
+    } else {
+      for (const event of ["SessionStart", "Stop", "PostToolUse"]) {
+        if (!manifest.hooks.some((h) => h.event === event)) fail(`${manifestRel} 未注册 ${event} hook`);
+      }
+      for (const hook of manifest.hooks) {
+        const m = hook.command?.match(/^\s*node \.\/([^\s"']+)/);
+        if (!m) { fail(`${manifestRel} 的 hook 命令应使用插件内 ./ 相对路径：${hook.command}`); continue; }
+        if (!existsSync(path.join(repoRoot, "plugins/oh-my-paper-kimi", m[1]))) {
+          fail(`${manifestRel} 的 hook 引用的脚本不存在：${m[1]}`);
+        }
+      }
+    }
+  } catch (e) {
+    fail(`读取 ${manifestRel} 失败 — ${e.message}`);
   }
 }
 
@@ -151,6 +238,13 @@ function checkFrontmatter(globPattern, requiredKeys) {
     } catch {
       fail(`符号链接失效：${rel}`);
     }
+  }
+  // Kimi 变体必须是实体副本（其插件安全模型拒绝插件根目录外的符号链接），
+  // 副本内容由 sync-kimi-skills.mjs 校验；此处只查目录形态。副本是 gitignore
+  // 的构建产物，克隆后尚未 sync 时允许缺失。
+  const kimiSkills = path.join(repoRoot, "plugins/oh-my-paper-kimi/skills");
+  if (existsSync(kimiSkills) && lstatSync(kimiSkills).isSymbolicLink()) {
+    fail("plugins/oh-my-paper-kimi/skills 应为实体目录而非符号链接（Kimi 插件安全模型限制）");
   }
 }
 
@@ -182,6 +276,7 @@ function corpusOf(patterns) {
   checks++;
   const claudeCorpus = corpusOf(["plugins/oh-my-paper/commands/*.md", "plugins/oh-my-paper/agents/*.md"]);
   const codexCorpus = corpusOf(["plugins/oh-my-paper-codex/prompts/*.md", "plugins/oh-my-paper-codex/agents/*.toml"]);
+  const kimiCorpus = corpusOf(["plugins/oh-my-paper-kimi/commands/*.md", "plugins/oh-my-paper-kimi/agents/*.md"]);
   for (const kw of PARITY_KEYWORDS) {
     const inClaude = claudeCorpus.includes(kw);
     const inCodex = codexCorpus.includes(kw);
@@ -190,6 +285,10 @@ function corpusOf(patterns) {
     }
     if (!inClaude && !inCodex) {
       fail(`平价清单过期：关键概念 "${kw}" 两侧都不存在，请更新 PARITY_KEYWORDS`);
+    }
+    // kimi 版由 claude 版派生：claude 有的核心机制标识，kimi 版不允许丢。
+    if (inClaude && !kimiCorpus.includes(kw)) {
+      fail(`kimi 版漂移：关键概念 "${kw}" 存在于 claude 版但 kimi 版（commands/agents）缺失`);
     }
   }
 }
@@ -214,6 +313,22 @@ function corpusOf(patterns) {
   }
   for (const a of tomlAgents) {
     if (!mdAgents.includes(a)) fail(`codex agent "${a}" 缺少 claude 版（agents/${a}.md）`);
+  }
+
+  // kimi 版与 claude 版一一对应（同文件名，派生副本不允许增删入口）。
+  const kimiCommands = trackedFiles("plugins/oh-my-paper-kimi/commands/*.md").map((f) => path.basename(f, ".md"));
+  for (const cmd of commands) {
+    if (!kimiCommands.includes(cmd)) fail(`command "${cmd}" 缺少 kimi 版（commands/${cmd}.md）`);
+  }
+  for (const cmd of kimiCommands) {
+    if (!commands.includes(cmd)) fail(`kimi command "${cmd}" 在 claude 版中不存在（commands/${cmd}.md）`);
+  }
+  const kimiAgents = trackedFiles("plugins/oh-my-paper-kimi/agents/*.md").map((f) => path.basename(f, ".md"));
+  for (const a of mdAgents) {
+    if (!kimiAgents.includes(a)) fail(`agent "${a}" 缺少 kimi 版（agents/${a}.md）`);
+  }
+  for (const a of kimiAgents) {
+    if (!mdAgents.includes(a)) fail(`kimi agent "${a}" 在 claude 版中不存在（agents/${a}.md）`);
   }
 }
 
@@ -245,7 +360,7 @@ function corpusOf(patterns) {
   checks++;
   const profile = "systematic-review/references/rct-pairwise-profile.md";
   if (!existsSync(path.join(repoRoot, "skills", profile))) fail(`SR profile 不存在：${profile}`);
-  for (const plugin of ["oh-my-paper", "oh-my-paper-codex"]) {
+  for (const plugin of ["oh-my-paper", "oh-my-paper-codex", "oh-my-paper-kimi"]) {
     const codex = plugin.endsWith("-codex");
     const entries = [
       ...["setup", "survey", "ideate", "experiment", "plan", "review", "write"].map((name) =>
@@ -264,6 +379,28 @@ function corpusOf(patterns) {
       const content = readFileSync(path.join(repoRoot, rel), "utf8");
       for (const required of ["systematic-review/references/writing-handoff.md", "writing_handoff.py check", "ready_for_drafting", "public_benchmark"]) {
         if (!content.includes(required)) fail(`SR 写作入口缺少 ${required}：${rel}`);
+      }
+    }
+  }
+}
+
+// ---------- 11. 叙述综述入口引用共享规则 ----------
+{
+  checks++;
+  const profile = "inno-pipeline-planner/references/narrative-review-profile.md";
+  if (!existsSync(path.join(repoRoot, "skills", profile))) fail(`叙述综述 profile 不存在：${profile}`);
+  for (const plugin of ["oh-my-paper", "oh-my-paper-codex", "oh-my-paper-kimi"]) {
+    const codex = plugin.endsWith("-codex");
+    const entries = [
+      ...["setup", "survey", "ideate", "experiment", "plan", "review", "write"].map((name) =>
+        codex ? `prompts/omp-${name}.md` : `commands/${name}.md`),
+      ...["conductor", "experiment-driver", "literature-scout", "paper-writer", "reviewer"].map((name) =>
+        `agents/${name}.${codex ? "toml" : "md"}`),
+    ];
+    for (const entry of entries) {
+      const rel = `plugins/${plugin}/${entry}`;
+      if (!existsSync(path.join(repoRoot, rel)) || !readFileSync(path.join(repoRoot, rel), "utf8").includes(profile)) {
+        fail(`叙述综述入口缺少共享 profile：${rel}`);
       }
     }
   }

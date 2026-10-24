@@ -1,9 +1,9 @@
 {
   "schema": "omp-research-catalog-v1",
-  "generatedAt": "2026-10-01T01:28:02.633Z",
+  "generatedAt": "2026-10-22T12:44:49.322Z",
   "upstream": {
     "repo": "Oh-my--paper",
-    "revision": "3156a69b705c55d1889eab84f5fa4dd9225c94e5"
+    "revision": "a48ae6941239049da7785e0f40601946a1ad6131"
   },
   "skills": [
     {
@@ -367,16 +367,21 @@
     {
       "id": "codex-dispatch",
       "name": "codex-dispatch",
-      "version": "1.1.0",
-      "description": "Delegate coding tasks to a separate OpenAI Codex CLI process when native subagents are unavailable or an independent session is requested.",
-      "summary": "Delegate coding tasks to a separate OpenAI Codex CLI process when native subagents are unavailable or an independent session is requested.",
+      "version": "1.2.0",
+      "description": "Execute authorized OMP research tasks in a separate Codex CLI process when Claude Code or Qoder selects Codex; also supports explicit standalone Codex delegation.",
+      "summary": "Execute authorized OMP research tasks in a separate Codex CLI process when Claude Code or Qoder selects Codex; also supports explicit standalone Codex delegation.",
       "stages": [
-        "experiment"
+        "survey",
+        "ideation",
+        "experiment",
+        "publication",
+        "promotion"
       ],
       "tools": [
         "read_file",
         "search_project",
-        "write_file"
+        "write_file",
+        "run_terminal"
       ],
       "primaryIntent": "research",
       "intents": [
@@ -384,27 +389,31 @@
       ],
       "capabilities": [
         "research-planning",
-        "data-processing"
+        "visualization-reporting"
       ],
       "domains": [
         "cs-ai"
       ],
       "keywords": [
         "codex-dispatch",
-        "experiment"
+        "survey",
+        "ideation",
+        "experiment",
+        "publication",
+        "promotion"
       ],
       "source": "builtin",
       "status": "verified",
       "resourceFlags": {
-        "hasReferences": false,
-        "hasScripts": false,
+        "hasReferences": true,
+        "hasScripts": true,
         "hasTemplates": false,
         "hasAssets": false,
-        "referenceCount": 0,
-        "scriptCount": 0,
+        "referenceCount": 1,
+        "scriptCount": 1,
         "templateCount": 0,
         "assetCount": 0,
-        "optionalScripts": false
+        "optionalScripts": true
       }
     },
     {
@@ -1050,7 +1059,7 @@
         "hasScripts": true,
         "hasTemplates": false,
         "hasAssets": false,
-        "referenceCount": 5,
+        "referenceCount": 6,
         "scriptCount": 1,
         "templateCount": 0,
         "assetCount": 0,

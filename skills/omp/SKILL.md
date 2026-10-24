@@ -8,9 +8,14 @@ stages: [survey, ideation, experiment, publication, promotion]
 # Oh My Paper for Codex
 
 These runtime controls apply to Codex sessions. If a shared planner reaches this
-skill from Claude Code, use that host's native `/omp:*` commands and agent
+skill from Claude Code or Qoder, use that host's native `/omp:*` commands and agent
 instructions; do not register Codex continuation or install Codex project roles
-as part of a Claude research session. Shared research artifacts remain compatible.
+as part of a Claude Code or Qoder research session. Shared research artifacts
+remain compatible.
+
+被宿主 Agent 委派的 Codex 子进程若有 `OMP_CODEX_DISPATCH=1`，只完成当前任务包，
+不执行下方的全项目连续循环，不注册 continuation，不递归派发，也不擅自推进阶段。
+适用的研究 skill 与证据要求仍须遵守；把缺少的用户决定或资源交回主会话。
 
 Own the workflow, including its next step. Reuse the user's answers and current
 authorization. Ask for missing research decisions, not repeated permission to
@@ -76,9 +81,9 @@ artifacts. `workflow.mjs` checks structural prerequisites; it does not establish
 literature coverage, scientific quality or researcher approval. Follow its next
 action and inspect the actual evidence before advancing.
 Within the routed workflow, resume the specific task/step already in progress.
-If the five-direction board, evaluation scope or evaluation is already complete,
-reuse it and move to the outstanding step; do not regenerate candidates or repeat
-questions merely because the workflow reference starts at step one.
+叙述性综述复用已确认重点和提纲，不要求创建五方向或评分记录。其他研究已有
+five-direction board、evaluation scope 或 evaluation 时复用，继续尚未完成的步骤，
+不因参考文件从第一步写起而重新生成候选或重复提问。
 
 - **No initialized state / empty tasks:** initialize or plan from the stated goal,
   then run survey. Do not fill the gap by inventing candidate recommendations.
@@ -88,13 +93,12 @@ questions merely because the workflow reference starts at step one.
 - **Survey says done:** read the report, source records, review-overlap analysis,
   representative original studies, full-text reading scope and limitations. Counts
   and elapsed time do not establish completion. Keep unresolved evidence in review.
-- **Survey checked and ideation authorized:** execute candidate comparison in this
-  turn using `references/omp-ideate.md`: five-direction idea board → user confirms
-  evaluation scope → `inno-idea-eval` → user chooses the final direction. Reuse
-  any scope/selection already confirmed. Do not substitute the standalone
-  `research-idea-convergence` 2–4-candidate shortcut for this workflow.
-  Do not finish with only “I will now converge
-  topics”, or ask them to repeat “按 OMP 流程下一步”.
+- **Survey checked and ideation authorized:** read `references/omp-ideate.md`.
+  narrative-review 使用综述重点分支，依据已有综述和原始研究确定论证问题与提纲，
+  不强制五个创新点或 inno-idea-eval。普通创新研究仍执行 five-direction idea board
+  → user confirms evaluation scope → `inno-idea-eval` → final direction，不能用
+  standalone `research-idea-convergence` 的 2–4 候选流程替代。复用已确认的范围和选择，
+  本轮执行已授权步骤，不以“下一步将收敛题目”代替实际工作。
 
 Reuse supplied directories, including `Survey/`, without renaming or duplicating
 them. Add their actual paths to task `artifacts` and record what was checked in
@@ -114,8 +118,8 @@ After preflight, read the routed reference. These are workflows, not `/omp-*` CL
 | Initialize a project | [setup](references/omp-setup.md) | conductor |
 | Plan or resume | [plan](references/omp-plan.md) | conductor |
 | Search literature | [survey](references/omp-survey.md) | literature-scout |
-| Five-direction idea board, evaluation, final selection / SR protocol | [ideate](references/omp-ideate.md) | conductor |
-| Run experiments / SR retrieval, screening and synthesis | [experiment](references/omp-experiment.md) | experiment-driver |
+| 确定叙述综述重点 / Five-direction idea board / SR protocol | [ideate](references/omp-ideate.md) | conductor |
+| Run experiments / 叙述综述证据综合 / SR retrieval, screening and synthesis | [experiment](references/omp-experiment.md) | experiment-driver |
 | Write a paper or prepare promotion material | [write](references/omp-write.md) | paper-writer |
 | Review a manuscript | [review](references/omp-review.md) | reviewer |
 | Delegate authorized work | [delegate](references/omp-delegate.md) | task-specific |
@@ -169,11 +173,12 @@ promotion cannot jump over unresolved blocking issues. A manuscript change inval
 affected old checks: bind each review to the actual manuscript version and reread the
 changed parts. Do not endlessly re-score unchanged text or invent new requirements.
 
-For a narrative review (`projectContext.researchType`, articleType or an explicit
-project instruction), experiment means evidence integration. Do not introduce ML
-training, fabricated experimental results, mandatory IMRaD/ablation sections, RCT
-registration, or conference-only submission rules because `track=ml` is a legacy
-compatibility value. Respect the actual output format and manuscript location.
+`pipeline.track=narrative-review` 为正式叙述性综述类型；兼容旧项目的
+`projectContext.researchType/articleType` 和根级 `researchType/articleType`。
+读取 `../inno-pipeline-planner/references/narrative-review-profile.md`：experiment
+表示证据提取、核对与综合，不是训练或 RCT/Meta。旧 track=ml 不强制训练、消融、
+IMRaD 或会议投稿规则；类型冲突须核对原始决定，不能静默迁移。按实际格式、
+路径和已确认 `writingLanguage` 写作，交代真实检索方法，不虚构 PRISMA 计数。
 
 During a full authorized manuscript task, continue across sections, routine checks,
 and supported repairs without a menu at each step. Ask for a changed direction,
@@ -191,8 +196,10 @@ the full pipeline, the mere change of stage is not another permission question.
 ## Research tracks
 
 Retain all five stages: survey → ideation → experiment → publication → promotion.
-ML and bioinformatics normally use exploratory analysis; clinical and systematic
-review use confirmatory analysis. Respect the user's existing track and scope.
+ML、bioinformatics 和 narrative-review 默认 exploratory；clinical 和
+systematic-review 默认 confirmatory。narrative-review 的 exploratory 表示可按证据
+完善重点与覆盖，不是优化实验指标。五种类型保留原阶段；新项目不能用 ml/clinical
+代替叙述性综述，不自动创建其不适用的临床 protocol/SAP 或注册、IRB 要求。
 
 For systematic review, read
 `../systematic-review/references/rct-pairwise-profile.md`: exploratory survey;

@@ -24,8 +24,8 @@ app-server 安装和核对启用状态。自动安装不可用时，在 Codex `/
 初始化后再次开启会话以加载项目角色。CLI 不自动注册 `/omp-setup` 之类的命令。
 
 完整流程中先运行只读 `omp/scripts/workflow.mjs` 核对阶段、依赖与产物。
-“选题”请求不能跳过 survey；原 OMP 选题依次完成五方向 idea board、评估范围确认、
-idea eval 和最终用户选题。不要用独立的 2–4 候选收敛替代它。
+“选题”请求不能跳过 survey；原创研究的 OMP 选题依次完成五方向 idea board、评估范围确认、
+idea eval 和最终用户选题。叙述性综述则根据检索证据确定文章重点和论证问题，不强制五个创新点或创新性评分。
 每项已验证工作结束后，自动执行下一项已授权任务，仅在真实研究决策处等待用户。
 
 需要直接运行时，从实际安装位置确定 `OMP_SKILLS`。默认安装的示例为：
@@ -54,7 +54,8 @@ node "$OMP_SKILLS/omp/scripts/project.mjs" status --project /path/to/research
 | 用 omp 同步项目状态 | sync | tasks、project_truth、各角色记忆 |
 
 五阶段保持 survey → ideation → experiment → publication → promotion。
-ML、生信以 exploratory 为默认；临床、系统综述以 confirmatory 为默认。
+ML、生信、叙述性综述以 exploratory 为默认；临床原始研究、系统综述以 confirmatory 为默认。
+叙述性综述使用正式 `narrative-review` 类型，experiment 表示原文证据提取、核对和综合，不套用训练、RCT 或 Meta 分析。详见 [叙述综述共享规则](../skills/inno-pipeline-planner/references/narrative-review-profile.md)。
 已给出的任务和授权沿用，不重复询问角色。需要研究判断的关口仍由研究者决定。
 
 ## 系统综述的完整路径

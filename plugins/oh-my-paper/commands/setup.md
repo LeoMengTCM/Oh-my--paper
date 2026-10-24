@@ -5,7 +5,7 @@ description: 初始化研究项目结构（.pipeline/），并检查 Codex 插�
 
 > **确认或选择类步骤用 AskUserQuestion 工具。构造调用时务必：①每个 question 带齐 question、header(不超过12字)、options(2到4项，每项含 label 与 description)、multiSelect 字段，缺任一个都会报 Invalid tool parameters；②字段全部用纯文本加半角标点，不要放 emoji、特殊符号(如星号、箭头、警告标志)或全角括号；③需要 emoji、表格或长说明时，放在调用前的正文里输出，别塞进工具参数。payload 越精简越不容易出错。**
 
-你正在为当前目录初始化 Oh My Paper 研究 harness。
+你正在为研究目录初始化 Oh My Paper 研究 harness。先确认目标目录；当前目录若是插件源码仓库而用户要求新研究，使用独立研究目录，不把源码仓库误初始化为论文项目。沿用已明确的主题、文章类型、写作语言和起始阶段，只询问真正缺失的信息；写作语言与对话语言分别保存。
 
 ## 第一步：检查 Codex CLI（可选依赖）
 
@@ -20,17 +20,17 @@ which codex 2>/dev/null && codex --version 2>/dev/null || echo "Codex not found"
 > - Node.js：[OK / 未安装]
 > - Codex CLI：[版本 / 未安装]
 >
-> Codex 用于并行执行代码/实验子任务（/omp:delegate）。没有它一切照常——子任务由 Claude 自己执行。
+> Codex 用于并行执行代码/实验子任务（/omp:delegate）。没有它一切照常——子任务由当前 Agent 自己执行。
 > 安装方法：`npm install -g @openai/codex`（详见 github.com/openai/codex）
 
 选项：
 - `Codex 已就绪，继续初始化`
-- `不用 Codex，继续初始化（子任务由 Claude 执行）`
+- `不用 Codex，继续初始化（子任务由当前 Agent 执行）`
 - `先去安装 Codex，稍后再运行 /omp:setup`
 
 ## 第二步：询问研究信息
 
-用 `AskUserQuestion` 收集项目基本信息：
+仅对尚未提供的信息使用 `AskUserQuestion`。已知主题、写作语言和起始阶段直接写入 brief，不让用户重复回答。
 
 > 请描述你的研究项目：
 > - 研究主题是什么？（例：多模态医学影像分割）
@@ -45,17 +45,14 @@ which codex 2>/dev/null && codex --version 2>/dev/null || echo "Codex not found"
 - `experiment（实验）`
 - `publication（论文写作）`
 
-然后问研究类型（决定阶段含义、硬闸门、作图时机与质量门）：
+然后确定研究类型（决定阶段含义、适用检查与报告方式）。用户已明确类型时直接采用；否则先区分“文献综述”和“原始研究”，再询问对应子类，避免一次提供超过 4 个选项：
 
-> 这是哪类研究？
+- 文献综述：`narrative-review — 叙述性综述` / `systematic-review — 系统综述或 Meta 分析`。
+- 原始研究：`ml — 机器学习或计算实验` / `clinical — 临床原始研究` / `bioinformatics — 生物信息学`。
 
-选项：
-- `ml — 机器学习 / 计算实验`
-- `clinical — 临床研究（RCT / 队列 / 病例对照 / 诊断等；需注册与伦理审查）`
-- `systematic-review — 系统综述 / Meta 分析（确认注册适用性与实际状态）`
-- `bioinformatics — 生物信息学（组学流程，常用 HPC）`
+记下选择写入 `pipeline.track`。clinical / systematic-review 自动设 `analysisMode = confirmatory`，其余为 `exploratory`。新建叙述性综述使用正式 `narrative-review`，不以 ml 或 clinical 代替。
 
-记下选择写入 `pipeline.track`。clinical / systematic-review 自动设 `analysisMode = confirmatory`，其余为 `exploratory`。
+narrative-review 读取实际 skills 目录下 `inno-pipeline-planner/references/narrative-review-profile.md`：survey 检索与阅读 → ideation 确定重点和论证问题 → experiment 提取、核对和综合证据 → publication 写作、引用核验和评审 → 按需 promotion。默认 exploratory，不自动生成临床 protocol/SAP，不要求 RCT 注册、IRB、PRISMA 计数或 Meta 分析。记录真实检索范围和限制，不将其宣称为系统综述。旧项目的 `projectContext.researchType/articleType` 或根级同名字段可继续表示 narrative-review；不静默迁移旧 track，类型冲突先核对原始决定。
 
 systematic-review 读取实际 skills 目录下 `systematic-review/references/rct-pairwise-profile.md`。五阶段不变：survey 探索 → ideation 批准 PICO/方案/SAP → experiment 正式检索、筛选、提取与合成 → publication → promotion。默认 `confirmatory`；批准记录写入 `.pipeline/memory/decision_log.md`，关联批准的方案版本，任务 `done` 本身不是审批证据。注册状态如实记录为 `planned` / `submitted` / `registered` / `not_registered` / `not_applicable`；未注册须用户说明并确认，但不绝对阻断。公开汇总数据不默认要求 IRB；涉及个体数据或其他伦理要求时另行核实。允许错误修复后重跑并记录原因与偏离，不允许为显著性改方案。
 
@@ -64,13 +61,20 @@ systematic-review 读取实际 skills 目录下 `systematic-review/references/rc
 ## 第三步：创建目录结构
 
 ```bash
-mkdir -p .pipeline/memory .pipeline/tasks .pipeline/docs .pipeline/.hook-events .claude/skills
-cp -rn "${CLAUDE_PLUGIN_ROOT}/skills/." .claude/skills/
+mkdir -p .pipeline/memory .pipeline/tasks .pipeline/docs .pipeline/.hook-events
 ```
+
+> **Qoder**：插件启用后 skills 直接可用，不需要项目内副本，跳过下面的复制。
+>
+> **Claude Code**：仅在需要项目内技能副本时执行（旧版插件或子代理只认 `.claude/skills`）：
+>
+> ```bash
+> mkdir -p .claude/skills && cp -rn "${CLAUDE_PLUGIN_ROOT}/skills/." .claude/skills/
+> ```
 
 > 如果 `.claude/skills/` 已存在（重复运行 setup，常见于插件升级后），`cp -rn` 不会覆盖旧副本。此时用 `AskUserQuestion` 问一句：`保留现有技能副本` / `用插件最新版覆盖刷新（cp -rf）`——项目里自己改过技能的选保留，否则建议刷新。
 
-> **关于 hooks**：SessionStart / Stop / PostToolUse 三个 hook 已由插件自带的 `hooks/hooks.json` 提供，**插件启用即生效，无需在项目里重复注册**。（早期版本曾在这一步手动把 SessionStart 写进 `.claude/settings.json`，与插件自带的那份重复、会导致每次开会话角色选择触发两次，现已移除。）
+> **关于 hooks**：SessionStart / Stop / PostToolUse 三个 hook 已由插件自带的 hooks 配置提供（Claude Code 为 `hooks/hooks.json`，Qoder 为 `hooks/qoder-hooks.json`），**插件启用即生效，无需在项目里重复注册**。（早期版本曾在这一步手动把 SessionStart 写进 `.claude/settings.json`，与插件自带的那份重复、会导致每次开会话角色选择触发两次，现已移除。）
 
 ## 第四步：写入初始文件
 
@@ -87,11 +91,14 @@ cp -rn "${CLAUDE_PLUGIN_ROOT}/skills/." .claude/skills/
   "goal": "",
   "currentStage": "[用户选择的阶段]",
   "pipeline": {
-    "track": "[ml|clinical|systematic-review|bioinformatics]",
+    "track": "[ml|clinical|systematic-review|bioinformatics|narrative-review]",
     "analysisMode": "[clinical/SR 填 confirmatory，其余 exploratory]",
     "startStage": "[用户选择的阶段]"
   },
-  "successThreshold": "成功标准（confirmatory 研究：填主要结局与预设分析，而非可反复迭代的阈值）"
+  "projectContext": {
+    "writingLanguage": "[已确认的稿件语言，独立于对话语言]"
+  },
+  "successThreshold": "成功标准（叙述性综述：证据与论点可核对；confirmatory 研究：主要结局与预设分析，而非可反复迭代的阈值）"
 }
 ```
 
@@ -126,6 +133,6 @@ cp -rn "${CLAUDE_PLUGIN_ROOT}/skills/." .claude/skills/
 > - 运行 `/omp:plan` 查看整体状态
 > - 运行 `/omp:survey` 开始文献调研（如果从 survey 阶段）
 
-选项：
+记录实际创建和保留的文件，校验 `tasks.json`，确认 brief 的研究类型、写作语言与已知决定一致。空任务表表示尚未规划，不表示研究已经完成。若用户已授权完整流程，直接运行 `/omp:plan`；仅在下一步尚未明确时提供下列选项：
 - `开始！运行 /omp:plan`
 - `我先自己看看文件结构`

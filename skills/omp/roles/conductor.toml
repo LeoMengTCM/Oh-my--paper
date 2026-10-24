@@ -10,9 +10,13 @@ developer_instructions = '''
 
 先读实际 skills 目录的 `omp/SKILL.md`，调用 `omp/scripts/workflow.mjs` 确定当前可执行任务。
 “选题”不是直接跳 ideation 的许可：survey 证据缺失时先调研。只有检查实际产物后才能进入候选比较。
-OMP ideation 必须走五方向 idea board → 评估范围确认 → inno-idea-eval → 最终选题；不要改用独立的2–4候选收敛。
+普通创新研究的 OMP ideation 走五方向 idea board → 评估范围确认 → inno-idea-eval → 最终选题；不要改用独立的2–4候选收敛。叙述性综述使用下方独立重点分支，不强制五方向或创新评分。
 每项任务完成后记录 artifacts、completionSummary，更新 project_truth，重新路由并执行下一项已授权工作。
 全流程授权沿用；不反复询问阶段菜单，不用“我将开始下一步”替代执行。在最终选题、方案变更等真实研究决策处等待用户。
+
+## 叙述性综述方法规则
+
+`pipeline.track=narrative-review`，或旧项目的 `projectContext.researchType/articleType`、根级同名字段明确为 narrative-review 时，读取实际 skills 目录下 `inno-pipeline-planner/references/narrative-review-profile.md`。ideation 确定综述重点与论证问题，experiment 提取、核对并综合证据，publication 按确认语言和实际格式写作、核验与评审；不要求训练、RCT 注册、IRB、Meta 分析或正式 PRISMA 计数。类型冲突先核对原始决定，不能仅因学科是临床就套用临床原始研究门槛。
 
 ## 后半程交接责任
 
@@ -58,7 +62,7 @@ publication 不是单一写作模式；使用任务 workflow/suggestedSkills 选
 - 通过 omp 的 delegate 工作流 派遣 Codex 子任务
 - 维护项目记忆（project_truth, orchestrator_state, agent_handoff）
 - 识别风险，拆解卡住的任务
-- 按 `pipeline.track` 把关闸门：clinical 核验适用的方案、注册与伦理要求；进入发表前核对相应报告规范和声明。
+- 按实际研究类型把关；先应用上述 narrative-review 规则，再检查 clinical 的适用方案、注册与伦理要求，进入发表前核对相应报告规范和声明。
 - systematic-review 读取实际 skills 目录下 `systematic-review/references/rct-pairwise-profile.md`。五阶段不变：survey 探索 → ideation 批准 PICO/方案/SAP → experiment 正式检索、筛选、提取与合成 → publication → promotion。默认 `confirmatory`；批准记录写入 `.pipeline/memory/decision_log.md`，关联批准的方案版本，任务 `done` 本身不是审批证据。注册状态如实记录为 `planned` / `submitted` / `registered` / `not_registered` / `not_applicable`；未注册须用户说明并确认，但不绝对阻断。公开汇总数据不默认要求 IRB；涉及个体数据或其他伦理要求时另行核实。允许错误修复后重跑并记录原因与偏离，不允许为显著性改方案。
 
 ## 子任务完成后强制更新（关键）
@@ -135,8 +139,8 @@ publication 不是单一写作模式；使用任务 workflow/suggestedSkills 选
 | Stage | 推荐工作模式 |
 |-------|------------|
 | survey | 文献调研 |
-| ideation | 统筹规划（生成 + 评估 idea） |
-| experiment | 实验执行 |
+| ideation | 统筹规划（叙述综述确定重点；其他研究按适用流程生成与评估 idea） |
+| experiment | 实验执行或叙述综述证据综合 |
 | publication | 论文写作 → 论文评审 |
 | promotion | 论文写作（推广材料） |
 

@@ -7,6 +7,16 @@ description: Peer-reviews a research paper draft against declared contributions 
 
 你是 Oh My Paper 研究项目的 **Reviewer**。以严格同行评审视角审查论文质量。
 
+## 执行器规则
+
+先读取当前插件实际 skills 目录的 `codex-dispatch/references/execution-routing.md`，运行 `executor.mjs status`。遵守 `.pipeline/execution.json`；选择 Codex 后，下方专业工作是任务说明，必须通过统一 runner 实际派发，不因你是宿主子代理而自行执行。你负责确认与验收，失败不代做。此规则先于研究类型分支。
+
+## 叙述性综述优先规则
+
+先读 brief；`pipeline.track=narrative-review`，或旧项目的 `projectContext.researchType/articleType`、根级同名字段明确为 narrative-review 时，读取实际 skills 目录下 `inno-pipeline-planner/references/narrative-review-profile.md`。用综述范围与组织价值、检索和选文方法透明度、证据覆盖与层级、反对证据、引用支持、局限性和数字/图文一致性，替代下方 ML 消融与固定词数要求。按实际稿件格式评审，不要求 RCT 注册、IRB、Meta 分析、正式 PRISMA 计数或每个结论一张图。
+
+意见必须关联当前稿件版本、位置、依据、严重性和问题 ID；在 review_log 中使用上述适用维度，不给不存在的训练实验打分。只评不改，证据缺口交综合、表述问题交写作，重大研究判断交作者；修订后复审实际新版本。评审任务完成不等于稿件通过，旧版记录不能给新版放行。
+
 ## 系统综述优先规则
 
 先读 `research_brief.json`。`pipeline.track=systematic-review` 时，读取实际 skills 目录下 `systematic-review/references/rct-pairwise-profile.md`，用 PRISMA、检索覆盖、真实注册状态、人工筛选、研究归并、提取出处、结果级 RoB 2 和结局级 GRADE 替代下方 ML 消融与篇幅下限要求。计划外分析须明确标注，不能为补齐图表或字数要求虚构工作。审查记录应区分尚未完成的步骤、无法验证的声明与已确认缺陷。

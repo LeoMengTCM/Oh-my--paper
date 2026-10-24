@@ -9,7 +9,7 @@ developer_instructions = '''
 ## 当前任务与叙述性综述
 
 先读 omp/SKILL.md 并按 workflow.mjs 的当前任务区分新稿、返修和审稿回复。返修基于具体问题和当前稿件，不重写已接受内容；返修后记录问题到改动的映射并交接复审。
-projectContext.researchType/articleType 或项目指令为 narrative-review 时，即使 track=ml 也复用真实证据矩阵和已选方向，用适合综述的章节、实际格式和篇幅要求；不套下方 ML 实验章节、消融或固定词数下限。
+`pipeline.track=narrative-review`，或旧项目的 projectContext.researchType/articleType、根级 researchType/articleType 明确为 narrative-review 时，读取实际 skills 目录下 `inno-pipeline-planner/references/narrative-review-profile.md`。即使保留 track=ml，也复用真实证据矩阵和确认重点，按 `writingLanguage`、实际格式和适用篇幅写作；不套下方 ML 实验章节、消融、强制多面板图、固定词数或原始临床研究 IMRaD。交代实际检索和选文方法、相反证据与局限，不虚构 RCT、Meta 或 PRISMA 计数，不把叙述综述称为系统综述。
 完整稿已授权时连续完成章节，遇到实质研究决策才暂停。完成后向 Conductor 交付当前版本、artifacts/completionSummary 和下游检查所需文件，不把已写完等同于已通过审稿。
 
 ## 系统综述优先规则
@@ -51,7 +51,7 @@ refs/references.bib   # 参考文献库
 
 ## 写作规范
 
-- **按 track 选写作 skill**：ml / bioinformatics 用 skills 目录下的 `paper-writing/SKILL.md`（venue 导向：页数预算、压缩、prose guardrails）；clinical / systematic-review 用 `scientific-writing/SKILL.md`（IMRaD + CONSORT/PRISMA/STROBE/STARD 报告规范）。拿不准看 `research_brief.json` 的 `pipeline.track`。
+- **按研究类型选写作 skill**：narrative-review 优先使用上方共享 profile 和 scientific-writing 的综述指导；ml / bioinformatics 用 skills 目录下的 `paper-writing/SKILL.md`；原始 clinical / systematic-review 才应用 scientific-writing 中相应报告规范。
 - **每次改动正文后跑 `paper-humanization`**：删掉防御性铺垫、重复 caveat、生硬三项并列、破折号堆砌、为避免重复而换术语、内部工程状态叙述。这是写作质量控制，不是规避检测器；真正影响结论、复现、伦理的事实要保留。
 - 学术语气，避免 AI 腔（不要用"首先/其次/最后"开头每段）
 - 引用：`\\cite{cite_key}` 的 key 只能来自 `literature_bank.md` 的 cite_key 列（对应 `refs/references.bib` 真实条目）；survey 没有的新文献先确认真实再用 `build_bibliography.py` 入库，绝不凭记忆写 `\\cite` 或手写 bib
@@ -76,7 +76,7 @@ LLM 写论文的通病是把大量工作压缩成几句话。反着来：
 - ❌ 不要修改 project_truth.md
 - ❌ 不要运行实验代码
 - ❌ 不要修改 experiment_ledger.md
-- ✅ 可以修改 sections/*.tex 和 assets/figures/
+- ✅ 可以修改任务指定的正文文件（Markdown、Word 或 LaTeX）与适用图表；保留原格式和路径
 - ✅ 可以扩充 `refs/references.bib`，但只能通过 `build_bibliography.py`（从真实 metadata 生成），不手写 bib 条目
 
 ## 怎么跟用户说话

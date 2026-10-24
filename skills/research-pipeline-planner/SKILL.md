@@ -24,12 +24,12 @@ Use this skill when the user needs to define or revise the project-level researc
 2. Keep the pipeline aligned with the five stages: survey, ideation, experiment, publication, promotion.
 3. When the user already has results or a draft, move the starting stage forward instead of rebuilding earlier stages.
 4. Do not invent citations, datasets, or experimental outcomes.
-5. OMP 的 ideation 使用 `omp/references/omp-ideate.md`：五方向 idea board → 用户确认评估范围 → inno-idea-eval → 用户最终选题。不得被独立 `research-idea-convergence` 的 2–4 候选流程替换；仅在用户明确选择轻量比较时使用后者。systematic-review 按 RCT profile 制定和批准 PICO/方案/SAP，不强制生成五个创新点。
+5. OMP 的 ideation 使用 `omp/references/omp-ideate.md`：五方向 idea board → 用户确认评估范围 → inno-idea-eval → 用户最终选题。不得被独立 `research-idea-convergence` 的 2–4 候选流程替换；仅在用户明确选择轻量比较时使用后者。systematic-review 按 RCT profile 制定和批准 PICO/方案/SAP；narrative-review 按 `inno-pipeline-planner/references/narrative-review-profile.md` 确定综述重点、读者和论证问题。两类综述都不强制生成五个创新点或进行创新性评分。
 6. 在 Codex 的 OMP 全流程任务中先读 `../omp/SKILL.md`，执行其只读 workflow preflight；按当前状态与产物路由，不能仅凭“选题”等词跳阶段。阶段产物须评审；已授权的流程推进不反复询问角色或阶段，只有选定方向、方案批准等实质研究决策需要用户确认。单独请求规划时尊重该范围。
 7. **严格线性执行**：任务必须按顺序执行，当前任务未完成前不得跳至下一任务。调研未完成 → 不得进入构思；构思未完成 → 不得进入实验。每个阶段的所有任务 done 后才能进入下一阶段。
-8. **确定 `pipeline.track`**（ml / clinical / systematic-review / bioinformatics；缺省 ml）并据此设 `pipeline.analysisMode`。clinical/systematic-review 默认 **confirmatory**：按预设计划分析、如实报告，不为显著性改方案；允许错误修复后重跑，记录原因和偏离。细节见实际 skills 目录下 `inno-pipeline-planner/references/track-profiles.md`。
+8. **确定 `pipeline.track`**（ml / clinical / systematic-review / narrative-review / bioinformatics；缺省 ml）并据此设 `pipeline.analysisMode`。clinical/systematic-review 默认 **confirmatory**：按预设计划分析、如实报告，不为显著性改方案；允许错误修复后重跑，记录原因和偏离。narrative-review 默认 exploratory，表示可以有记录地调整综述范围，不是为结论选择性取证。旧研究类型字段继续按对应 profile 解释。细节见实际 skills 目录下 `inno-pipeline-planner/references/track-profiles.md`。
 9. **硬闸门（clinical / systematic-review）**：保留既有 gate ID，以 `dependencies` 声明前置门；clinical 核验适用的方案、注册与伦理要求。systematic-review 读取实际 skills 目录下 `systematic-review/references/rct-pairwise-profile.md`：survey 探索，ideation 批准 PICO/方案/SAP，experiment 正式检索筛选合成，之后 publication、promotion。`done` 不是审批证据，核验 `decision_log.md` 中的用户批准与方案版本；注册状态按 `planned` / `submitted` / `registered` / `not_registered` / `not_applicable` 如实记录，未注册需用户说明确认但不绝对阻断，公开汇总数据不默认 IRB。
-10. **作图尽早**：提前规划适用的流程图与结果图；systematic-review 不为满足阶段数量强制图表或额外分析。数据图由分析代码生成，不交给图像生成模型。
+10. **作图尽早**：提前规划适用的流程图与结果图；systematic-review / narrative-review 不为满足阶段数量强制图表或额外分析。数据图由分析代码生成，不交给图像生成模型。
 
 ## Expected Outputs
 
@@ -37,4 +37,4 @@ Use this skill when the user needs to define or revise the project-level researc
 
 - a concise research brief with topic, goal, venue, current stage, and stage notes
 - a task list with dependencies, suggested skills, and a concrete `nextActionPrompt`
-- ideation：OMP 交付五方向 idea board、评估范围、idea eval 和用户选定的方向；systematic-review 交付经研究者确认的 PICO/方案/SAP，不要求 `publishable_angle.md`
+- ideation：OMP 原创研究交付五方向 idea board、评估范围、idea eval 和用户选定的方向；systematic-review 交付经研究者确认的 PICO/方案/SAP；narrative-review 交付确认后的综述范围、主问题与提纲。两类综述不强制 `publishable_angle.md`。

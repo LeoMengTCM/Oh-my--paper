@@ -1,0 +1,39 @@
+{
+  "description": "Oh My Paper research harness hooks for Qoder: session context injection, executor report capture, and stage completion reminders.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${QODER_PLUGIN_ROOT}/scripts/on-session-start.mjs\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${QODER_PLUGIN_ROOT}/scripts/on-task-complete.mjs\"",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit|mcp__filesystem__write_file|mcp__filesystem__edit_file",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${QODER_PLUGIN_ROOT}/scripts/on-stage-transition.mjs\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

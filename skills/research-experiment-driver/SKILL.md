@@ -23,9 +23,12 @@ Use this skill when the project is ready to translate ideas into executable expe
 2. Keep experiment plans falsifiable and measurable.
 3. Separate implementation tasks from analysis tasks.
 4. Do not claim results before they exist in the project.
-5. In a Codex OMP project, read `../omp/SKILL.md` and run its task preflight. Respect
-   `projectContext.researchType`/articleType: for narrative-review, integrate claims,
-   sources, competing evidence and limitations instead of designing training runs.
+5. In a Codex OMP project, read `../omp/SKILL.md` and run its task preflight.
+   在任一宿主中，`pipeline.track = narrative-review` 或旧
+   `projectContext.researchType` / `articleType`、根级同名字段标为叙述综述时，
+   先读 `../inno-pipeline-planner/references/narrative-review-profile.md`。
+   本阶段整合论断、来源、相互矛盾的证据与局限，不执行训练、消融或自动 Meta 分析，
+   不默认要求临床试验注册、IRB 或 PRISMA。
 6. On completion, register artifacts and completionSummary, update result_summary
    and the handoff, then route the next authorized writing task. Missing evidence
    returns to retrieval/analysis rather than being filled by the writer.
